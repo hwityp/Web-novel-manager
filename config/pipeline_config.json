@@ -1,9 +1,27 @@
 {
   "source_folder": "",
   "target_folder": "정리완료",
-  "protected_folders": ["Downloads", "Tempfile", "정리완료"],
-  "genre_whitelist": ["SF", "겜판", "로판", "무협", "미분류", "선협", "소설", "스포츠", "언정", "역사", "퓨판", "판타지", "현판"],
+  "protected_folders": [
+    "Downloads",
+    "Tempfile",
+    "정리완료"
+  ],
+  "genre_whitelist": [
+    "SF",
+    "겜판",
+    "로판",
+    "무협",
+    "미분류",
+    "선협",
+    "소설",
+    "스포츠",
+    "언정",
+    "역사",
+    "퓨판",
+    "판타지",
+    "현판"
+  ],
   "log_level": "INFO",
   "max_retries": 1,
-  "dry_run": true
+  "dry_run": false
 }

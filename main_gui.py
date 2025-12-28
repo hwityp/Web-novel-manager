@@ -41,12 +41,6 @@ def _setup_paths():
     if base_path not in sys.path:
         sys.path.insert(0, base_path)
     
-    # 추가 경로 설정 (gui, core, modules, config)
-    for subdir in ['gui', 'core', 'modules', 'config']:
-        subdir_path = os.path.join(base_path, subdir)
-        if os.path.exists(subdir_path) and subdir_path not in sys.path:
-            sys.path.insert(0, subdir_path)
-    
     return base_path, application_path
 
 # 경로 설정 실행

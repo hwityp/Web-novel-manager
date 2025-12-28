@@ -312,9 +312,12 @@ class PipelineOrchestrator:
             # 타겟 디렉토리 생성
             target_path.parent.mkdir(parents=True, exist_ok=True)
             
-            # 파일 이동
-            shutil.move(str(source_path), str(target_path))
-            task.current_path = target_path
+            # 파일 복사 (원본 보존)
+            shutil.copy2(str(source_path), str(target_path))
+            # task.current_path = target_path # 원본 위치는 유지 (필요하다면 로직에 따라 다름, 일단 복사만 수행)
+            # 여기서는 복사된 파일로 후속 작업을 할지 원본으로 할지에 따라 다르지만, 
+            # 일단 'move'를 대체하는 것이므로 복사본이 최종 결과물이 됨.
+            task.current_path = target_path # 파이프라인 상에서는 타겟이 현재 위치가 됨
             
             self.logger.debug(f"파일 이동: {source_path} → {target_path}")
             

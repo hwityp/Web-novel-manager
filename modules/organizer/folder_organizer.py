@@ -327,13 +327,15 @@ class FolderOrganizer:
             # 루트의 단일 파일만 추출
             ok = self.extract_specific_file(archive_path, target_file, self.target_folder)
             if ok:
-                self._cleanup_source_after_processing(Path(archive_path))
+                pass
+            # Source cleanup removed for safety
+            # self._cleanup_source_after_processing(Path(archive_path))
             return ok
             
         elif method == "move_as_is":
             # 압축 파일 그대로 이동
             dest_path = self.target_folder / Path(archive_path).name
-            shutil.move(str(archive_path), str(dest_path))
+            shutil.copy2(str(archive_path), str(dest_path))
             return True
             
         elif method == "extract_all":
@@ -342,7 +344,9 @@ class FolderOrganizer:
             new_folder.mkdir(exist_ok=True)
             ok = self.extract_archive(archive_path, new_folder)
             if ok:
-                self._cleanup_source_after_processing(Path(archive_path))
+                pass
+            # Source cleanup removed for safety
+            # self._cleanup_source_after_processing(Path(archive_path))
             return ok
 
         elif method == "extract_and_recompress_folders":
@@ -359,7 +363,8 @@ class FolderOrganizer:
                             self.compress_folder(item, zip_path)
                         else:
                             shutil.copy2(item, new_folder)
-                    self._cleanup_source_after_processing(Path(archive_path))
+                    # Source cleanup removed for safety
+                    # self._cleanup_source_after_processing(Path(archive_path))
                     return True
         
         return False
@@ -395,54 +400,57 @@ class FolderOrganizer:
             pass
 
     def _cleanup_source_after_processing(self, archive_path: Path):
-        """처리 완료 후 원본 압축 파일과 빈 원본 폴더 정리"""
-        try:
-            # 원본 압축 파일 제거
-            if archive_path.exists():
-                archive_path.unlink()
-        except Exception:
-            pass
+        """처리 완료 후 원본 압축 파일과 빈 원본 폴더 정리 (SAFETY: Disabled)"""
+        pass
+        # try:
+        #     # 원본 압축 파일 제거
+        #     if archive_path.exists():
+        #         archive_path.unlink()
+        # except Exception:
+        #     pass
     
     def _remove_empty_dirs(self, root: Path):
-        """root 하위의 빈 폴더를 재귀적으로 삭제 (보호/목적 폴더 제외)"""
-        try:
-            root = Path(root)
-            for dirpath, dirnames, filenames in os.walk(root, topdown=False):
-                current = Path(dirpath)
-                # 목적 폴더 혹은 보호 폴더는 삭제 금지
-                if current == self.target_folder:
-                    continue
-                if self.is_protected_folder(current):
-                    continue
-                try:
-                    if not any(current.iterdir()):
-                        self._force_remove_dir(current)
-                except Exception:
-                    pass
-        except Exception:
-            pass
+        """root 하위의 빈 폴더를 재귀적으로 삭제 (SAFETY: Disabled)"""
+        pass
+        # try:
+        #     root = Path(root)
+        #     for dirpath, dirnames, filenames in os.walk(root, topdown=False):
+        #         current = Path(dirpath)
+        #         # 목적 폴더 혹은 보호 폴더는 삭제 금지
+        #         if current == self.target_folder:
+        #             continue
+        #         if self.is_protected_folder(current):
+        #             continue
+        #         try:
+        #             if not any(current.iterdir()):
+        #                 self._force_remove_dir(current)
+        #         except Exception:
+        #             pass
+        # except Exception:
+        #     pass
 
     def _force_remove_dir(self, path: Path):
-        """Windows에서 잠금 문제를 우회하며 폴더 삭제 (빈 폴더 가정)"""
-        try:
-            # 파일 속성 Read-only 해제 시도
-            try:
-                os.chmod(path, 0o700)
-            except Exception:
-                pass
-            # 1차 시도: 빈 폴더 직접 삭제
-            path.rmdir()
-        except OSError:
-            # 혹시 잔여 숨김파일 등이 있다면 강제 재시도
-            try:
-                for child in path.glob('**/*'):
-                    try:
-                        os.chmod(child, 0o700)
-                    except Exception:
-                        pass
-                shutil.rmtree(path, ignore_errors=True)
-            except Exception:
-                pass
+        """Windows에서 잠금 문제를 우회하며 폴더 삭제 (SAFETY: Disabled)"""
+        pass
+        # try:
+        #     # 파일 속성 Read-only 해제 시도
+        #     try:
+        #         os.chmod(path, 0o700)
+        #     except Exception:
+        #         pass
+        #     # 1차 시도: 빈 폴더 직접 삭제
+        #     path.rmdir()
+        # except OSError:
+        #     # 혹시 잔여 숨김파일 등이 있다면 강제 재시도
+        #     try:
+        #         for child in path.glob('**/*'):
+        #             try:
+        #                 os.chmod(child, 0o700)
+        #             except Exception:
+        #                 pass
+        #         shutil.rmtree(path, ignore_errors=True)
+        #     except Exception:
+        #         pass
 
     # 7-Zip 보조기능들
     def _seven_zip_list(self, archive_path: Path):
@@ -533,9 +541,10 @@ class FolderOrganizer:
             for file in files:
                 if file.is_file():
                     dest_path = new_folder / file.name
-                    shutil.move(str(file), str(dest_path))
+                    shutil.copy2(str(file), str(dest_path))
             # 정리 후 빈 폴더 재귀 삭제
-            self._remove_empty_dirs(folder_path)
+            # Source folder cleanup removed for safety
+            # self._remove_empty_dirs(folder_path)
             return True
         
         # 압축 파일이 1개인 경우
@@ -554,13 +563,14 @@ class FolderOrganizer:
                     dest_path = new_folder / item.name
                     try:
                         if item.is_file():
-                            shutil.move(str(item), str(dest_path))
+                            shutil.copy2(str(item), str(dest_path))
                         elif item.is_dir():
-                            shutil.move(str(item), str(dest_path))
+                            shutil.copy2(str(item), str(dest_path))
                     except Exception as e:
                         self.logger.error(f"남은 항목 이동 실패 {item}: {e}")
             # 정리 후 빈 폴더 재귀 삭제
-            self._remove_empty_dirs(folder_path)
+            # Source folder cleanup removed for safety
+            # self._remove_empty_dirs(folder_path)
             return ok or True
         
         # 일반 파일만 있는 경우
@@ -569,7 +579,7 @@ class FolderOrganizer:
                 # 3개 이하: 직접 이동
                 for file in regular_files:
                     dest_path = self.target_folder / file.name
-                    shutil.move(str(file), str(dest_path))
+                    shutil.copy2(str(file), str(dest_path))
             else:
                 # 4개 이상: 새 폴더 생성 후 이동
                 folder_name = folder_path.name
@@ -578,7 +588,7 @@ class FolderOrganizer:
                 
                 for file in regular_files:
                     dest_path = new_folder / file.name
-                    shutil.move(str(file), str(dest_path))
+                    shutil.copy2(str(file), str(dest_path))
             return True
     
     def is_archive(self, file_path):
@@ -609,8 +619,8 @@ class FolderOrganizer:
             except Exception as e:
                 self.logger.error(f"폴더 처리 중 오류 {subfolder.name}: {e}")
         
-        # 빈 폴더 삭제 (다시 한 번 확인)
-        for folder in processed_folders:
+        # 빈 폴더 삭제 로직 제거 (안전성 보장)
+        # for folder in processed_folders: ...
             try:
                 if folder.exists() and folder.is_dir() and not any(folder.iterdir()):
                     self._force_remove_dir(folder)
@@ -620,7 +630,8 @@ class FolderOrganizer:
         
         # 전체 트리에서 빈 폴더 최종 정리
         try:
-            self._remove_empty_dirs(self.source_folder)
+            # self._remove_empty_dirs(self.source_folder)
+            pass
         except Exception:
             pass
         

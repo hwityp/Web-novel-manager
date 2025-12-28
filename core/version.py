@@ -7,8 +7,8 @@ WNAP 버전 정보
 - PATCH: 하위 호환성 있는 버그 수정
 """
 
-__version__ = "1.0.0"
-__version_info__ = (1, 0, 0)
+__version__ = "1.2.0"
+__version_info__ = (1, 2, 0)
 __release_date__ = "2024-12-28"
 __author__ = "WNAP Team"
 __app_name__ = "WNAP - Web Novel Archive Pipeline"

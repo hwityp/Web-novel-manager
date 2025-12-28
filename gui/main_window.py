@@ -285,6 +285,8 @@ class WNAPMainWindow(ctk.CTk):
             text_color=THEME["text_primary"]
         )
         self.source_entry.grid(row=1, column=1, padx=PADDING_SMALL, pady=PADDING_BASE, sticky="ew")
+        # 입력 변경 시 실행 버튼 비활성화 (재분석 유도)
+        self.source_entry.bind("<KeyRelease>", lambda e: self._on_input_changed())
         
         self.source_btn = ctk.CTkButton(
             folder_card, 
@@ -326,9 +328,12 @@ class WNAPMainWindow(ctk.CTk):
             height=38,
             corner_radius=8,
             fg_color=THEME["bg_input"],
-            text_color=THEME["text_primary"]
+            text_color=THEME["text_primary"],
+            textvariable=ctk.StringVar()
         )
         self.target_entry.grid(row=2, column=1, padx=PADDING_SMALL, pady=(0, PADDING_LARGE), sticky="ew")
+        # 입력 변경 시 실행 버튼 비활성화 (재분석 유도)
+        self.target_entry.bind("<KeyRelease>", lambda e: self._on_input_changed())
         
         self.target_btn = ctk.CTkButton(
             folder_card,
@@ -732,7 +737,8 @@ class WNAPMainWindow(ctk.CTk):
             hover_color=THEME["accent_green_hover"],
             text_color=THEME["button_text"],
             text_color_disabled=THEME["button_text_disabled"],
-            command=self._run_pipeline
+            command=self._run_pipeline,
+            state="disabled"  # 초기 상태 비활성화
         )
         self.run_btn.grid(row=0, column=1, padx=PADDING_BASE, pady=PADDING_LARGE, sticky="ew")
         
@@ -752,6 +758,14 @@ class WNAPMainWindow(ctk.CTk):
         clear_btn.grid(row=0, column=2, padx=(PADDING_BASE, PADDING_LARGE), pady=PADDING_LARGE, sticky="ew")
 
 
+        # 초기화 버튼도 실행 중 비활성화 (self.disable_on_run에 추가)
+        self.disable_on_run.append(clear_btn)
+
+    def _on_input_changed(self):
+        """입력 변경 시 실행 버튼 비활성화 (재분석 유도)"""
+        if hasattr(self, 'run_btn'):
+            self.run_btn.configure(state="disabled")
+
     # ========================================================================
     # 이벤트 핸들러
     # ========================================================================
@@ -763,6 +777,7 @@ class WNAPMainWindow(ctk.CTk):
             self.source_entry.delete(0, "end")
             self.source_entry.insert(0, folder)
             self._log_to_file(f"소스 폴더 선택: {folder}")
+            self._on_input_changed() # 경로 변경 시 상태 초기화
     
     def _browse_target_folder(self):
         """타겟 폴더 선택 다이얼로그"""
@@ -771,6 +786,7 @@ class WNAPMainWindow(ctk.CTk):
             self.target_entry.delete(0, "end")
             self.target_entry.insert(0, folder)
             self._log_to_file(f"타겟 폴더 선택: {folder}")
+            self._on_input_changed() # 경로 변경 시 상태 초기화
     
     def _load_config_to_ui(self):
         """설정을 UI에 반영"""
@@ -1092,16 +1108,26 @@ class WNAPMainWindow(ctk.CTk):
         
         dry_run = self.dry_run_var.get()
         
-        # 확인 대화상자
-        if self.confirm_var.get():
-            mode = "미리보기" if dry_run else "실제 실행"
+        # 확인 대화상자 (실행 모드일 때만 엄격한 확인)
+        if not dry_run and self.confirm_var.get():
+            # 미리보기 결과가 있다면 파일 수 포함
+            file_count_msg = ""
+            if self.last_result:
+                file_count_msg = f"\n총 {self.last_result.total_files}개의 파일을 복사합니다."
+            
             if not messagebox.askyesno(
-                "실행 확인",
-                f"{mode} 모드로 파이프라인을 실행하시겠습니까?\n\n"
+                "최종 실행 확인",
+                f"정말로 파일을 복사하시겠습니까?{file_count_msg}\n\n"
                 f"소스: {self.source_entry.get()}\n"
-                f"타겟: {self.target_entry.get() or '소스폴더/정리완료'}"
+                f"타겟: {self.target_entry.get() or '소스폴더/정리완료'}\n\n"
+                "※ 원본 파일은 안전하게 보존됩니다."
             ):
                 return
+        
+        # 미리보기 모드 확인 (옵션이 켜져있을 경우)
+        elif dry_run and self.confirm_var.get():
+             if not messagebox.askyesno("미리보기 확인", "미리보기(Dry-run)를 시작하시겠습니까?"):
+                 return
         
         # 설정 업데이트
         self._update_config_from_ui()
@@ -1184,6 +1210,16 @@ class WNAPMainWindow(ctk.CTk):
             self.open_csv_btn.configure(state="normal")
         if not dry_run:
             self.open_folder_btn.configure(state="normal")
+            # [편의 기능] 실행 완료 시 자동으로 폴더 열기
+            self._open_target_folder()
+            # 실행 후 버튼 다시 비활성화 (재분석 유도)
+            self.run_btn.configure(state="disabled")
+        else:
+            # 미리보기 완료 시: 결과가 있으면 실행 버튼 활성화
+            if result.total_files > 0:
+                self.run_btn.configure(state="normal")
+            else:
+                self.run_btn.configure(state="disabled")
         
         # 상태 업데이트
         if result.failed > 0:
