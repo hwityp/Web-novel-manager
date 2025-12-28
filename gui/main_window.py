@@ -50,13 +50,13 @@ ctk.set_default_color_theme("blue")
 FONT_FAMILY = "Segoe UI"
 FONT_FAMILY_MONO = "Consolas"
 
-# 폰트 크기
-FONT_SIZE_SMALL = 12
-FONT_SIZE_BASE = 14
-FONT_SIZE_MEDIUM = 16
-FONT_SIZE_LARGE = 18
-FONT_SIZE_XLARGE = 20
-FONT_SIZE_DASHBOARD = 24
+# 폰트 크기 (시인성 향상)
+FONT_SIZE_SMALL = 14
+FONT_SIZE_BASE = 16
+FONT_SIZE_MEDIUM = 18
+FONT_SIZE_LARGE = 20
+FONT_SIZE_XLARGE = 22
+FONT_SIZE_DASHBOARD = 28
 
 # 고대비 테마 딕셔너리
 THEME = {
@@ -70,15 +70,19 @@ THEME = {
     # 텍스트 색상 (고대비)
     "text_primary": "#FFFFFF",
     "text_secondary": "#E0E0E0",
-    "text_muted": "#A0A0A0",
+    "text_muted": "#B0B0B0",
     
-    # 강조 색상
-    "accent_blue": "#4A90D9",
-    "accent_blue_hover": "#5BA0E9",
-    "accent_green": "#4CAF50",
-    "accent_green_hover": "#5CBF60",
-    "accent_gray": "#606060",
-    "accent_gray_hover": "#707070",
+    # 버튼 텍스트 색상 (최대 시인성)
+    "button_text": "#FFFFFF",
+    "button_text_disabled": "#808080",
+    
+    # 강조 색상 (더 밝게 조정)
+    "accent_blue": "#5A9FE9",
+    "accent_blue_hover": "#6BB0FA",
+    "accent_green": "#5DBF60",
+    "accent_green_hover": "#6ED071",
+    "accent_gray": "#707070",
+    "accent_gray_hover": "#808080",
     
     # 상태 색상
     "status_success": "#4ade80",
@@ -285,12 +289,14 @@ class WNAPMainWindow(ctk.CTk):
         self.source_btn = ctk.CTkButton(
             folder_card, 
             text="찾아보기",
-            font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_BASE),
+            font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_BASE, weight="bold"),
             width=BUTTON_WIDTH_SMALL,
             height=38,
             corner_radius=8,
             fg_color=THEME["accent_blue"],
             hover_color=THEME["accent_blue_hover"],
+            text_color=THEME["button_text"],
+            text_color_disabled=THEME["button_text_disabled"],
             command=self._browse_source_folder
         )
         self.source_btn.grid(row=1, column=2, padx=(PADDING_SMALL, PADDING_LARGE), pady=PADDING_BASE)
@@ -327,12 +333,14 @@ class WNAPMainWindow(ctk.CTk):
         self.target_btn = ctk.CTkButton(
             folder_card,
             text="찾아보기",
-            font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_BASE),
+            font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_BASE, weight="bold"),
             width=BUTTON_WIDTH_SMALL,
             height=38,
             corner_radius=8,
             fg_color=THEME["accent_blue"],
             hover_color=THEME["accent_blue_hover"],
+            text_color=THEME["button_text"],
+            text_color_disabled=THEME["button_text_disabled"],
             command=self._browse_target_folder
         )
         self.target_btn.grid(row=2, column=2, padx=(PADDING_SMALL, PADDING_LARGE), pady=(0, PADDING_LARGE))
@@ -505,12 +513,14 @@ class WNAPMainWindow(ctk.CTk):
         self.save_btn = ctk.CTkButton(
             save_frame,
             text="💾 설정 저장",
-            font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_BASE),
+            font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_BASE, weight="bold"),
             width=BUTTON_WIDTH_SMALL,
             height=36,
             corner_radius=8,
             fg_color=THEME["accent_gray"],
             hover_color=THEME["accent_gray_hover"],
+            text_color=THEME["button_text"],
+            text_color_disabled=THEME["button_text_disabled"],
             command=self._save_config
         )
         self.save_btn.pack(side="left")
@@ -552,12 +562,14 @@ class WNAPMainWindow(ctk.CTk):
         self.open_csv_btn = ctk.CTkButton(
             header_frame,
             text="📄 CSV 열기",
-            font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_SMALL),
+            font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_SMALL, weight="bold"),
             width=100,
             height=32,
             corner_radius=8,
             fg_color=THEME["accent_gray"],
             hover_color=THEME["accent_gray_hover"],
+            text_color=THEME["button_text"],
+            text_color_disabled=THEME["button_text_disabled"],
             state="disabled",
             command=self._open_mapping_csv
         )
@@ -566,12 +578,14 @@ class WNAPMainWindow(ctk.CTk):
         self.open_folder_btn = ctk.CTkButton(
             header_frame,
             text="📂 폴더 열기",
-            font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_SMALL),
+            font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_SMALL, weight="bold"),
             width=100,
             height=32,
             corner_radius=8,
             fg_color=THEME["accent_gray"],
             hover_color=THEME["accent_gray_hover"],
+            text_color=THEME["button_text"],
+            text_color_disabled=THEME["button_text_disabled"],
             state="disabled",
             command=self._open_target_folder
         )
@@ -701,6 +715,8 @@ class WNAPMainWindow(ctk.CTk):
             corner_radius=BUTTON_CORNER_RADIUS,
             fg_color=THEME["accent_blue"],
             hover_color=THEME["accent_blue_hover"],
+            text_color=THEME["button_text"],
+            text_color_disabled=THEME["button_text_disabled"],
             command=self._run_preview
         )
         self.preview_btn.grid(row=0, column=0, padx=PADDING_LARGE, pady=PADDING_LARGE, sticky="ew")
@@ -714,6 +730,8 @@ class WNAPMainWindow(ctk.CTk):
             corner_radius=BUTTON_CORNER_RADIUS,
             fg_color=THEME["accent_green"],
             hover_color=THEME["accent_green_hover"],
+            text_color=THEME["button_text"],
+            text_color_disabled=THEME["button_text_disabled"],
             command=self._run_pipeline
         )
         self.run_btn.grid(row=0, column=1, padx=PADDING_BASE, pady=PADDING_LARGE, sticky="ew")
@@ -727,6 +745,8 @@ class WNAPMainWindow(ctk.CTk):
             corner_radius=BUTTON_CORNER_RADIUS,
             fg_color=THEME["accent_gray"],
             hover_color=THEME["accent_gray_hover"],
+            text_color=THEME["button_text"],
+            text_color_disabled=THEME["button_text_disabled"],
             command=self._clear_all
         )
         clear_btn.grid(row=0, column=2, padx=(PADDING_BASE, PADDING_LARGE), pady=PADDING_LARGE, sticky="ew")
