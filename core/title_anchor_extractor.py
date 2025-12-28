@@ -138,7 +138,6 @@ class TitleAnchorExtractor:
         r'\(\s*Complete\s*\)',              # (Complete)
         r'\(\s*END\s*\)',                   # (END)
         r'\(\s*Fin\s*\)',                   # (Fin)
-        r'본편\s*및\s*외전\s*完',            # 본편 및 외전 完
         r'본편\s*완결',                      # 본편 완결
     ]
     
@@ -395,30 +394,57 @@ class TitleAnchorExtractor:
         volume_info = ""
         range_info = ""
         is_completed = False
-        side_story = ""
+        side_story_parts = []  # 외전, 후기 등 여러 부가 정보 수집
         
-        # 1. 완결 여부 확인
-        if self.completion_pattern.search(residual):
+        # 0. "1-324본편" 같은 붙어있는 패턴 분리
+        residual = re.sub(r'(\d+)(본편)', r'\1 \2', residual)
+        
+        # 1. "본편 및 외전 完" 패턴 처리 (완결 패턴보다 먼저!)
+        if re.search(r'본편\s*및\s*외전\s*完', residual):
             is_completed = True
-            residual = self.completion_pattern.sub('', residual)
-        
-        # 2. 외전 정보 추출
-        side_match = self.side_story_pattern.search(residual)
-        if side_match:
-            side_story = self._normalize_side_story(side_match.group(0))
-            residual = residual[:side_match.start()] + residual[side_match.end():]
-        
-        # 3. "본편 및 외전" 패턴 처리
-        if re.search(r'본편\s*및\s*외전', residual):
+            side_story_parts.append("외전")
+            residual = re.sub(r'본편\s*및\s*외전\s*完[,\s]*', '', residual)
+        # 2. "본편 및 외전" 패턴 처리 (完 없는 경우)
+        elif re.search(r'본편\s*및\s*외전', residual):
             is_completed = True
-            side_story = "외전"
+            side_story_parts.append("외전")
             residual = re.sub(r'본편\s*및\s*외전[,\s]*', '', residual)
+        
+        # 3. 완결 여부 확인 (위에서 처리 안 된 경우)
+        if not is_completed and self.completion_pattern.search(residual):
+            is_completed = True
+        residual = self.completion_pattern.sub('', residual)
         
         # 4. "후기 포함" 패턴 처리
         if re.search(r'후기\s*포함', residual):
+            side_story_parts.append("후기")
             residual = re.sub(r'[,\s]*후기\s*포함', '', residual)
         
-        # 5. 부 정보 추출 (1-2부, 1부 등)
+        # 5. 단독 "후기" 패턴 처리 (포함 없이 단독으로 있는 경우)
+        elif re.search(r'\s+후기(?:\s|$)', residual):
+            if "후기" not in side_story_parts:
+                side_story_parts.append("후기")
+            residual = re.sub(r'\s+후기(?:\s|$)', ' ', residual)
+        
+        # 6. 단독 "외전" 패턴 처리 (+ 없이 단독으로 있는 경우)
+        # 예: "1-294 完 외전" → 외전 추출
+        standalone_side_match = re.search(r'\s+(외전|에필로그|에필|번외|특별편|番外)(?:\s*\d*[-~]?\d*)?(?:\s|$)', residual)
+        if standalone_side_match:
+            side_text = standalone_side_match.group(1).strip()
+            normalized_side = self._normalize_side_story(side_text)
+            if normalized_side and normalized_side not in side_story_parts:
+                side_story_parts.append(normalized_side)
+            residual = residual[:standalone_side_match.start()] + residual[standalone_side_match.end():]
+        
+        # 7. 외전 정보 추출 (+ 패턴)
+        side_match = self.side_story_pattern.search(residual)
+        if side_match:
+            side_text = self._normalize_side_story(side_match.group(0))
+            if side_text and side_text not in side_story_parts:
+                side_story_parts.append(side_text)
+            residual = residual[:side_match.start()] + residual[side_match.end():]
+        
+        # 8. 부 정보 추출 (1-2부, 1부 등)
         volume_match = re.search(r'(\d+)\s*[-~]\s*(\d+)\s*부|(\d+)\s*부', residual)
         if volume_match:
             if volume_match.group(1) and volume_match.group(2):
@@ -427,7 +453,7 @@ class TitleAnchorExtractor:
                 volume_info = f"{volume_match.group(3)}부"
             residual = residual[:volume_match.start()] + residual[volume_match.end():]
         
-        # 6. 범위 정보 추출 (1-536, 1-536화 등)
+        # 9. 범위 정보 추출 (1-536, 1-536화 등)
         range_match = self.range_pattern.search(residual)
         if range_match:
             start = range_match.group(1)
@@ -438,9 +464,12 @@ class TitleAnchorExtractor:
             single_match = re.search(r'(\d+)', residual)
             if single_match:
                 num = single_match.group(1)
-                # 3자리 이상 숫자만 범위로 인식 (1-999화 범위)
+                # 2자리 이상 숫자만 범위로 인식
                 if len(num) >= 2:
                     range_info = f"1-{num}"
+        
+        # 10. 외전 정보 조합
+        side_story = ", ".join(side_story_parts) if side_story_parts else ""
         
         return volume_info, range_info, is_completed, side_story
     
