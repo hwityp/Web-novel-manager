@@ -16,19 +16,41 @@ Validates: Requirements 8.2
 import sys
 import os
 
-# 프로젝트 루트를 sys.path에 추가 (절대 import 지원)
-_project_root = os.path.dirname(os.path.abspath(__file__))
-if _project_root not in sys.path:
-    sys.path.insert(0, _project_root)
+# ============================================================================
+# PyInstaller 경로 보정 로직 (EXE 실행 환경 지원)
+# ============================================================================
+def _setup_paths():
+    """
+    PyInstaller 패키징 환경과 일반 실행 환경 모두에서
+    올바른 경로를 설정합니다.
+    """
+    if getattr(sys, 'frozen', False):
+        # PyInstaller로 패키징된 EXE 실행 중
+        # sys._MEIPASS: 임시 디렉토리 (내부 리소스 위치)
+        base_path = sys._MEIPASS
+        application_path = os.path.dirname(sys.executable)
+        
+        # 작업 디렉토리를 EXE 위치로 변경
+        os.chdir(application_path)
+    else:
+        # 일반 Python 실행
+        base_path = os.path.dirname(os.path.abspath(__file__))
+        application_path = base_path
+    
+    # 프로젝트 루트를 sys.path에 추가 (절대 import 지원)
+    if base_path not in sys.path:
+        sys.path.insert(0, base_path)
+    
+    # 추가 경로 설정 (gui, core, modules, config)
+    for subdir in ['gui', 'core', 'modules', 'config']:
+        subdir_path = os.path.join(base_path, subdir)
+        if os.path.exists(subdir_path) and subdir_path not in sys.path:
+            sys.path.insert(0, subdir_path)
+    
+    return base_path, application_path
 
-# PyInstaller 패키징 시 경로 설정
-if getattr(sys, 'frozen', False):
-    # EXE로 실행 중
-    application_path = os.path.dirname(sys.executable)
-    os.chdir(application_path)
-else:
-    # 일반 Python 실행
-    application_path = os.path.dirname(os.path.abspath(__file__))
+# 경로 설정 실행
+_BASE_PATH, _APP_PATH = _setup_paths()
 
 
 def main():
