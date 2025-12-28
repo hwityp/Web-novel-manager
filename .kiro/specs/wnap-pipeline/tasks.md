@@ -1,0 +1,257 @@
+# Implementation Plan: Web Novel Archive Pipeline (WNAP)
+
+## Overview
+
+기존 3개의 독립 모듈(FolderOrganizer, GenreClassifier, FilenameNormalizer)을 NovelTask 데이터 객체 중심으로 통합하는 파이프라인을 구현합니다. 기존 코드를 최대한 재사용하면서 Adapter 패턴으로 래핑합니다.
+
+## Tasks
+
+- [x] 1. NovelTask 데이터 모델 확장
+  - [x] 1.1 core/novel_task.py에 새 필드 추가 (range_info, side_story, error_message)
+    - 기존 필드 유지하면서 새 필드 추가
+    - to_dict(), from_dict() 메서드 구현
+    - _Requirements: 1.1, 1.2, 1.3_
+  - [x] 1.2 NovelTask 직렬화 round-trip 속성 테스트 작성
+    - **Property 1: NovelTask Serialization Round-Trip**
+    - **Validates: Requirements 1.4, 1.5**
+  - [x] 1.3 Checkpoint - NovelTask 테스트 통과 확인 ✓ (6 tests passed)
+
+- [x] 2. 설정 관리 모듈 구현
+  - [x] 2.1 config/pipeline_config.py 생성
+    - PipelineConfig 데이터클래스 정의
+    - JSON 로드/저장 기능
+    - 기본값 처리 로직
+    - _Requirements: 10.1, 10.2, 10.3_
+  - [x] 2.2 config/pipeline_config.json 기본 설정 파일 생성
+    - source_folder, target_folder, protected_folders, genre_whitelist, log_level, max_retries
+    - _Requirements: 10.2_
+  - [x] 2.3 설정 유효성 검증 및 round-trip 테스트 작성
+    - **Property 16: Configuration Round-Trip**
+    - **Validates: Requirements 10.4, 10.5**
+
+- [x] 3. 로깅 모듈 구현
+  - [x] 3.1 core/pipeline_logger.py 생성
+    - 로그 레벨 지원 (DEBUG, INFO, WARNING, ERROR)
+    - 타임스탬프 포함
+    - 로그 파일 로테이션 (10MB)
+    - _Requirements: 9.1, 9.4, 9.5_
+  - [x] 3.2 에러 로깅 시 스택 트레이스 포함 기능
+    - _Requirements: 9.3_
+
+- [x] 4. Title Anchor Extractor 구현
+  - [x] 4.1 core/title_anchor_extractor.py 생성
+    - TitleParseResult 데이터클래스 정의
+    - 노이즈 제거 로직 (저자명, 번역 정보)
+    - _Requirements: 4.1, 4.2_
+  - [x] 4.2 제목 앵커 추출 로직 구현
+    - 핵심 제목 식별 알고리즘
+    - 잔여 문자열 분리
+    - _Requirements: 4.3_
+  - [x] 4.3 잔여 문자열 파싱 로직 구현
+    - 권수/범위 정보 추출 (1-536화, 1-2부)
+    - 완결 마커 정규화 (完, 완, Complete → "(완)")
+    - 외전 마커 추출 (番外, 외전, 후기)
+    - _Requirements: 4.4, 4.5, 4.6_
+  - [x] 4.4 중국 소설 패턴 처리 로직
+    - ~지, ~기 패턴 감지
+    - 원본 제목 구조 보존
+    - _Requirements: 4.7, 7.5_
+  - [x] 4.5 제목 앵커 추출 속성 테스트 작성 ✓ (Property 9 passed)
+    - **Property 9: Title Anchor Residual Separation**
+    - **Validates: Requirements 4.3, 4.4, 4.9**
+  - [x] 4.6 파일명 정규화 round-trip 테스트 작성 ✓ (Property 10 passed)
+    - **Property 10: Filename Normalization Round-Trip**
+    - **Validates: Requirements 4.8, 5.7**
+
+- [x] 5. Checkpoint - 핵심 모듈 테스트 통과 확인
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 6. FolderOrganizer Adapter 구현
+  - [x] 6.1 core/adapters/folder_organizer_adapter.py 생성
+    - 기존 FolderOrganizer 래핑
+    - process() → List[NovelTask] 반환
+    - _Requirements: 2.1, 2.2, 2.5_
+  - [x] 6.2 보호 폴더 제외 로직 확인 및 테스트
+    - _Requirements: 2.1_
+  - [x] 6.3 보호 폴더 제외 속성 테스트 작성
+    - **Property 2: Protected Folders Exclusion**
+    - **Validates: Requirements 2.1**
+  - [x] 6.4 단일 텍스트 파일 추출 로직 확인
+    - _Requirements: 2.3_
+  - [x] 6.5 단일 텍스트 파일 추출 속성 테스트 작성
+    - **Property 3: Single Text File Extraction**
+    - **Validates: Requirements 2.3**
+  - [x] 6.6 NovelTask 생성 개수 속성 테스트 작성
+    - **Property 4: NovelTask Creation Count**
+    - **Validates: Requirements 2.5**
+
+- [x] 7. GenreClassifier Adapter 구현
+  - [x] 7.1 core/adapters/genre_classifier_adapter.py 생성
+    - 기존 GenreClassifier 래핑
+    - classify(task) → NovelTask 반환
+    - _Requirements: 3.1, 3.2_
+  - [x] 7.2 신뢰도 계산 로직 구현
+    - 점수 차이 기반 confidence 계산
+    - high/medium/low 임계값 적용
+    - _Requirements: 3.4, 3.5, 3.6, 3.7_
+  - [x] 7.3 복합 패턴 우선 적용 로직 확인
+    - _Requirements: 3.8_
+  - [x] 7.4 플랫폼 장르 매핑 로직 구현
+    - PLATFORM_GENRE_MAPPING 적용
+    - _Requirements: 3.9_
+  - [x] 7.5 기본 장르 fallback 로직 구현
+    - 매칭 없을 때 "미분류" + "low" confidence
+    - _Requirements: 3.10, 3.11_
+  - [x] 7.6 중국 소설 특수 처리 로직
+    - 선협/언정 키워드 인식
+    - 의미 없는 한글 조합 감지
+    - _Requirements: 7.1, 7.2, 7.3, 7.4_
+  - [x] 7.7 장르 분류 결정론 속성 테스트 작성 ✓ (Property 5 passed)
+    - **Property 5: Genre Classification Determinism**
+    - **Validates: Requirements 3.3, 3.4**
+  - [x] 7.8 신뢰도 임계값 속성 테스트 작성 ✓ (Property 6 passed)
+    - **Property 6: Confidence Threshold Consistency**
+    - **Validates: Requirements 3.5, 3.6, 3.7**
+  - [x] 7.9 복합 패턴 우선순위 속성 테스트 작성
+    - **Property 7: Compound Pattern Priority**
+    - **Validates: Requirements 3.8**
+  - [x] 7.10 기본 장르 fallback 속성 테스트 작성 ✓ (Property 8 passed)
+    - **Property 8: Default Genre Fallback**
+    - **Validates: Requirements 3.10**
+
+- [x] 8. FilenameNormalizer Adapter 구현
+  - [x] 8.1 core/adapters/filename_normalizer_adapter.py 생성
+    - 기존 정규화 로직 래핑
+    - normalize(task) → NovelTask 반환
+    - _Requirements: 5.1_
+  - [x] 8.2 표준 파일명 형식 생성 로직
+    - [장르] 제목 부정보 범위 (완) + 외전.확장자
+    - _Requirements: 5.1, 5.5_
+  - [x] 8.3 유니코드 공백 정규화 로직
+    - _Requirements: 5.3_
+  - [x] 8.4 파일명 충돌 처리 로직
+    - 숫자 접미사 추가
+    - _Requirements: 5.6_
+  - [x] 8.5 정규화 파일명 형식 속성 테스트 작성 ✓ (Property 11 passed)
+    - **Property 11: Normalized Filename Format**
+    - **Validates: Requirements 5.1**
+  - [x] 8.6 장르 화이트리스트 속성 테스트 작성 ✓ (Property 12 passed)
+    - **Property 12: Genre Whitelist Enforcement**
+    - **Validates: Requirements 5.2**
+
+- [x] 9. Checkpoint - Adapter 모듈 테스트 통과 확인
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 10. Pipeline Orchestrator 구현
+  - [x] 10.1 core/pipeline_orchestrator.py 생성
+    - PipelineOrchestrator 클래스 정의
+    - run() 메서드 구현
+    - _Requirements: 6.1, 6.2_
+  - [x] 10.2 단계별 실행 로직 구현
+    - Stage 1 → Stage 2 → Stage 3 순서 보장
+    - NovelTask 전달
+    - _Requirements: 6.1, 6.2_
+  - [x] 10.3 Dry-run 모드 구현
+    - 파일 시스템 변경 없이 미리보기
+    - _Requirements: 6.3, 6.4_
+  - [x] 10.4 에러 처리 및 fault-tolerance 구현
+    - 개별 파일 에러 시 skip 후 계속
+    - 재시도 메커니즘
+    - _Requirements: 6.6, 6.7, 6.9_
+  - [x] 10.5 mapping.csv 생성 로직
+    - original_path, normalized_path, genre, confidence, status, error_message
+    - _Requirements: 6.5, 6.10, 9.2_
+  - [x] 10.6 실행 결과 요약 출력
+    - processed/failed/skipped 카운트
+    - _Requirements: 6.8_
+  - [x] 10.7 파이프라인 단계 순서 속성 테스트 작성 ✓ (Property 13 passed)
+    - **Property 13: Pipeline Stage Order**
+    - **Validates: Requirements 6.1**
+  - [x] 10.8 결함 격리 속성 테스트 작성 ✓ (Property 14 passed)
+    - **Property 14: Fault Isolation**
+    - **Validates: Requirements 6.6, 6.7**
+  - [x] 10.9 Dry-run 불변성 속성 테스트 작성 ✓ (Property 15 passed)
+    - **Property 15: Dry-Run Immutability**
+    - **Validates: Requirements 6.3**
+
+- [x] 11. CLI 인터페이스 구현
+  - [x] 11.1 main.py CLI 엔트리포인트 구현
+    - argparse로 옵션 파싱
+    - --source, --target, --dry-run, --yes 옵션
+    - _Requirements: 8.1_
+  - [x] 11.2 실행 결과 출력 포맷팅
+    - 진행 상황 표시
+    - 최종 요약 출력
+    - _Requirements: 6.8_
+
+- [x] 12. 통합 테스트 및 검증
+  - [x] 12.1 샘플 데이터로 전체 파이프라인 테스트
+    - 다양한 파일명 패턴 포함
+    - 에러 케이스 포함
+  - [x] 12.2 Dry-run 모드 검증
+    - 파일 시스템 변경 없음 확인
+  - [x] 12.3 mapping.csv 출력 검증
+    - 모든 필드 정확성 확인
+
+- [x] 13. Final Checkpoint - 전체 테스트 통과 확인
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 15. FolderOrganizerAdapter Mock 테스트 검증 (2024-12-28 완료)
+  - [x] 15.1 가상 테스트 데이터 세트 생성 (개요.txt 캡처 1~8번 시나리오)
+    - 캡처 1번: 나 혼자 메카 네크 - 단일 큰 txt 추출 ✓
+    - 캡처 2번: F급 헌터 차원상인 - 단일 큰 txt 추출 ✓
+    - 캡처 3번: 관상왕의 1번 룸 - 전체 압축 해제 ✓
+    - 캡처 5번: 에픽 1-7 완 - 전체 해제 (내부 압축 유지) ✓
+    - 캡처 6번: 금단의 꿀물 1부 - 폴더별 개별 재압축 ✓
+    - 캡처 7번: 뺏어먹은 여자들 - 단일 큰 txt 추출 ✓
+    - 캡처 8번: 역전의 폐인 - 단일 큰 txt 추출 ✓
+    - _Requirements: 2.1, 2.2, 2.3_
+  - [x] 15.2 어댑터 로직 전수 검사 (Dry-run 포함)
+    - 일반 파일 3개 이하 직접 이동 ✓
+    - 일반 파일 4개 이상 새 폴더 생성 ✓
+    - 압축 파일 2개 이상 그대로 이동 ✓
+    - 결정 로직 단위 테스트 (extract_single_file, extract_all, extract_and_recompress_folders) ✓
+    - _Requirements: 2.2, 2.3_
+  - [x] 15.3 보호 및 안전장치 검증
+    - Downloads, Tempfile 폴더 제외 확인 ✓
+    - 정리완료 목적 폴더 보호 확인 ✓
+    - 빈 폴더 삭제 로직 검증 ✓
+    - _Requirements: 2.1_
+  - [x] 15.4 외부 도구 Mocking 검증
+    - RAR 파일 처리 (UnRAR Mock) ✓
+    - 7z 파일 처리 (7z.exe Mock) ✓
+    - ZIP 파일 처리 (실제 zipfile 모듈) ✓
+  - [x] 15.5 테스트 결과: 21개 테스트 모두 통과 (100%)
+    - tests/test_folder_organizer_mock.py 생성 완료
+
+- [x]* 14. 통합 GUI 대시보드 구현 (선택적 - MVP 이후)
+  - [x]* 14.1 GUI 프레임워크 선택 및 기본 구조 설정
+    - tkinter 또는 PyQt 기반
+    - 메인 윈도우 레이아웃
+    - _Requirements: 8.2_
+  - [x]* 14.2 파일 선택 및 설정 패널 구현
+    - 소스/타겟 폴더 선택
+    - 옵션 설정 (dry-run, 장르 필터 등)
+    - _Requirements: 8.2_
+  - [x]* 14.3 실시간 진행 상황 표시 구현
+    - 프로그레스 바
+    - 현재 처리 중인 파일 표시
+    - _Requirements: 8.4_
+  - [x]* 14.4 장르 확인 다이얼로그 구현
+    - confidence "medium" 시 사용자 확인 요청
+    - 장르 수동 선택 옵션
+    - _Requirements: 8.3, 8.5_
+  - [x]* 14.5 결과 요약 및 로그 뷰어 구현
+    - 처리 결과 테이블
+    - 에러 로그 표시
+    - _Requirements: 6.8_
+
+## Notes
+
+- Task 14 (GUI)는 선택적(`*`)으로 표시되어 MVP 이후 구현 가능
+- 그 외 모든 테스트 태스크는 필수로 변경됨 (포괄적 테스트 커버리지)
+- Each task references specific requirements for traceability
+- Checkpoints ensure incremental validation
+- Property tests validate universal correctness properties
+- Unit tests validate specific examples and edge cases
+- 기존 모듈(FolderOrganizer, GenreClassifier, rename_normalize.py)은 수정하지 않고 Adapter로 래핑

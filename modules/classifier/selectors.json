@@ -1,0 +1,47 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2025-10-24",
+  "description": "웹 스크래핑을 위한 CSS 선택자 데이터베이스",
+
+  "ridibooks": {
+    "title_tag": "title",
+    "json_ld": "script[type='application/ld+json']",
+    "breadcrumb": ".breadcrumb_list > li:last-child > a",
+    "meta_keywords": "meta[name='keywords']"
+  },
+  "naver_series": {
+    "title_tag": "title",
+    "meta_description": "meta[name='description']",
+    "info_area_head": ".end_head",
+    "info_area_body": "body"
+  },
+  "novelpia": {
+    "title_tag": "title",
+    "hashtag_area": "div.wrap_tag, div.novel-tag, .tag-wrap"
+  },
+  "munpia": {
+    "title_h2": "h2.title",
+    "title_tag": "title",
+    "genre_path": "p.meta-path > strong"
+  },
+  "kakao": {
+    "title_tag": "title",
+    "genre_span": "span.break-all.align-middle"
+  },
+  "joara": {
+    "title_tag": "title",
+    "content_wait_element": "div.items",
+    "genre_items": "div.items > span"
+  },
+  "wiki": {
+    "title_tag": "title",
+    "genre_header": "th",
+    "table_row": "tr"
+  },
+  "blog": {
+    "title_tag": "title"
+  },
+  "search_results": {
+    "snippet": ".api_txt_lines.dsc_txt"
+  }
+}

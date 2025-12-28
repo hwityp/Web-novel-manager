@@ -1,0 +1,18 @@
+# 웹소설 장르 분류기 v1.3.14 필수 패키지
+# 설치: pip install -r requirements.txt
+
+# 웹 크롤링
+requests==2.32.3
+beautifulsoup4==4.13.3
+lxml==6.0.2
+
+# 암호화 (API 키 저장)
+cryptography==46.0.3
+
+# 실행 파일 빌드 (개발용)
+pyinstaller==6.16.0
+pyinstaller-hooks-contrib==2025.8
+
+# 참고:
+# - tkinter는 Python 기본 포함 (별도 설치 불필요)
+# - Python 3.8 이상 권장

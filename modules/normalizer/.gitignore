@@ -1,0 +1,43 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.spec
+
+# 테스트 파일
+test_*.py
+
+# 임시 및 디버그 파일
+debug_output.txt
+genre_error_list.txt
+genre_list3.txt
+rename_mapping*.txt
+
+# 기타 문서 (필수 문서 제외)
+*.md
+!README.md
+!PROJECT_FILES.md
+!VERSION.txt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 백업 파일
+*.bak
+*.backup
+*_backup.*
