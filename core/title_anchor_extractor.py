@@ -103,14 +103,13 @@ class TitleAnchorExtractor:
     
     # 성인 등급 태그 패턴 (제거 대상)
     ADULT_TAG_PATTERNS = [
-        r'\(\s*19N\s*\)',                   # (19N)
-        r'\[\s*19N\s*\]',                   # [19N]
         r'\(\s*19금\s*\)',                  # (19금)
         r'\[\s*19금\s*\]',                  # [19금]
         r'\(\s*15금\s*\)',                  # (15금)
         r'\[\s*15금\s*\]',                  # [15금]
         r'\(\s*성인\s*\)',                  # (성인)
         r'\[\s*성인\s*\]',                  # [성인]
+
     ]
     
     # 플랫폼/번역자 태그 패턴 (제거 대상)
@@ -477,9 +476,14 @@ class TitleAnchorExtractor:
         # 9. 범위 정보 추출 (1-536, 1-536화 등)
         range_match = self.range_pattern.search(residual)
         if range_match:
-            start = range_match.group(1)
-            end = range_match.group(2)
-            range_info = f"{start}-{end}"
+            try:
+                start = str(int(range_match.group(1)))
+                end = str(int(range_match.group(2)))
+                range_info = f"{start}-{end}"
+            except ValueError:
+                # Fallback in case of non-integer (unlikely due to regex \d)
+                range_info = f"{range_match.group(1)}-{range_match.group(2)}"
+
         else:
             # 단일 숫자 범위 (120, 126 등)
             single_match = re.search(r'(\d+)', residual)

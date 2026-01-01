@@ -19,8 +19,8 @@ from pathlib import Path
 import argparse
 
 # 버전 정보
-__version__ = "1.1.0"
-__release_date__ = "2024-12-28"
+__version__ = "1.3.4"
+__release_date__ = "2026-01-02"
 
 def get_full_version():
     return f"WNAP v{__version__}"
@@ -50,7 +50,7 @@ def clean_build_folders():
         folder_path = Path(folder)
         if folder_path.exists():
             print(f"🗑️ {folder} 폴더 삭제 중...")
-            shutil.rmtree(folder_path)
+            shutil.rmtree(folder_path, ignore_errors=True)
     
     # .spec 파일 삭제
     for spec_file in Path('.').glob('*.spec'):
@@ -60,10 +60,7 @@ def clean_build_folders():
 
 def build_exe(debug: bool = False):
     """
-    PyInstaller로 EXE 빌드
-    
-    Args:
-        debug: True면 콘솔 창 표시
+    PyInstaller로 EXE 빌드 (onedir 모드)
     """
     print("=" * 60)
     print(f"🔨 WNAP EXE 빌드 시작 - v{__version__}")
@@ -80,8 +77,9 @@ def build_exe(debug: bool = False):
     cmd = [
         sys.executable, '-m', 'PyInstaller',
         '--name', exe_name,
-        '--onefile',
-        # CustomTkinter 전체 수집
+        '--onedir',  # 폴더 모드 (기본)
+        '--clean',   # 캐시 정리
+        # CustomTkinter 전체 수집 (테마 포함)
         '--collect-all', 'customtkinter',
         # 데이터 폴더 포함 (Windows 경로 형식: source;destination)
         '--add-data', 'config;config',
@@ -97,8 +95,7 @@ def build_exe(debug: bool = False):
         '--hidden-import', 'core.utils.genre_cache',
         '--hidden-import', 'core.utils.similarity',
         '--hidden-import', 'PIL._tkinter_finder',
-        # 아이콘 (있으면)
-        # '--icon', 'icon.ico',
+        '--hidden-import', 'dotenv',
     ]
     
     # 디버그 모드가 아니면 콘솔 숨김
@@ -122,36 +119,30 @@ def build_exe(debug: bool = False):
         print("=" * 60)
         
         # 결과 확인
-        exe_path = Path(f'dist/{exe_name}.exe')
+        # onedir 모드이므로 dist/exe_name/exe_name.exe
+        dist_folder = Path(f'dist/{exe_name}')
+        exe_path = dist_folder / f"{exe_name}.exe"
+        
         if exe_path.exists():
-            size_mb = exe_path.stat().st_size / (1024 * 1024)
-            print(f"📁 EXE 위치: {exe_path.absolute()}")
-            print(f"📊 파일 크기: {size_mb:.2f} MB")
+            print(f"📁 EXE 폴더: {dist_folder.absolute()}")
             print(f"📌 버전: {get_full_version()}")
             
-            # config 폴더 복사 (EXE와 같은 위치에 - 사용자 설정용)
-            dist_config = Path('dist/config')
-            if not dist_config.exists():
-                dist_config.mkdir(parents=True)
-            
-            # 기본 설정 파일 복사
-            config_files = [
-                'config/pipeline_config.json',
-                'config/genre_mapping.json',
-                'config/genre_cache.json'
-            ]
-            for config_file in config_files:
-                src = Path(config_file)
-                if src.exists():
-                    shutil.copy(src, dist_config / src.name)
-                    print(f"📋 설정 파일 복사: {dist_config / src.name}")
+            # 후처리: .env 파일 복사 (실행 위치로)
+            env_src = Path('.env')
+            if env_src.exists():
+                shutil.copy(env_src, dist_folder / '.env')
+                print(f"📋 .env 설정 파일 복사 완료")
             
             print()
             print("🚀 실행 방법:")
             print(f"   {exe_path.absolute()}")
         else:
-            print("❌ EXE 파일이 생성되지 않았습니다.")
-            return False
+             # 혹시 onedir 구조가 다를 수 있음
+             print(f"⚠️ 예상 경로에 파일이 없습니다: {exe_path}")
+             # dist 폴더 내용 출력
+             for p in Path('dist').rglob('*.exe'):
+                 print(f"   발견된 EXE: {p}")
+             return False
             
     except subprocess.CalledProcessError as e:
         print(f"❌ 빌드 실패: {e}")

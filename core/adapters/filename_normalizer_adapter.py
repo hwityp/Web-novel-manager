@@ -162,7 +162,8 @@ class FilenameNormalizerAdapter:
         parts = []
         
         # 1. 장르 태그
-        parts.append(f"[{genre}]")
+        if genre and genre != '미분류':
+            parts.append(f"[{genre}]")
         
         # 2. 제목 (공백 정규화)
         clean_title = self._normalize_spaces(title)
