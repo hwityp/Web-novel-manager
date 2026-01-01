@@ -40,6 +40,7 @@ env/
 htmlcov/
 .tox/
 .nox/
+*.txt/
 
 # Logs
 logs/
@@ -54,5 +55,9 @@ build/
 .DS_Store
 Thumbs.db
 
+
 # Project specific
 mapping*.csv
+.env
+_cleanup_temp/
+
