@@ -5,7 +5,15 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
-## [1.2.1] - 2026-01-02
+## [1.3.5] - 2026-01-02
+
+### ⚡ Refinements (개선)
+- **Normalization Logic**:
+  - **Preserve (19N)**: `(19N)` tags are no longer stripped from filenames.
+  - **Range Normalization**: `001-242` style ranges are now normalized to `1-242` (removing leading zeros).
+  - **Unclassified Genre**: If genre is unknown, the `[미분류]` tag is omitted (e.g., `Title.txt` instead of `[미분류] Title.txt`).
+
+## [1.3.4] - 2026-01-02
 
 ### 🛠 Fixes (수정)
 - **Side Story Parsing**: "외전" and "에필로그" extraction logic improved (TitleAnchorExtractor)
