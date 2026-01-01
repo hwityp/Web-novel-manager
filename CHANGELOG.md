@@ -5,6 +5,19 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [1.2.1] - 2026-01-02
+
+### 🛠 Fixes (수정)
+- **Side Story Parsing**: "외전" and "에필로그" extraction logic improved (TitleAnchorExtractor)
+  - Fixed issue where "Epilogue" masked "Side Story" (loop extraction implemented)
+  - Fixed connector noise ("및", "포함") preventing detection
+- **GUI Reliability**: Fixed critical import error in standalone normalizer GUI
+  - Patched `sys.path` for relative imports in `rename_normalize_gui.py`
+  - Removed silent fallback that hid errors
+
+## [1.2.0] - 2024-12-28 (Retroactive)
+- Base version for recent enhancements
+
 ## [1.0.0] - 2024-12-28
 
 ### 🎉 최초 릴리스
