@@ -1248,7 +1248,8 @@ def remove_basic_noise(text: str) -> str:
     text = re.sub(r'\b외\s+(\d{1,4})\b', r'외전 \1', text)
     
     # "및" 키워드는 항상 제거
-    text = re.sub(r'\b및\b', '', text)
+    # "및" 키워드는 항상 제거 (공백/문장시작/끝 기준)
+    text = re.sub(r'(?:\s|^)및(?:\s|$)', ' ', text)
     
     # 외전 표기 통일 (오타 포함)
     # 번외편 → 번외 (먼저 처리)
@@ -1265,6 +1266,10 @@ def remove_basic_noise(text: str) -> str:
     # "특별" 키워드 제거 (외전이 있으면 중복)
     text = re.sub(r'\b특별\s*(?=외전)', '', text)
     text = re.sub(r'(?<=외전)\s*특별\b', '', text)
+    
+    # "외전 포함" 등 포함 키워드 제거 (글로벌 전처리)
+    # 예: "에필 및 외전 포함" -> "에필 및 외전"
+    text = re.sub(r'(외전|후기|에필로그|에필)\s*(?:포함|comp|only)', r'\1', text, flags=re.IGNORECASE)
     
     return normalize_unicode_spaces(text)
 
@@ -2316,6 +2321,11 @@ def extract_range_and_extras(text: str, extras_from_complete: Optional[List[str]
     range_info: Optional[str] = range_from_complete
     season_info: Optional[str] = None
     
+    # [전처리] "및" 등 노이즈 문자열 정리 (v1.3.7 Hotfix)
+    # "포함" 제거는 remove_basic_noise로 이동됨
+    # 최상단으로 이동하여 모든 패턴 매칭 전에 적용
+    text = re.sub(r'(?:\s|^)및(?:\s|$)', ' ', text)
+    
     # "N부 N-M, N부 N-M" 패턴 보호 (복수 부 정보)
     # 예: "1부 1-650, 2부 1-325" → 이 패턴은 범위 추출하지 않고 그대로 유지
     # 단, 외전/후기 등은 추출해야 함
@@ -2421,6 +2431,12 @@ def extract_range_and_extras(text: str, extras_from_complete: Optional[List[str]
         if '에필' not in extras:
             extras.append('에필')
         text = re.sub(r'\[(에필로그|에필)\]', '', text, flags=re.IGNORECASE)
+    
+    # 패턴 4-1: (에필로그) 또는 (에필) → 에필 (괄호 제거)
+    if re.search(r'\((에필로그|에필)\)', text, re.IGNORECASE):
+        if '에필' not in extras:
+            extras.append('에필')
+        text = re.sub(r'\((에필로그|에필)\)', '', text, flags=re.IGNORECASE)
     
     # 패턴 5: [후기] → 후기
     if re.search(r'\[후기\]', text, re.IGNORECASE):
@@ -2867,6 +2883,7 @@ def extract_range_and_extras(text: str, extras_from_complete: Optional[List[str]
     
     # 외전/후기/에필/특외/후일담 추출
     
+    
     # 외전 N화/N장 패턴 처리 (예: 외전 11화 → 외전 11, 외전 5장 → 외전 5)
     # 주의: 제목에 "외전"이 포함된 경우 (예: "혈기린외전")는 제외
     # 주의: 부 정보 (예: "1-3부")는 외전 범위가 아님
@@ -2968,18 +2985,21 @@ def extract_range_and_extras(text: str, extras_from_complete: Optional[List[str]
     # 외전 추출 (쉼표와 함께 제거)
     # 패턴: ", 외전" 또는 "외전," 또는 "외전"
     # 주의: 외전을 extras 맨 앞에 추가 (순서 유지)
-    if re.search(r',\s*외전\b', text):
+    # 외전 추출 (쉼표와 함께 제거)
+    # 패턴: ", 외전" 또는 "외전," 또는 "외전"
+    # 주의: 외전을 extras 맨 앞에 추가 (순서 유지)
+    if re.search(r',\s*외전(?:$|[^가-힣])', text):
         if not any('외전' in e for e in extras):
             extras.insert(0, '외전')
-        text = re.sub(r',\s*외전\b', '', text)
-    elif re.search(r'\b외전\s*,', text):
+        text = re.sub(r',\s*외전(?:$|[^가-힣])', '', text)
+    elif re.search(r'(?:^|[^가-힣])외전\s*,', text):
         if not any('외전' in e for e in extras):
             extras.insert(0, '외전')
-        text = re.sub(r'\b외전\s*,', '', text)
-    elif re.search(r'\b외전\b', text):
+        text = re.sub(r'(?:^|[^가-힣])외전\s*,', '', text)
+    elif re.search(r'(?:^|[^가-힣])외전(?:$|[^가-힣])', text):
         if not any('외전' in e for e in extras):
             extras.insert(0, '외전')
-        text = re.sub(r'\b외전\b', '', text)
+        text = re.sub(r'(?:^|[^가-힣])외전(?:$|[^가-힣])', '', text)
     
     # 에필로그/에필/후기 추출 (에필로그는 에필로 통일)
     # 범위 정보가 있는 경우 먼저 처리 (예: 에필로그 1-3)
@@ -2995,19 +3015,22 @@ def extract_range_and_extras(text: str, extras_from_complete: Optional[List[str]
     for label in ['후기', '에필로그', '에필']:
         normalized_label = '에필' if label in ['에필로그', '에필'] else label
         
+        
         # 패턴: ", 후기" 또는 "후기," 또는 "후기"
-        if re.search(rf',\s*{label}\b', text):
+        # \b 대신 명시적 경계 사용 (v1.3.7)
+        regex_label = label
+        if re.search(rf',\s*{regex_label}(?:$|[^가-힣])', text):
             if normalized_label not in extras:
                 extras.append(normalized_label)
-            text = re.sub(rf',\s*{label}\b', '', text)
-        elif re.search(rf'\b{label}\s*,', text):
+            text = re.sub(rf',\s*{regex_label}(?:$|[^가-힣])', '', text)
+        elif re.search(rf'(?:^|[^가-힣]){regex_label}\s*,', text):
             if normalized_label not in extras:
                 extras.append(normalized_label)
-            text = re.sub(rf'\b{label}\s*,', '', text)
-        elif re.search(rf'\b{label}\b', text):
+            text = re.sub(rf'(?:^|[^가-힣]){regex_label}\s*,', '', text)
+        elif re.search(rf'(?:^|[^가-힣]){regex_label}(?:$|[^가-힣])', text):
             if normalized_label not in extras:
                 extras.append(normalized_label)
-            text = re.sub(rf'\b{label}\b', '', text)
+            text = re.sub(rf'(?:^|[^가-힣]){regex_label}(?:$|[^가-힣])', '', text)
 
     return normalize_unicode_spaces(text), range_info, extras, season_info
 

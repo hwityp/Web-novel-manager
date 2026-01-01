@@ -342,49 +342,52 @@ class TitleAnchorExtractor:
         return self._extract_title_from_main(name)
     
     def _extract_title_from_main(self, name: str) -> Tuple[str, str]:
-        """메인 파트에서 제목 추출"""
-        # 단독 숫자+단위 패턴 먼저 찾기 (1화, 50권, 1부 등) - 범위보다 먼저!
+        """메인 파트에서 제목 추출 (Earliest Match Strategy)"""
+        # 검색할 패턴 목록과 식별자
+        # (패턴 객체, 우선순위 설명)
+        candidates = []
+        
+        # 1. 단위 패턴 (1화, 50권, 1부 등)
         unit_match = re.search(r'\s+\d+\s*[화권부편회장](?:\s|$)', name)
         if unit_match:
-            title = name[:unit_match.start()].strip()
-            residual = name[unit_match.start():].strip()
-            return title, residual
-        
-        # 숫자 범위 패턴 찾기 (1-536, 1~100 등)
+            candidates.append(unit_match)
+            
+        # 2. 숫자 범위 패턴 (1-536, 1~100 등)
         range_match = re.search(r'\s+\d+\s*[-~]\s*\d+', name)
         if range_match:
-            title = name[:range_match.start()].strip()
-            residual = name[range_match.start():].strip()
-            return title, residual
-        
-        # 단일 숫자 패턴 찾기 (120, 126 등 - 끝에 있는 단일 숫자)
-        # 완결 마커 앞의 숫자도 포함 (예: "126 完")
+            candidates.append(range_match)
+            
+        # 3. 단일 숫자 패턴 (120, 126 등 - 끝에 있는 단일 숫자)
         single_num_match = re.search(r'\s+(\d+)\s*(?:完|완|\(완\)|\(完\)|\s*$)', name)
         if single_num_match:
-            title = name[:single_num_match.start()].strip()
-            residual = name[single_num_match.start():].strip()
-            return title, residual
-        
-        # 완결 마커 찾기 (괄호 형태 포함)
-        # 먼저 괄호 형태의 완결 마커 확인 (제목 끝에 있는 경우)
-        # 마침표 포함 패턴: "제목. (완)" 또는 "제목 (완)"
+            candidates.append(single_num_match)
+            
+        # 4. 완결 마커 패턴 (괄호형)
         paren_completion_match = re.search(r'\.?\s*[\(\[]\s*완(?:결)?\s*[\)\]]\.?\s*$', name)
         if paren_completion_match:
-            title = name[:paren_completion_match.start()].strip()
-            # 제목 끝의 마침표 제거
-            title = title.rstrip('.')
-            residual = name[paren_completion_match.start():].strip()
-            return title, residual
-        
-        # 일반 완결 마커 찾기
+            candidates.append(paren_completion_match)
+            
+        # 5. 일반 완결 마커
         completion_match = self.completion_pattern.search(name)
         if completion_match:
-            title = name[:completion_match.start()].strip()
-            residual = name[completion_match.start():].strip()
-            return title, residual
+            candidates.append(completion_match)
+            
+        # 후보가 없다면 전체가 제목
+        if not candidates:
+            return name.strip(), ""
+            
+        # 가장 앞서 등장하는 매칭 선택 (Earliest Match)
+        # start() 인덱스가 가장 작은 것을 선택
+        best_match = min(candidates, key=lambda m: m.start())
         
-        # 패턴 없으면 전체가 제목
-        return name.strip(), ""
+        title = name[:best_match.start()].strip()
+        # 제목 끝의 마침표 제거 (완결 마커인 경우에만 주로 해당하지만 안전하게 처리)
+        if best_match == paren_completion_match:
+            title = title.rstrip('.')
+            
+        residual = name[best_match.start():].strip()
+        
+        return title, residual
     
     def _parse_residual(self, residual: str) -> Tuple[str, str, bool, str]:
         """잔여 문자열에서 메타데이터 파싱"""
@@ -426,23 +429,41 @@ class TitleAnchorExtractor:
                 side_story_parts.append("후기")
             residual = re.sub(r'\s+후기(?:\s|$)', ' ', residual)
         
-        # 6. 단독 "외전" 패턴 처리 (+ 없이 단독으로 있는 경우)
-        # 예: "1-294 完 외전" → 외전 추출
-        standalone_side_match = re.search(r'\s+(외전|에필로그|에필|번외|특별편|番外)(?:\s*\d*[-~]?\d*)?(?:\s|$)', residual)
-        if standalone_side_match:
-            side_text = standalone_side_match.group(1).strip()
-            normalized_side = self._normalize_side_story(side_text)
-            if normalized_side and normalized_side not in side_story_parts:
-                side_story_parts.append(normalized_side)
-            residual = residual[:standalone_side_match.start()] + residual[standalone_side_match.end():]
         
-        # 7. 외전 정보 추출 (+ 패턴)
-        side_match = self.side_story_pattern.search(residual)
-        if side_match:
+        # [NEW] Pre-cleaning: Remove noise words like "및", "포함", "comp"
+        # This allows separated components like "에필 및 외전" to be parsed as "에필 외전"
+        residual = re.sub(r'(?:\s|^)및(?:\s|$)', ' ', residual)
+        residual = re.sub(r'(?:포함|comp|only)(?:\s|$)', ' ', residual, flags=re.IGNORECASE)
+
+        # 6. 단독 "외전" 패턴 처리 (+ 없이 단독으로 있는 경우) - 여러 개일 수 있으므로 while loop
+        # 예: "1-294 完 외전 에필" → 외전, 에필 추출
+        while True:
+            standalone_side_match = re.search(r'\s+(외전|에필로그|에필|번외|특별편|番外|후기)(?:\s*\d*[-~]?\d*)?(?:\s|$)', residual)
+            if not standalone_side_match:
+                break
+            
+            side_text_raw = standalone_side_match.group(0).strip()
+            # 정규화 (외전 1, 에필로그 등) - group(0) 전체를 넘겨서 처리
+            # group(1)은 키워드만, group(0)은 뒤의 숫자까지 포함
+            
+            # 주의: group(1)만 쓰면 뒤의 숫자가 잘림. group(0) 전체를 써야 함.
+            side_text = self._normalize_side_story(side_text_raw)
+            
+            if side_text and side_text not in side_story_parts:
+                side_story_parts.append(side_text)
+            
+            # 매칭된 부분 제거 (다음 루프를 위해)
+            residual = residual[:standalone_side_match.start()] + " " + residual[standalone_side_match.end():]
+        
+        # 7. 외전 정보 추출 (+ 패턴) - +로 연결된 외전
+        while True:
+            side_match = self.side_story_pattern.search(residual)
+            if not side_match:
+                break
             side_text = self._normalize_side_story(side_match.group(0))
             if side_text and side_text not in side_story_parts:
                 side_story_parts.append(side_text)
-            residual = residual[:side_match.start()] + residual[side_match.end():]
+            residual = residual[:side_match.start()] + " " + residual[side_match.end():]
         
         # 8. 부 정보 추출 (1-2부, 1부 등)
         volume_match = re.search(r'(\d+)\s*[-~]\s*(\d+)\s*부|(\d+)\s*부', residual)

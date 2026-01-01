@@ -53,14 +53,41 @@ except ImportError:
 # ============================================================================
 
 # rename_normalize.py의 정규화 로직을 import
+import sys
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
+
 try:
     from rename_normalize import (
         normalize_line_without_genre_inference,  # GUI 탭 2 (정규화)용
         infer_genre_from_filename  # GUI 탭 1 (장르 추가)용
     )
-except ImportError:
-    # import 실패시 기본 정규화 함수 사용
+    print("DEBUG: Successfully imported rename_normalize module.")
+except ImportError as e:
+    # import 실패시 에러 출력 및 경고창
+    print(f"CRITICAL ERROR: Failed to import rename_normalize: {e}")
+    try:
+        from tkinter import messagebox
+        import tkinter as tk
+        root = tk.Tk()
+        root.withdraw()
+        messagebox.showerror("치명적 오류", f"정규화 모듈을 로드할 수 없습니다.\n\n오류 내용:\n{e}\n\n프로그램이 올바르게 동작하지 않을 수 있습니다.")
+        root.destroy()
+    except:
+        pass
+        
+    # Fallback (비상용) - 경고 후 최소한의 동작 보장
     def normalize_line_without_genre_inference(filename: str) -> Optional[str]:
+        print(f"WARNING: Using fallback normalization for {filename}")
+        name = filename.strip()
+        name = re.sub(r'[_+]', ' ', name)
+        name = re.sub(r'\s+', ' ', name)
+        return name if name else None
+    
+    def infer_genre_from_filename(filename: str, return_confidence: bool = False):
+        return (None, 'low') if return_confidence else None
         """
         기본 정규화 함수 (fallback)
         
