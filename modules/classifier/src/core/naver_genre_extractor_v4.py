@@ -70,6 +70,19 @@ class NaverGenreExtractorV4:
         
         # 재매핑 키워드
         self.remapping_keywords = self._init_remapping_keywords()
+        
+        # 로거 (옵션)
+        self.logger = None
+
+    def set_logger(self, logger):
+        """로거 설정"""
+        self.logger = logger
+        
+    def _log(self, msg: str):
+        """로그 출력 (터미널 + 파일)"""
+        if self.logger:
+            self.logger.debug(msg)
+        print(msg)
     
     def _init_genre_mapping(self) -> Dict[str, str]:
         """장르 매핑 초기화"""
@@ -304,7 +317,10 @@ class NaverGenreExtractorV4:
         except Exception as e:
             # 인코딩 오류 방지
             error_msg = str(e)[:100].encode('utf-8', errors='ignore').decode('utf-8')
-            print(f"  [웹 크롤링 오류] {type(e).__name__}: {error_msg}")
+            # 인코딩 오류 방지
+            error_msg = str(e)[:100].encode('utf-8', errors='ignore').decode('utf-8')
+            self._log(f"  [웹 크롤링 오류] {type(e).__name__}: {error_msg}")
+            return None
             return None
     
     def _extract_platform_links(self, items: List[Dict]) -> Dict[str, List]:
@@ -463,7 +479,7 @@ class NaverGenreExtractorV4:
                 link_counts.append(f"{name}({display_count}개)")
         
         if link_counts:
-            print(f"  [관련 링크] {', '.join(link_counts)}")
+            self._log(f"  [관련 링크] {', '.join(link_counts)}")
             
             # 각 플랫폼별 URL 상세 로깅 (인코딩 오류 방지)
             for platform, links in platform_links.items():
@@ -511,16 +527,16 @@ class NaverGenreExtractorV4:
                                     else:
                                         url = base_url
                                 
-                                print(f"    [{name} {idx + 1}] {url}")
+                                self._log(f"    [{name} {idx + 1}] {url}")
                             except UnicodeEncodeError:
                                 # 인코딩 오류 시 ASCII로 변환
                                 url_safe = url.encode('ascii', errors='ignore').decode('ascii')
-                                print(f"    [{name} {idx + 1}] {url_safe}")
+                                self._log(f"    [{name} {idx + 1}] {url_safe}")
                             except Exception:
                                 # 파싱 오류 시 원본 URL 표시
-                                print(f"    [{name} {idx + 1}] {url}")
+                                self._log(f"    [{name} {idx + 1}] {url}")
         else:
-            print(f"  [관련 링크 없음]")
+            self._log(f"  [관련 링크 없음]")
             return None
         
         # 리디북스와 문피아가 함께 있는지 확인
@@ -528,7 +544,7 @@ class NaverGenreExtractorV4:
         has_munpia = bool(platform_links.get('munpia'))
         
         if has_ridibooks and has_munpia:
-            print(f"  [다중 플랫폼] 리디북스와 문피아 모두 확인하여 세분화된 장르 추론")
+            self._log(f"  [다중 플랫폼] 리디북스와 문피아 모두 확인하여 세분화된 장르 추론")
         
         # 각 추출기로 시도 (우선순위 순)
         fallback_result = None  # "소설" 같은 일반적인 장르를 임시 저장
@@ -550,7 +566,7 @@ class NaverGenreExtractorV4:
             except Exception as e:
                 # 개별 플랫폼 오류는 무시하고 다음 플랫폼 시도
                 error_msg = str(e)[:100].encode('utf-8', errors='ignore').decode('utf-8')
-                print(f"  [{extractor.platform_name}] 추출 오류: {type(e).__name__}: {error_msg}")
+                self._log(f"  [{extractor.platform_name}] 추출 오류: {type(e).__name__}: {error_msg}")
                 continue
             
             if result and result.get('genre'):
@@ -558,40 +574,40 @@ class NaverGenreExtractorV4:
                 if has_ridibooks and has_munpia:
                     if extractor.platform_name == '리디북스':
                         ridibooks_result = result
-                        print(f"  [리디북스] '{result['genre']}' 추출 → 문피아도 확인")
+                        self._log(f"  [리디북스] '{result['genre']}' 추출 → 문피아도 확인")
                         continue
                     elif extractor.platform_name == '문피아':
                         munpia_result = result
-                        print(f"  [문피아] '{result['genre']}' 추출")
+                        self._log(f"  [문피아] '{result['genre']}' 추출")
                         
                         # 두 플랫폼 결과를 비교하여 더 세분화된 장르 선택
                         if ridibooks_result:
                             final_result = self._compare_and_select_genre(ridibooks_result, munpia_result, title)
-                            print(f"  [최종선택] {final_result['source']}: {final_result['genre']}")
+                            self._log(f"  [최종선택] {final_result['source']}: {final_result['genre']}")
                             print()
                             return final_result
                         else:
                             # 리디북스 결과가 없으면 문피아 결과 사용
-                            print(f"  [최종선택] 문피아: {result['genre']}")
+                            self._log(f"  [최종선택] 문피아: {result['genre']}")
                             print()
                             return result
                 
                 # 네이버시리즈/카카오페이지에서 "현판"이고 스포츠 체크가 필요한 경우
                 if result.get('needs_sports_check') and result['genre'] == '현판':
                     hyunpan_result = result
-                    print(f"  [{extractor.platform_name}] '현판' 추출 → 다른 플랫폼에서 스포츠 여부 확인")
+                    self._log(f"  [{extractor.platform_name}] '현판' 추출 → 다른 플랫폼에서 스포츠 여부 확인")
                     continue
                 
                 # 네이버시리즈/카카오페이지에서 "판타지"이고 세분화가 필요한 경우
                 if result.get('needs_fantasy_refinement') and result['genre'] == '판타지':
                     fantasy_result = result
-                    print(f"  [{extractor.platform_name}] '판타지' 추출 → 다른 플랫폼에서 세분화 확인 (역사/겜판/퓨판)")
+                    self._log(f"  [{extractor.platform_name}] '판타지' 추출 → 다른 플랫폼에서 세분화 확인 (역사/겜판/퓨판)")
                     continue
                 
                 # 현판 체크 중이고 스포츠를 발견한 경우 (재매핑 전에 체크)
                 if hyunpan_result and result['genre'] == '스포츠':
-                    print(f"  [{extractor.platform_name}] '스포츠' 확인됨 → 현판 대신 스포츠 선택")
-                    print(f"  [최종선택] {extractor.platform_name}: {result['genre']}")
+                    self._log(f"  [{extractor.platform_name}] '스포츠' 확인됨 → 현판 대신 스포츠 선택")
+                    self._log(f"  [최종선택] {extractor.platform_name}: {result['genre']}")
                     print()
                     return result
                 

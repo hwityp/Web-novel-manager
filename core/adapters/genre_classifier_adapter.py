@@ -53,6 +53,8 @@ class GenreClassifierAdapter:
         
         # 네이버 검색 추출기 (지연 초기화)
         self._naver_extractor = None
+        # 구글 검색 추출기 (지연 초기화)
+        self._google_extractor = None
         
         # 키워드 분류기 (지연 초기화)
         self._keyword_classifier = None
@@ -81,7 +83,33 @@ class GenreClassifierAdapter:
             # NaverGenreExtractorV4 초기화 (실제 웹 검색)
             from modules.classifier.src.core.naver_genre_extractor_v4 import NaverGenreExtractorV4
             self._naver_extractor = NaverGenreExtractorV4()
+            self._naver_extractor.set_logger(self.logger) # 로거 주입 (터미널+파일 로그 동기화)
             self.logger.debug("NaverGenreExtractorV4 초기화 완료")
+
+            # GoogleGenreExtractor 초기화 (Fallback)
+            try:
+                from modules.classifier.src.core.google_genre_extractor import GoogleGenreExtractor
+                from modules.classifier.api_config_manager import APIConfigManager
+                
+                # APIConfigManager를 통해 키 로드 (Hybrid Security: Env -> Encrypted)
+                api_manager = APIConfigManager()
+                google_conf = api_manager.load_google_config()
+                
+                if google_conf:
+                    api_key = google_conf['api_key']
+                    cse_id = google_conf['cse_id']
+                    self.logger.debug("Google API 키를 APIConfigManager(.env/Encrypted)에서 로드했습니다.")
+                else:
+                    # PipelineConfig에서 폴백 (기존 설정 유지)
+                    api_key = self.config.google_api_key
+                    cse_id = self.config.google_cse_id
+                    self.logger.debug("Google API 키를 PipelineConfig에서 로드했습니다.")
+
+                self._google_extractor = GoogleGenreExtractor(api_key, cse_id)
+                self.logger.debug("GoogleGenreExtractor 초기화 완료")
+            except ImportError as e:
+                self.logger.warning(f"GoogleGenreExtractor 초기화 실패: {e}")
+                self._google_extractor = None
             
             # 키워드 분류기 초기화
             from genre_classifier import GenreClassifier
@@ -116,6 +144,34 @@ class GenreClassifierAdapter:
             task.confidence = 'low'
             task.status = 'processing'
             return task
+            
+        # [최적화] 원본 파일명에 이미 장르 태그가 있는 경우 API 검색 건너뛰기
+        # 예: "[선협] 제목..." -> 선협 (API 절약)
+        import re
+        tag_match = re.search(r'^\[(.+?)\]', raw_text)
+        if tag_match:
+            potential_genre = tag_match.group(1).strip()
+            # 매핑 로더를 통해 표준 장르명으로 변환
+            mapped_genre = self.mapping_loader.map_genre(potential_genre)
+            # 화이트리스트에 있는 유효한 장르인 경우만 확정
+            if mapped_genre in GENRE_WHITELIST:
+                task.genre = mapped_genre
+                task.confidence = 'high'
+                task.source = 'tag' # 기존 태그
+                task.status = 'processing'
+                
+                self.logger.debug(f"  [태그 감지] 원본 파일명에서 장르 확인: {mapped_genre}")
+                print(f"  [태그 감지] {mapped_genre} (API 검색 건너뜀)")
+                
+                # 캐시에도 저장
+                if not task.title: # 순수 제목 추출 전일 수 있음
+                    parse_result = self.title_extractor.extract(raw_text)
+                    pure_title = parse_result.title if parse_result.title else raw_text
+                else:
+                    pure_title = task.title
+                    
+                self.cache.set(pure_title, mapped_genre, 'high', 'tag')
+                return task
         
         self.logger.debug(f"장르 분류 시작: {raw_text}")
         print(f"\n{'='*80}")
@@ -126,8 +182,24 @@ class GenreClassifierAdapter:
         pure_title = parse_result.title if parse_result.title else raw_text
         author = parse_result.author
         
+        # [제목 분석] 로그 추가 (사용자 요청 반영 & 포맷팅 개선)
+        import pprint
+        analysis_data = {
+            'main_title': pure_title,
+            'subtitle': parse_result.side_story,
+            'author': author,
+            'full_title': raw_text
+        }
+        formatted_analysis = pprint.pformat(analysis_data, width=120, sort_dicts=False)
+        
+        self.logger.debug(f"  [순수 제목] {pure_title}")
         print(f"  [순수 제목] {pure_title}")
+        
+        self.logger.debug(f"  [제목 분석] 원본: '{raw_text}' →\n{formatted_analysis}")
+        print(f"  [제목 분석] 원본: '{raw_text}' → {analysis_data}") # 터미널엔 한줄로 (사용자가 익숙한 형태)
+        
         if author:
+            self.logger.debug(f"  [저자] {author}")
             print(f"  [저자] {author}")
         
         # Step 2: 캐시 확인 (Cache-First)
@@ -136,7 +208,9 @@ class GenreClassifierAdapter:
             task.genre = cached['genre']
             task.confidence = cached['confidence']
             task.source = self._format_source(cached.get('source', 'cache'))
+            task.source = self._format_source(cached.get('source', 'cache'))
             task.status = 'processing'
+            self.logger.debug(f"  [결과] {task.genre} (confidence: {task.confidence}, source: cache)")
             print(f"  [결과] {task.genre} (confidence: {task.confidence}, source: cache)")
             return task
         
@@ -160,10 +234,12 @@ class GenreClassifierAdapter:
                 task.source = self._format_source(source)
                 self.cache.set(pure_title, mapped_genre, 'high', source)
                 
+                self.logger.debug(f"  [결과] {task.genre} (confidence: {task.confidence}, source: {source})")
                 print(f"  [결과] {task.genre} (confidence: {task.confidence}, source: {source})")
                 return task
         
         # Step 4: Stage 3 - 키워드 폴백 (검색 실패 시에만)
+        self.logger.debug(f"  [폴백] 검색 실패, 키워드 매칭 시도")
         print(f"  [폴백] 검색 실패, 키워드 매칭 시도")
         keyword_result = self._keyword_fallback(pure_title)
         
@@ -176,6 +252,7 @@ class GenreClassifierAdapter:
             # 캐시에 저장
             self.cache.set(pure_title, task.genre, 'medium', 'keyword')
             
+            self.logger.debug(f"  [결과] {task.genre} (confidence: {task.confidence}, source: keyword)")
             print(f"  [결과] {task.genre} (confidence: {task.confidence}, source: keyword)")
             return task
         
@@ -185,6 +262,7 @@ class GenreClassifierAdapter:
         task.source = '-'
         task.status = 'processing'
         
+        self.logger.debug(f"  [결과] {task.genre} (confidence: {task.confidence}, source: none)")
         print(f"  [결과] {task.genre} (confidence: {task.confidence}, source: none)")
         return task
     
@@ -226,6 +304,14 @@ class GenreClassifierAdapter:
                         'confidence': confidence,
                         'source': source
                     }
+            
+            # Naver 실패 시 Google 검색 시도 (Hybrid Sequence)
+            if self._google_extractor:
+                self.logger.debug(f"Naver 검색 실패, Google 검색 시도: {search_title}")
+                google_result = self._google_extractor.extract_genre(search_title)
+                
+                if google_result:
+                    return google_result
             
             return None
             

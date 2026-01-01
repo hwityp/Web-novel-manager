@@ -14,6 +14,8 @@ Validates: Requirements 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.9, 6.10
 """
 import csv
 import shutil
+import os
+import sys
 from pathlib import Path
 from dataclasses import dataclass, field
 from typing import List, Optional, Callable
@@ -140,6 +142,10 @@ class PipelineOrchestrator:
                         pass  # 콜백 에러는 무시
                 
                 try:
+                    # Stage 1.5: Title Extraction (New Step)
+                    # 장르 추론 정확도를 높이기 위해 제목 정규화를 먼저 수행
+                    task = self.filename_normalizer.parse_only(task)
+                    
                     # Stage 2: Genre Classifier
                     self._record_stage(self.STAGE_GENRE_CLASSIFIER)
                     task = self._run_stage2(task)
@@ -212,6 +218,178 @@ class PipelineOrchestrator:
         self.logger.log_pipeline_complete(result.processed, result.failed, result.skipped)
         
         return result
+    
+    def run_stage1(self, source_folder: Path) -> List[NovelTask]:
+        """Stage 1: 폴더 정리 (Scan Only)"""
+        self._stage_history = []
+        self._record_stage(self.STAGE_FOLDER_ORGANIZER)
+        tasks = self._run_stage1(Path(source_folder), dry_run=True) # 목록만 가져옴
+        return tasks
+
+    def run_stage1_5(self, tasks: List[NovelTask]) -> List[NovelTask]:
+        """Stage 1.5: 제목 정규화 (Parse Only)"""
+        processed_tasks = []
+        for idx, task in enumerate(tasks):
+            try:
+                task = self.filename_normalizer.parse_only(task)
+                
+                # 정규화된 이름 미리보기 생성 (장르는 아직 모를 수 있음)
+                # 장르가 없으면 '미분류' 상태로 미리보기
+                preview_name = self.filename_normalizer.preview_normalized_name(task)
+                task.metadata['normalized_name'] = preview_name
+                
+            except Exception as e:
+                self.logger.warning(f"Stage 1.5 실패: {task.raw_name} - {e}")
+            processed_tasks.append(task)
+        return processed_tasks
+
+    def run_stage2(self, tasks: List[NovelTask]) -> List[NovelTask]:
+        """Stage 2: 장르 추론 (Search Only)"""
+        # 진행률 콜백에 task 객체 전달 기능 추가 (Real-time binding 지원)
+        self._record_stage(self.STAGE_GENRE_CLASSIFIER)
+        
+        for idx, task in enumerate(tasks):
+            try:
+                # Progress Update with Task Object (for real-time GUI update)
+                if self.progress_callback:
+                    try:
+                        # 콜백이 4개 인자(idx, total, name, task)를 받는지 확인하거나
+                        # 기존 3개 인자 호환성 유지하며, GUI 쪽에서 **kwargs 등으로 처리해야 함.
+                        # 여기서는 파이썬의 유연함을 이용해 task객체를 추가 인자로 보낼 수도 있으나,
+                        # 안전하게 기존 시그니처(int, int, str)를 유지하되, 
+                        # GUI가 task 객체 참조를 갖고 있으므로, task 객체 내부가 업데이트되면 GUI도 알 수 있음.
+                        # 단, 리스트 뷰 갱신 트리거가 필요함.
+                        # 따라서 콜백 호출 시점을 '처리 후'로 잡거나, 콜백에 task를 넘기는 게 확실함.
+                        # 하지만 기존 인터페이스 변경은 위험하므로, task 내부 상태 업데이트 후 콜백 호출.
+                        pass 
+                    except: pass
+                
+                # Run Genre Classifier
+                task = self._run_stage2(task)
+                
+                # Callback AFTER update
+                if self.progress_callback:
+                    # 확장된 콜백 지원: (current, total, filename, task_object)
+                    try:
+                        self.progress_callback(idx + 1, len(tasks), task.raw_name, task)
+                    except TypeError:
+                        # 기존 방식 (Fallback)
+                        self.progress_callback(idx + 1, len(tasks), task.raw_name)
+
+            except Exception as e:
+                self.logger.warning(f"Stage 2 실패: {task.raw_name} - {e}")
+                
+        return tasks
+
+    def run_stage3(self, tasks: List[NovelTask], source_folder: Path) -> PipelineResult:
+        """Stage 3: 실행 및 이동 (Execute Only)"""
+        result = PipelineResult()
+        result.total_files = len(tasks)
+        self._record_stage(self.STAGE_FILENAME_NORMALIZER)
+        
+        for idx, task in enumerate(tasks):
+            # Skip check
+            if task.status == 'skipped':
+                result.skipped += 1
+                result.tasks.append(task)
+                # Skip된 것도 진행상황 업데이트 (UI 반영용)
+                if self.progress_callback:
+                    try: self.progress_callback(idx + 1, len(tasks), task.raw_name, task)
+                    except: pass
+                continue
+
+            # Progress Update
+            if self.progress_callback:
+                try:
+                    self.progress_callback(idx + 1, len(tasks), task.raw_name, task)
+                except TypeError:
+                     self.progress_callback(idx + 1, len(tasks), task.raw_name)
+
+            try:
+                # User Confirmation (if not already confirmed/skipped in Stage 2 logic or GUI)
+                # In split workflow, searching (Stage 2) happens first.
+                # Then GUI shows results. User clicks 'Execute'.
+                # Confirmation is likely handled by GUI batch loop calling this, OR
+                # we do final check here.
+                # For v1.3.1, GUI handles the "Genre Confirm Dialog" during Stage 2 OR before Stage 3?
+                # User wants: [Genre Inference] -> Show Table -> [Execute] -> [Confirm Popup?] -> Rename.
+                # Actually Item 2 says: "2nd Click: Final confirmation popup -> Execute".
+                # So Stage 3 just executes. Genre is already set in Stage 2.
+                
+                # Check mapping confidence
+                if self.genre_confirm_callback and not task.genre:
+                    # If genre missing (skipped search?), try one last time or just confirm?
+                    # In this flow, we assume Stage 2 populated genres.
+                    pass
+
+                task = self._run_stage3(task, dry_run=False) # Rename Logic
+                
+                if task.status == 'completed':
+                    # [Refactor] Explicit Copy Operation (v1.3.7)
+                    # Method renamed from _move_file to _copy_file to reflect actual behavior
+                    self._copy_file(task)
+                    result.processed += 1
+                elif task.status == 'failed':
+                    result.failed += 1
+                    result.errors.append(f"{task.raw_name}: {task.error_message}")
+                elif task.status == 'skipped':
+                    result.skipped += 1
+            except Exception as e:
+                task.status = 'failed'
+                task.error_message = str(e)
+                result.failed += 1
+                result.errors.append(f"{task.raw_name}: {e}")
+            
+            result.tasks.append(task)
+            
+        # Generate CSV
+        result.mapping_csv_path = self._generate_mapping_csv(result.tasks, source_folder, preview=False)
+        self._print_summary(result, dry_run=False)
+        return result
+
+    def run_stage2_and_execute(self, tasks: List[NovelTask], source_folder: Path) -> PipelineResult:
+        """Stage 2 & 3: 장르 추론 및 실행 (일괄 처리용)"""
+        # 1. 장르 추론 (Stage 2)
+        tasks = self.run_stage2(tasks)
+        
+        # 2. 장르 확인 (중간 단계) - 일괄 처리 시 필요한 로직
+        # GUI에서 Batch 모드로 실행 시, 이 메서드 안에서 확인 로직이 돌아야 함. (기존 동작 유지)
+        if self.genre_confirm_callback:
+            for task in tasks:
+                 if task.status != 'skipped': # 이미 스킵된거 제외
+                    try:
+                        # Smart Filter (Orchestrator 레벨에서도 지원하거나 콜백에 위임)
+                        # 여기선 콜백 호출
+                        selected_genre = self.genre_confirm_callback(
+                            task.raw_name, 
+                            task.genre, 
+                            task.confidence
+                        )
+                        if selected_genre:
+                            task.genre = selected_genre
+                            task.confidence = 'high'
+                            task.source = '사용자'
+                        else:
+                            task.status = 'skipped'
+                    except Exception as e:
+                        self.logger.warning(f"장르 확인 실패: {e}")
+
+        # 3. 실행 및 이동 (Stage 3)
+        # 이미 skipped 상태인 태스크는 run_stage3 내부에서 처리되거나 필터링됨
+        # run_stage3는 status='skipped'인 경우 건너뜀 (위 구현 확인 필요)
+        # 위 run_stage3 구현: for loop 돌면서 status check가 없음. 
+        # 수정 필요: run_stage3가 skipped 상태를 존중하도록.
+        
+        return self.run_stage3(tasks, source_folder)
+
+    # ... Restoring original run_stage2_and_execute as _legacy or keeping it ...
+    # Wait, I can just ADD the new methods and keep the old one as is. 
+    # The REPLACE block below will insert the new methods BEFORE the existing one or AFTER.
+    pass
+
+    def run_with_existing_tasks(self, tasks: List[NovelTask], source_folder: Path) -> PipelineResult:
+        """Deprecated: Use run_stage2_and_execute instead"""
+        return self.run_stage2_and_execute(tasks, source_folder)
     
     def _record_stage(self, stage: int):
         """단계 기록 (Property 13 검증용)"""
@@ -295,12 +473,12 @@ class PipelineOrchestrator:
         
         return task
     
-    def _move_file(self, task: NovelTask):
+    def _copy_file(self, task: NovelTask):
         """
-        파일 이동 (실제 파일 시스템 변경)
+        파일 복사 (실제 파일 시스템 변경)
         
         Args:
-            task: 이동할 NovelTask
+            task: 복사할 NovelTask
         """
         if 'target_path' not in task.metadata:
             return
@@ -312,19 +490,37 @@ class PipelineOrchestrator:
             # 타겟 디렉토리 생성
             target_path.parent.mkdir(parents=True, exist_ok=True)
             
+            # [Fix] Windows Trailing Space/Dot Issue
+            # 파일명 끝에 공백이나 점이 있는 경우 Windows API에서 파일을 찾지 못하는 문제 해결
+            src_str = str(source_path)
+            dst_str = str(target_path)
+            
+            if sys.platform == 'win32':
+                # 절대 경로 변환
+                if not os.path.isabs(src_str):
+                    src_str = os.path.abspath(src_str)
+                if not os.path.isabs(dst_str):
+                    dst_str = os.path.abspath(dst_str)
+                
+                # UNC 접두사 추가 (경로 길이 제한 해제 및 특수문자/공백 처리 강화)
+                if not src_str.startswith('\\\\?\\'):
+                    src_str = f'\\\\?\\{src_str}'
+                if not dst_str.startswith('\\\\?\\'):
+                    dst_str = f'\\\\?\\{dst_str}'
+            
             # 파일 복사 (원본 보존)
-            shutil.copy2(str(source_path), str(target_path))
+            shutil.copy2(src_str, dst_str)
             # task.current_path = target_path # 원본 위치는 유지 (필요하다면 로직에 따라 다름, 일단 복사만 수행)
             # 여기서는 복사된 파일로 후속 작업을 할지 원본으로 할지에 따라 다르지만, 
             # 일단 'move'를 대체하는 것이므로 복사본이 최종 결과물이 됨.
             task.current_path = target_path # 파이프라인 상에서는 타겟이 현재 위치가 됨
             
-            self.logger.debug(f"파일 이동: {source_path} → {target_path}")
+            self.logger.debug(f"파일 복사: {source_path} → {target_path}")
             
         except Exception as e:
-            self.logger.error(f"파일 이동 실패: {source_path} → {target_path} - {e}")
+            self.logger.error(f"파일 복사 실패: {source_path} → {target_path} - {e}")
             task.status = 'failed'
-            task.error_message = f"파일 이동 실패: {str(e)}"
+            task.error_message = f"파일 복사 실패: {str(e)}"
     
     def _generate_mapping_csv(
         self, 
@@ -345,7 +541,15 @@ class PipelineOrchestrator:
         """
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"mapping_preview_{timestamp}.csv" if preview else f"mapping_{timestamp}.csv"
-        csv_path = source_folder / filename
+        
+        # [요청사항] CSV 파일은 메인 프로그램 루트 폴더에 저장
+        try:
+            from config.pipeline_config import get_base_path
+            base_path = get_base_path()
+            csv_path = base_path / filename
+        except ImportError:
+            # fallback
+            csv_path = source_folder / filename
         
         try:
             with open(csv_path, 'w', newline='', encoding='utf-8-sig') as f:

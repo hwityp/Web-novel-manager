@@ -9,7 +9,12 @@ import base64
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
+from dotenv import load_dotenv
+
+# .env 파일 로드 (시스템 변수보다 우선)
+load_dotenv(override=True)
 
 
 class APIConfigManager:
@@ -132,11 +137,22 @@ class APIConfigManager:
     
     def load_config(self):
         """
-        API 설정 로드
+        API 설정 로드 (Hybrid Security: Env -> Encrypted)
         
         Returns:
             dict: {'client_id': str, 'client_secret': str} 또는 None
         """
+        # 1. 환경변수 확인 (.env)
+        env_client_id = os.getenv("NAVER_CLIENT_ID")
+        env_client_secret = os.getenv("NAVER_CLIENT_SECRET")
+        
+        if env_client_id and env_client_secret:
+            print(f"[API Config] .env 환경변수에서 설정 로드 완료")
+            return {
+                'client_id': env_client_id,
+                'client_secret': env_client_secret
+            }
+
         try:
             # PyInstaller 환경 고려
             if getattr(sys, 'frozen', False):
@@ -175,6 +191,64 @@ class APIConfigManager:
             print(f"[API Config] 로드 실패: {e}")
             return None
     
+    def load_google_config(self, config_file='google_api_config.json'):
+        """
+        Google API 설정 로드 (Hybrid Security: Env -> Encrypted)
+        Env 우선순위: GOOGLE_API_KEY, GOOGLE_CSE_ID
+        Fallback: google_api_config.json (암호화)
+        
+        Returns:
+            dict: {'api_key': str, 'cse_id': str} 또는 None
+        """
+        # 1. 환경변수 확인 (.env)
+        env_api_key = os.getenv("GOOGLE_API_KEY")
+        env_cse_id = os.getenv("GOOGLE_CSE_ID")
+        
+        if env_api_key and env_cse_id:
+            print(f"[API Config] .env 환경변수에서 Google 설정 로드 완료")
+            return {
+                'api_key': env_api_key,
+                'cse_id': env_cse_id
+            }
+
+        try:
+            # PyInstaller 환경 고려
+            if getattr(sys, 'frozen', False):
+                application_path = os.path.dirname(sys.executable)
+            else:
+                application_path = os.path.dirname(os.path.abspath(__file__))
+            
+            config_path = os.path.join(application_path, config_file)
+            
+            if not os.path.exists(config_path):
+                # print(f"[API Config] Google 설정 파일 없음: {config_path}")
+                return None
+            
+            with open(config_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            
+            # 암호화된 데이터인지 확인
+            if data.get('encrypted'):
+                # 복호화
+                encrypted_data = base64.b64decode(data['data'])
+                decrypted_data = self.cipher.decrypt(encrypted_data)
+                config = json.loads(decrypted_data.decode())
+                
+                print(f"[API Config] 암호화된 Google 설정 로드 완료")
+            else:
+                # 평문 데이터
+                config = data
+                print(f"[API Config] 평문 Google 설정 로드 완료")
+            
+            return {
+                'api_key': config.get('api_key'),
+                'cse_id': config.get('cse_id')
+            }
+            
+        except Exception as e:
+            print(f"[API Config] Google 설정 로드 실패: {e}")
+            return None
+
     def migrate_to_encrypted(self):
         """평문 설정을 암호화 설정으로 마이그레이션"""
         try:

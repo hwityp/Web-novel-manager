@@ -12,19 +12,21 @@ import customtkinter as ctk
 from typing import Optional, List
 
 
+# ... (Keep existing imports)
+
 # ============================================================================
 # 스타일 상수
 # ============================================================================
 FONT_FAMILY = "Segoe UI"
 
-# 폰트 크기 (확대)
-FONT_SIZE_TITLE = 26        # 제목
-FONT_SIZE_SUBTITLE = 16     # 부제목
-FONT_SIZE_LABEL = 18        # 라벨
-FONT_SIZE_GENRE = 22        # AI 추천 장르
-FONT_SIZE_FILENAME = 14     # 파일명
-FONT_SIZE_BUTTON = 16       # 버튼
-FONT_SIZE_COMBO = 15        # 콤보박스
+# 폰트 크기 (가독성 위해 대폭 확대 1.3배)
+FONT_SIZE_TITLE = 34        # 제목 (26 -> 34)
+FONT_SIZE_SUBTITLE = 20     # 부제목 (16 -> 20)
+FONT_SIZE_LABEL = 24        # 라벨 (18 -> 24)
+FONT_SIZE_GENRE = 30        # AI 추천 장르 (22 -> 30)
+FONT_SIZE_FILENAME = 18     # 파일명 (14 -> 18)
+FONT_SIZE_BUTTON = 24       # 버튼 (18 -> 24)
+FONT_SIZE_COMBO = 20        # 콤보박스 (16 -> 20)
 
 # 색상
 COLOR_BG_MAIN = "#1e1e1e"
@@ -34,27 +36,28 @@ COLOR_TEXT_PRIMARY = "#FFFFFF"
 COLOR_TEXT_SECONDARY = "#CCCCCC"
 COLOR_ACCENT_ORANGE = "#FF9500"
 COLOR_ACCENT_YELLOW = "#FFD60A"
-COLOR_ACCENT_BLUE = "#4A90D9"
-COLOR_ACCENT_BLUE_HOVER = "#5BA0E9"
-COLOR_ACCENT_GREEN = "#34C759"
-COLOR_ACCENT_GREEN_HOVER = "#4AD769"
+COLOR_ACCENT_BLUE = "#3498DB"       # 요청 색상 (밝은 파랑)
+COLOR_ACCENT_BLUE_HOVER = "#5DADE2"
+COLOR_ACCENT_GREEN = "#2ECC71"      # 요청 색상 (밝은 초록)
+COLOR_ACCENT_GREEN_HOVER = "#58D68D"
 COLOR_ACCENT_GRAY = "#555555"
 COLOR_ACCENT_GRAY_HOVER = "#666666"
 
 # 여백
-PAD_OUTER = 25
-PAD_INNER = 20
-PAD_SECTION = 20
+PAD_OUTER = 30      # 외곽 여백 증가
+PAD_INNER = 25
+PAD_SECTION = 30    # 섹션 간격 증가
 
 # 컨트롤 크기
-BTN_HEIGHT = 50
-BTN_WIDTH = 160
-COMBO_HEIGHT = 45
-COMBO_WIDTH = 350
+BTN_HEIGHT = 80     # 버튼 높이 대폭 증가 (시원한 클릭감)
+BTN_WIDTH = 200     # 버튼 너비 증가
+COMBO_HEIGHT = 60   # 콤보박스 높이 증가
+COMBO_WIDTH = 450   # 콤보박스 너비 증가
 
-# 다이얼로그 크기 (높이 충분히 확보)
-DIALOG_WIDTH = 800
-DIALOG_HEIGHT = 580
+# ... (Keep constants)
+# 다이얼로그 크기
+DIALOG_WIDTH = 900
+MIN_DIALOG_HEIGHT = 600 # 최소 높이만 지정
 
 
 class GenreConfirmDialog(ctk.CTkToplevel):
@@ -73,24 +76,37 @@ class GenreConfirmDialog(ctk.CTkToplevel):
         
         # 다이얼로그 설정
         self.title("장르 확인")
-        self.geometry(f"{DIALOG_WIDTH}x{DIALOG_HEIGHT}")
-        self.minsize(DIALOG_WIDTH, DIALOG_HEIGHT)
+        # 고정 크기 제거 및 자동 크기 조정
+        # self.minsize(DIALOG_WIDTH, MIN_DIALOG_HEIGHT) # 제거
         self.configure(fg_color=COLOR_BG_MAIN)
         
         # 모달 설정
         self.transient(parent)
         self.grab_set()
         
-        # 중앙 배치
-        self.update_idletasks()
-        x = parent.winfo_x() + (parent.winfo_width() - DIALOG_WIDTH) // 2
-        y = parent.winfo_y() + (parent.winfo_height() - DIALOG_HEIGHT) // 2
-        self.geometry(f"{DIALOG_WIDTH}x{DIALOG_HEIGHT}+{x}+{y}")
-        
         self._create_widgets()
+        
+        # 내용물에 맞춰 크기 조정 및 중앙 배치
+        self.update_idletasks()
+        
+        req_width = self.winfo_reqwidth()
+        req_height = self.winfo_reqheight()
+        
+        # 최소 너비는 보장
+        if req_width < DIALOG_WIDTH:
+            req_width = DIALOG_WIDTH
+            
+        # 부모 윈도우 중앙 계산
+        x = parent.winfo_x() + (parent.winfo_width() - req_width) // 2
+        y = parent.winfo_y() + (parent.winfo_height() - req_height) // 2
+        
+        # 화면 벗어남 방지
+        if y < 0: y = 0
+        
+        self.geometry(f"{req_width}x{req_height}+{x}+{y}")
+        
         self.protocol("WM_DELETE_WINDOW", self._on_cancel)
         self.focus_set()
-
     def _create_widgets(self):
         """UI 위젯 생성"""
         
@@ -98,7 +114,7 @@ class GenreConfirmDialog(ctk.CTkToplevel):
         main_card = ctk.CTkFrame(
             self, 
             fg_color=COLOR_BG_CARD, 
-            corner_radius=16,
+            corner_radius=20, # 모서리 조금 더 둥글게
             border_width=2, 
             border_color=COLOR_ACCENT_ORANGE
         )
@@ -115,10 +131,10 @@ class GenreConfirmDialog(ctk.CTkToplevel):
         icon_label = ctk.CTkLabel(
             header_row, 
             text="⚠️", 
-            font=ctk.CTkFont(size=48),
+            font=ctk.CTkFont(size=60), # 아이콘 확대 (48 -> 60)
             text_color=COLOR_ACCENT_YELLOW
         )
-        icon_label.pack(side="left", padx=(0, 15))
+        icon_label.pack(side="left", padx=(0, 20))
         
         title_label = ctk.CTkLabel(
             header_row, 
@@ -136,18 +152,18 @@ class GenreConfirmDialog(ctk.CTkToplevel):
             text_color=COLOR_TEXT_SECONDARY,
             justify="left"
         )
-        desc_label.pack(anchor="w", pady=(10, 0))
+        desc_label.pack(anchor="w", pady=(15, 0))
         
         # ========== 파일명 카드 ==========
         file_card = ctk.CTkFrame(
             main_card, 
             fg_color=COLOR_BG_INFO, 
-            corner_radius=12
+            corner_radius=16
         )
         file_card.pack(fill="x", padx=PAD_INNER, pady=(0, PAD_SECTION))
         
         file_inner = ctk.CTkFrame(file_card, fg_color="transparent")
-        file_inner.pack(fill="x", padx=15, pady=15)
+        file_inner.pack(fill="x", padx=25, pady=25) # 내부 패딩 확대
         
         file_label = ctk.CTkLabel(
             file_inner, 
@@ -157,26 +173,28 @@ class GenreConfirmDialog(ctk.CTkToplevel):
         )
         file_label.pack(anchor="w")
         
-        filename_text = self.filename if len(self.filename) < 55 else self.filename[:52] + "..."
+        # 파일명 줄바꿈 및 길이 처리
+        filename_text = self.filename
         filename_value = ctk.CTkLabel(
             file_inner, 
             text=filename_text,
             font=ctk.CTkFont(family="Consolas", size=FONT_SIZE_FILENAME),
             text_color=COLOR_TEXT_SECONDARY,
-            wraplength=600
+            wraplength=700, # 긴 파일명 줄바꿈 허용 (650 -> 700)
+            justify="left"
         )
-        filename_value.pack(anchor="w", pady=(8, 0))
+        filename_value.pack(anchor="w", pady=(10, 0))
         
         # ========== AI 추천 장르 카드 ==========
         ai_card = ctk.CTkFrame(
             main_card, 
             fg_color=COLOR_BG_INFO, 
-            corner_radius=12
+            corner_radius=16
         )
         ai_card.pack(fill="x", padx=PAD_INNER, pady=(0, PAD_SECTION))
         
         ai_inner = ctk.CTkFrame(ai_card, fg_color="transparent")
-        ai_inner.pack(fill="x", padx=15, pady=15)
+        ai_inner.pack(fill="x", padx=25, pady=25)
         
         ai_label = ctk.CTkLabel(
             ai_inner, 
@@ -192,11 +210,11 @@ class GenreConfirmDialog(ctk.CTkToplevel):
             font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_GENRE, weight="bold"),
             text_color=COLOR_ACCENT_ORANGE
         )
-        genre_value.pack(anchor="w", pady=(8, 0))
+        genre_value.pack(anchor="w", pady=(10, 0))
         
         # ========== 장르 선택 ==========
         select_frame = ctk.CTkFrame(main_card, fg_color="transparent")
-        select_frame.pack(fill="x", padx=PAD_INNER, pady=(0, PAD_SECTION))
+        select_frame.pack(fill="x", padx=PAD_INNER, pady=(0, PAD_SECTION + 15)) # 하단 여백 추가
         
         select_label = ctk.CTkLabel(
             select_frame, 
@@ -204,7 +222,7 @@ class GenreConfirmDialog(ctk.CTkToplevel):
             font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_LABEL, weight="bold"),
             text_color=COLOR_TEXT_PRIMARY
         )
-        select_label.pack(anchor="w", pady=(0, 10))
+        select_label.pack(anchor="w", pady=(0, 15))
         
         self.genre_var = ctk.StringVar(value=self.suggested_genre)
         self.genre_combo = ctk.CTkComboBox(
@@ -215,7 +233,7 @@ class GenreConfirmDialog(ctk.CTkToplevel):
             height=COMBO_HEIGHT,
             font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_COMBO),
             dropdown_font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_COMBO),
-            corner_radius=10, 
+            corner_radius=12, 
             border_width=2, 
             border_color=COLOR_ACCENT_BLUE,
             fg_color=COLOR_BG_INFO,
@@ -227,49 +245,52 @@ class GenreConfirmDialog(ctk.CTkToplevel):
         
         # ========== 버튼 영역 ==========
         button_frame = ctk.CTkFrame(main_card, fg_color="transparent")
-        button_frame.pack(fill="x", padx=PAD_INNER, pady=(0, PAD_INNER))
+        button_frame.pack(fill="x", padx=PAD_INNER, pady=(0, PAD_INNER + 20)) # 하단 패딩 대폭 추가 (버튼 잘림 방지)
         
-        # 선택 확인 버튼
+        # 선택 확인 버튼 (Green Glow)
         confirm_btn = ctk.CTkButton(
             button_frame, 
             text="✓ 선택 확인",
             font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_BUTTON, weight="bold"),
-            width=BTN_WIDTH, 
             height=BTN_HEIGHT, 
-            corner_radius=12,
+            corner_radius=20, # 더 둥글게
             fg_color=COLOR_ACCENT_GREEN, 
             hover_color=COLOR_ACCENT_GREEN_HOVER,
+            border_width=3, # 테두리 두껍게
+            border_color="#82E0AA", # Glow
             command=self._on_confirm
         )
-        confirm_btn.pack(side="left", padx=(0, 10))
+        confirm_btn.pack(side="left", padx=15, expand=True, fill="x")
         
-        # AI 추천 사용 버튼
+        # AI 추천 사용 버튼 (Blue Glow)
         ai_btn = ctk.CTkButton(
             button_frame, 
             text="🤖 AI 추천 사용",
             font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_BUTTON, weight="bold"),
-            width=BTN_WIDTH + 20, 
             height=BTN_HEIGHT, 
-            corner_radius=12,
+            corner_radius=20,
             fg_color=COLOR_ACCENT_BLUE, 
             hover_color=COLOR_ACCENT_BLUE_HOVER,
+            border_width=3,
+            border_color="#85C1E9", # Glow
             command=self._on_use_ai
         )
-        ai_btn.pack(side="left", padx=(0, 10))
+        ai_btn.pack(side="left", padx=15, expand=True, fill="x")
         
-        # 건너뛰기 버튼
+        # 건너뛰기 버튼 (Normal)
         skip_btn = ctk.CTkButton(
             button_frame, 
             text="건너뛰기",
             font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_BUTTON),
-            width=BTN_WIDTH - 30, 
             height=BTN_HEIGHT, 
-            corner_radius=12,
+            corner_radius=20,
             fg_color=COLOR_ACCENT_GRAY, 
             hover_color=COLOR_ACCENT_GRAY_HOVER,
+            border_width=2,
+            border_color="#777777",
             command=self._on_skip
         )
-        skip_btn.pack(side="left")
+        skip_btn.pack(side="left", padx=15, expand=True, fill="x")
     
     def _on_confirm(self):
         self.selected_genre = self.genre_var.get()

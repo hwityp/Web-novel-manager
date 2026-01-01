@@ -36,6 +36,32 @@ class FilenameNormalizerAdapter:
         self.logger = logger or PipelineLogger(console_output=False)
         self._extractor = TitleAnchorExtractor()
     
+    def parse_only(self, task: NovelTask) -> NovelTask:
+        """
+        파일명에서 메타데이터만 추출 (정규화 전 단계)
+        
+        Args:
+            task: 처리할 NovelTask
+            
+        Returns:
+            메타데이터(title, author 등)가 채워진 NovelTask
+        """
+        try:
+            # 제목 앵커 추출 (이미 title이 있으면 건너뜀)
+            if not task.title:
+                parse_result = self._extractor.extract(task.raw_name)
+                task.title = parse_result.title
+                task.author = parse_result.author or task.author
+                task.volume_info = parse_result.volume_info or task.volume_info
+                task.range_info = parse_result.range_info or task.range_info
+                task.is_completed = parse_result.is_completed or task.is_completed
+                task.side_story = parse_result.side_story or task.side_story
+                self.logger.debug(f"메타데이터 추출 완료: {task.raw_name} -> {task.title}")
+        except Exception as e:
+            self.logger.warning(f"메타데이터 추출 실패: {e}")
+            
+        return task
+    
     def normalize(self, task: NovelTask) -> NovelTask:
         """
         파일명 정규화 후 task 업데이트

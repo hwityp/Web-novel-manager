@@ -28,6 +28,8 @@ import queue
 import os
 import subprocess
 import sys
+from datetime import datetime
+import json
 
 from config.pipeline_config import PipelineConfig, GENRE_WHITELIST
 from core.pipeline_orchestrator import PipelineOrchestrator, PipelineResult
@@ -126,10 +128,77 @@ TOOLTIP_TEXTS = {
 }
 
 
+class EditNameDialog(ctk.CTkToplevel):
+    """파일명 편집 다이얼로그 (초기값 지원)"""
+    def __init__(self, parent, title: str, initial_value: str = ""):
+        super().__init__(parent)
+        self.title(title)
+        self.geometry("400x180")
+        self.resizable(False, False)
+        
+        # 모달 설정
+        self.transient(parent)
+        self.grab_set()
+        
+        # 중앙 배치
+        self.update_idletasks()
+        x = parent.winfo_x() + (parent.winfo_width() // 2) - 200
+        y = parent.winfo_y() + (parent.winfo_height() // 2) - 90
+        self.geometry(f"+{x}+{y}")
+        
+        self.result = None
+        
+        # UI 구성
+        self.configure(fg_color=THEME["bg_card"])
+        
+        label = ctk.CTkLabel(
+            self, text="새로운 파일명을 입력하세요:",
+            font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_BASE),
+            text_color=THEME["text_primary"]
+        )
+        label.pack(pady=(20, 10))
+        
+        self.entry = ctk.CTkEntry(
+            self, width=300,
+            font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_BASE),
+            fg_color=THEME["bg_input"], text_color=THEME["text_primary"]
+        )
+        self.entry.pack(pady=10)
+        self.entry.insert(0, initial_value)
+        self.entry.focus_set()
+        self.entry.bind("<Return>", self._on_ok)
+        
+        btn_frame = ctk.CTkFrame(self, fg_color="transparent")
+        btn_frame.pack(pady=20)
+        
+        ok_btn = ctk.CTkButton(
+            btn_frame, text="확인", width=100,
+            fg_color=THEME["accent_blue"], hover_color=THEME["accent_blue_hover"],
+            command=self._on_ok
+        )
+        ok_btn.pack(side="left", padx=10)
+        
+        cancel_btn = ctk.CTkButton(
+            btn_frame, text="취소", width=100,
+            fg_color=THEME["accent_gray"], hover_color=THEME["accent_gray_hover"],
+            command=self.destroy
+        )
+        cancel_btn.pack(side="left", padx=10)
+        
+        self.wait_window()
+
+    def _on_ok(self, event=None):
+        self.result = self.entry.get()
+        self.destroy()
+    
+    def get_input(self):
+        return self.result
+
+
 class WNAPMainWindow(ctk.CTk):
     """WNAP 메인 윈도우 - 프로페셔널 에디션 v2"""
     
-    def __init__(self):
+    def __init__(self, log_level: str = "INFO"):
         super().__init__()
         
         # 윈도우 설정
@@ -142,17 +211,21 @@ class WNAPMainWindow(ctk.CTk):
         
         # 설정 로드
         self.config = self._load_config()
+        self.config.log_level = log_level # CLI 인자 우선 적용
         
-        # 파일 로거 초기화 (GUI 모드: 콘솔 출력 비활성화)
+        # 파일 로거 초기화 (GUI 모드: 콘솔 출력 비활성화 - CLI에서 제어함)
+        # 단, CLI --log-level이 있으면 그것을 따름
         self.file_logger = PipelineLogger(
             log_level=self.config.log_level,
             log_dir=Path("logs"),
-            log_filename="wnap.log",
-            console_output=False
+            console_output=True # CLI에서 제어함
         )
         
         # 상태 변수
         self.is_running = False
+        self.step_folder_done = False
+        self.step_normalize_done = False
+        self.step_genre_done = False
         self.progress_queue = queue.Queue()
         self.genre_confirm_queue = queue.Queue()
         self.genre_confirm_response = queue.Queue()
@@ -180,6 +253,16 @@ class WNAPMainWindow(ctk.CTk):
     
     def _on_closing(self):
         """윈도우 종료 시 상태 저장"""
+        try:
+            # 1. 마지막 설정 저장 (폴더 경로 등)
+            config_path = get_config_path()
+            self._update_config_from_ui()
+            self.config.save(config_path)
+        except Exception as e:
+            # 종료 중 오류는 무시하거나 콘솔에만 출력
+            print(f"설정 저장 실패: {e}")
+            
+        # 2. 윈도우 상태 저장
         WindowStateManager.save_state(self)
         self.file_logger.close()
         self.destroy()
@@ -204,19 +287,18 @@ class WNAPMainWindow(ctk.CTk):
         self.file_logger.info(message)
     
     def _create_widgets(self):
-        """UI 위젯 생성 - 로그 섹션 제거, Treeview 확장"""
-        # 메인 컨테이너 설정 (로그 섹션 제거)
+        """UI 위젯 생성 - 옵션 섹션 제거 및 테이블 확장 (v1.3.2)"""
+        # 메인 컨테이너 설정
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(0, weight=0)  # 상단 카드 (고정)
-        self.grid_rowconfigure(1, weight=0)  # 옵션 섹션 (고정)
-        self.grid_rowconfigure(2, weight=5)  # 결과 테이블 + 프로그레스 (최대 확장)
-        self.grid_rowconfigure(3, weight=0)  # 버튼 영역 (고정)
+        self.grid_rowconfigure(1, weight=10) # 결과 테이블 (최대 확장)
+        self.grid_rowconfigure(2, weight=0)  # 버튼 영역 (고정)
+
         
         # === 상단: 폴더 설정 + 대시보드 ===
         self._create_top_section()
         
-        # === 옵션 섹션 ===
-        self._create_options_section()
+        # === 옵션 섹션 (삭제) ===
+        # self._create_options_section()
         
         # === 결과 테이블 + 프로그레스 바 ===
         self._create_result_table_section()
@@ -414,129 +496,7 @@ class WNAPMainWindow(ctk.CTk):
         
         setattr(self, f"stat_{attr_name}_label", value_label)
 
-    def _create_options_section(self):
-        """옵션 섹션 생성 - 툴팁 포함"""
-        options_card = ctk.CTkFrame(
-            self,
-            fg_color=THEME["bg_card"],
-            corner_radius=12,
-            border_width=1,
-            border_color=THEME["accent_blue"]
-        )
-        options_card.grid(row=1, column=0, padx=PADDING_LARGE, pady=PADDING_BASE, sticky="ew")
-        options_card.grid_columnconfigure((0, 1, 2, 3), weight=1)
-        
-        # 제목
-        title_label = ctk.CTkLabel(
-            options_card,
-            text="⚙️ 실행 옵션",
-            font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_LARGE, weight="bold"),
-            text_color=THEME["text_primary"]
-        )
-        title_label.grid(row=0, column=0, columnspan=4, padx=PADDING_LARGE, pady=(PADDING_LARGE, PADDING_BASE), sticky="w")
-        
-        # Dry-run 토글 + 툴팁
-        dryrun_frame = ctk.CTkFrame(options_card, fg_color="transparent")
-        dryrun_frame.grid(row=1, column=0, padx=PADDING_LARGE, pady=PADDING_BASE, sticky="w")
-        
-        self.dry_run_var = ctk.BooleanVar(value=True)
-        dry_run_switch = ctk.CTkSwitch(
-            dryrun_frame,
-            text="Dry-run 모드",
-            font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_BASE),
-            text_color=THEME["text_secondary"],
-            variable=self.dry_run_var,
-            onvalue=True,
-            offvalue=False,
-            progress_color=THEME["accent_blue"]
-        )
-        dry_run_switch.pack(side="left")
-        
-        dryrun_help = ctk.CTkLabel(dryrun_frame, text=" (?)", text_color=THEME["accent_blue"],
-                                   font=ctk.CTkFont(size=FONT_SIZE_SMALL))
-        dryrun_help.pack(side="left")
-        self.tooltips.append(create_tooltip(dryrun_help, TOOLTIP_TEXTS["dry_run"]))
-        
-        # 로그 레벨 + 툴팁
-        log_frame = ctk.CTkFrame(options_card, fg_color="transparent")
-        log_frame.grid(row=1, column=1, padx=PADDING_BASE, pady=PADDING_BASE, sticky="w")
-        
-        log_level_label = ctk.CTkLabel(
-            log_frame, 
-            text="로그 레벨:",
-            font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_BASE),
-            text_color=THEME["text_secondary"]
-        )
-        log_level_label.pack(side="left", padx=(0, PADDING_SMALL))
-        
-        self.log_level_var = ctk.StringVar(value="INFO")
-        log_level_combo = ctk.CTkComboBox(
-            log_frame,
-            values=["DEBUG", "INFO", "WARNING", "ERROR"],
-            variable=self.log_level_var,
-            width=100,
-            height=32,
-            font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_BASE),
-            corner_radius=8,
-            fg_color=THEME["bg_input"],
-            text_color=THEME["text_primary"]
-        )
-        log_level_combo.pack(side="left")
-        
-        log_help = ctk.CTkLabel(log_frame, text=" (?)", text_color=THEME["accent_blue"],
-                                font=ctk.CTkFont(size=FONT_SIZE_SMALL))
-        log_help.pack(side="left")
-        self.tooltips.append(create_tooltip(log_help, TOOLTIP_TEXTS["log_level"]))
-        
-        # 실행 확인 체크박스 + 툴팁
-        confirm_frame = ctk.CTkFrame(options_card, fg_color="transparent")
-        confirm_frame.grid(row=1, column=2, padx=PADDING_BASE, pady=PADDING_BASE, sticky="w")
-        
-        self.confirm_var = ctk.BooleanVar(value=True)
-        confirm_check = ctk.CTkCheckBox(
-            confirm_frame,
-            text="실행 전 확인",
-            font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_BASE),
-            text_color=THEME["text_secondary"],
-            variable=self.confirm_var,
-            checkbox_width=22,
-            checkbox_height=22,
-            corner_radius=6,
-            fg_color=THEME["accent_blue"]
-        )
-        confirm_check.pack(side="left")
-        
-        confirm_help = ctk.CTkLabel(confirm_frame, text=" (?)", text_color=THEME["accent_blue"],
-                                    font=ctk.CTkFont(size=FONT_SIZE_SMALL))
-        confirm_help.pack(side="left")
-        self.tooltips.append(create_tooltip(confirm_help, TOOLTIP_TEXTS["confirm_dialog"]))
-        
-        # 설정 저장 버튼 + 툴팁
-        save_frame = ctk.CTkFrame(options_card, fg_color="transparent")
-        save_frame.grid(row=1, column=3, padx=(PADDING_BASE, PADDING_LARGE), pady=(PADDING_BASE, PADDING_LARGE), sticky="e")
-        
-        self.save_btn = ctk.CTkButton(
-            save_frame,
-            text="💾 설정 저장",
-            font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_BASE, weight="bold"),
-            width=BUTTON_WIDTH_SMALL,
-            height=36,
-            corner_radius=8,
-            fg_color=THEME["accent_gray"],
-            hover_color=THEME["accent_gray_hover"],
-            text_color=THEME["button_text"],
-            text_color_disabled=THEME["button_text_disabled"],
-            command=self._save_config
-        )
-        self.save_btn.pack(side="left")
-        self.disable_on_run.append(self.save_btn)
-        
-        save_help = ctk.CTkLabel(save_frame, text=" (?)", text_color=THEME["accent_blue"],
-                                 font=ctk.CTkFont(size=FONT_SIZE_SMALL))
-        save_help.pack(side="left")
-        self.tooltips.append(create_tooltip(save_help, TOOLTIP_TEXTS["save_settings"]))
-
-
+    # def _create_options_section(self): # REMOVED
     def _create_result_table_section(self):
         """결과 테이블 섹션 생성 - 확장 레이아웃, 프로그레스 바 포함"""
         table_card = ctk.CTkFrame(
@@ -546,7 +506,7 @@ class WNAPMainWindow(ctk.CTk):
             border_width=1,
             border_color=THEME["accent_blue"]
         )
-        table_card.grid(row=2, column=0, padx=PADDING_LARGE, pady=PADDING_BASE, sticky="nsew")
+        table_card.grid(row=1, column=0, padx=PADDING_LARGE, pady=PADDING_BASE, sticky="nsew")
         table_card.grid_columnconfigure(0, weight=1)
         table_card.grid_rowconfigure(1, weight=1)
         
@@ -622,11 +582,16 @@ class WNAPMainWindow(ctk.CTk):
         self.result_tree.heading("confidence", text="신뢰도", command=lambda: self._sort_treeview("confidence", False))
         self.result_tree.heading("source", text="판단근거", command=lambda: self._sort_treeview("source", False))
         
-        self.result_tree.column("original", width=280, minwidth=180)
-        self.result_tree.column("normalized", width=350, minwidth=200)
-        self.result_tree.column("genre", width=100, minwidth=80)
-        self.result_tree.column("confidence", width=90, minwidth=70)
-        self.result_tree.column("source", width=100, minwidth=80)
+        self.result_tree.column("original", width=200, minwidth=150)
+        self.result_tree.column("normalized", width=500, minwidth=300) # 가용 공간 최대 활용
+        self.result_tree.column("genre", width=120, minwidth=120, stretch=False)
+        self.result_tree.column("confidence", width=120, minwidth=120, stretch=False)
+        self.result_tree.column("source", width=150, minwidth=150, stretch=False)
+        
+        # 상태별 태그 스타일 (Row Coloring)
+        self.result_tree.tag_configure("completed", background="#1E3A2A", foreground="#FFFFFF")
+        self.result_tree.tag_configure("skipped", background="#404040", foreground="#AAAAAA")
+        self.result_tree.tag_configure("failed", background="#4A1E1E", foreground="#FF9999")
         
         # 더블클릭 이벤트 바인딩
         self.result_tree.bind("<Double-1>", self._on_treeview_double_click)
@@ -676,8 +641,8 @@ class WNAPMainWindow(ctk.CTk):
             background=THEME["table_bg"],
             foreground=THEME["text_primary"],
             fieldbackground=THEME["table_bg"],
-            rowheight=32,
-            font=(FONT_FAMILY, FONT_SIZE_BASE),
+            rowheight=38, # 높이 증가
+            font=(FONT_FAMILY, int(FONT_SIZE_BASE * 1.2)), # 폰트 1.2배
             borderwidth=0
         )
         
@@ -698,9 +663,16 @@ class WNAPMainWindow(ctk.CTk):
             background=[("selected", THEME["table_selected"])],
             foreground=[("selected", THEME["text_primary"])]
         )
+        
+        # 선택 상태
+        style.map(
+            "Custom.Treeview",
+            background=[("selected", THEME["table_selected"])],
+            foreground=[("selected", THEME["text_primary"])]
+        )
     
     def _create_action_buttons(self):
-        """실행 버튼 섹션 생성"""
+        """실행 버튼 섹션 생성 - 5단계 버튼 (WNAP v1.3.0)"""
         button_frame = ctk.CTkFrame(
             self,
             fg_color=THEME["bg_card"],
@@ -708,58 +680,76 @@ class WNAPMainWindow(ctk.CTk):
             border_width=1,
             border_color=THEME["accent_blue"]
         )
-        button_frame.grid(row=3, column=0, padx=PADDING_LARGE, pady=(PADDING_BASE, PADDING_LARGE), sticky="ew")
-        button_frame.grid_columnconfigure((0, 1, 2), weight=1)
+        button_frame.grid(row=2, column=0, padx=PADDING_LARGE, pady=(PADDING_BASE, PADDING_LARGE), sticky="ew")
+        for i in range(5):
+            button_frame.grid_columnconfigure(i, weight=1)
+            
+        # 버튼 높이 1.5배 (약 68px)
+        BTN_H = int(BUTTON_HEIGHT * 1.5)
         
-        # 미리보기 버튼 (청색)
-        self.preview_btn = ctk.CTkButton(
-            button_frame,
-            text="🔍 미리보기 (Dry-run)",
+        # 1. 폴더 정리
+        self.btn_folder = ctk.CTkButton(
+            button_frame, text="1. 폴더 정리",
             font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_MEDIUM, weight="bold"),
-            height=BUTTON_HEIGHT,
-            corner_radius=BUTTON_CORNER_RADIUS,
-            fg_color=THEME["accent_blue"],
-            hover_color=THEME["accent_blue_hover"],
-            text_color=THEME["button_text"],
-            text_color_disabled=THEME["button_text_disabled"],
-            command=self._run_preview
+            height=BTN_H, corner_radius=BUTTON_CORNER_RADIUS,
+            fg_color=THEME["accent_gray"], hover_color=THEME["accent_gray_hover"],
+            command=self._on_btn_folder_click
         )
-        self.preview_btn.grid(row=0, column=0, padx=PADDING_LARGE, pady=PADDING_LARGE, sticky="ew")
+        self.btn_folder.grid(row=0, column=0, padx=(PADDING_LARGE, PADDING_SMALL), pady=PADDING_LARGE, sticky="ew")
         
-        # 실행 버튼 (녹색)
-        self.run_btn = ctk.CTkButton(
-            button_frame,
-            text="▶️ 실행",
+        # 2. 파일명 정규화
+        self.btn_normalize = ctk.CTkButton(
+            button_frame, text="2. 파일명 정규화",
             font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_MEDIUM, weight="bold"),
-            height=BUTTON_HEIGHT,
-            corner_radius=BUTTON_CORNER_RADIUS,
-            fg_color=THEME["accent_green"],
-            hover_color=THEME["accent_green_hover"],
-            text_color=THEME["button_text"],
-            text_color_disabled=THEME["button_text_disabled"],
-            command=self._run_pipeline,
-            state="disabled"  # 초기 상태 비활성화
+            height=BTN_H, corner_radius=BUTTON_CORNER_RADIUS,
+            fg_color=THEME["accent_gray"], hover_color=THEME["accent_gray_hover"],
+            text_color_disabled="#D0D0D0",
+            state="disabled",
+            command=self._on_btn_normalize_click
         )
-        self.run_btn.grid(row=0, column=1, padx=PADDING_BASE, pady=PADDING_LARGE, sticky="ew")
+        self.btn_normalize.grid(row=0, column=1, padx=PADDING_SMALL, pady=PADDING_LARGE, sticky="ew")
         
-        # 초기화 버튼 (회색)
-        clear_btn = ctk.CTkButton(
-            button_frame,
-            text="🗑️ 초기화",
+        # 3. 장르 추론 및 실행 (Glow Effect)
+        self.btn_genre = ctk.CTkButton(
+            button_frame, text="3. 장르 추론/실행",
             font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_MEDIUM, weight="bold"),
-            height=BUTTON_HEIGHT,
-            corner_radius=BUTTON_CORNER_RADIUS,
-            fg_color=THEME["accent_gray"],
-            hover_color=THEME["accent_gray_hover"],
-            text_color=THEME["button_text"],
-            text_color_disabled=THEME["button_text_disabled"],
-            command=self._clear_all
+            height=BTN_H, corner_radius=BUTTON_CORNER_RADIUS,
+            fg_color=THEME["accent_blue"], hover_color=THEME["accent_blue_hover"],
+            border_width=2, border_color="#89CFF0",
+            text_color="#FFFFFF",
+            text_color_disabled="#D0D0D0",
+            state="disabled",
+            command=self._on_btn_genre_click
         )
-        clear_btn.grid(row=0, column=2, padx=(PADDING_BASE, PADDING_LARGE), pady=PADDING_LARGE, sticky="ew")
+        self.btn_genre.grid(row=0, column=2, padx=PADDING_SMALL, pady=PADDING_LARGE, sticky="ew")
+        
+        # 4. 일괄 처리 (Blue Color)
+        self.btn_batch = ctk.CTkButton(
+            button_frame, text="⚡ 일괄 처리",
+            font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_MEDIUM, weight="bold"),
+            height=BTN_H, corner_radius=BUTTON_CORNER_RADIUS,
+            fg_color="#2980B9", hover_color="#3498DB",
+            text_color="#FFFFFF",
+            text_color_disabled="#D0D0D0",
+            border_width=0,
+            command=self._on_btn_batch_click
+        )
+        self.btn_batch.grid(row=0, column=3, padx=PADDING_SMALL, pady=PADDING_LARGE, sticky="ew")
+        
+        # 5. 초기화
+        self.btn_reset = ctk.CTkButton(
+            button_frame, text="↺ 초기화",
+            font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_MEDIUM, weight="bold"),
+            height=BTN_H, corner_radius=BUTTON_CORNER_RADIUS,
+            fg_color=THEME["status_error"], hover_color="#FCA5A5",
+            command=self._on_btn_reset_click
+        )
+        self.btn_reset.grid(row=0, column=4, padx=(PADDING_SMALL, PADDING_LARGE), pady=PADDING_LARGE, sticky="ew")
 
-
-        # 초기화 버튼도 실행 중 비활성화 (self.disable_on_run에 추가)
-        self.disable_on_run.append(clear_btn)
+        # 실행 중 비활성화할 버튼 목록 업데이트
+        self.disable_on_run.extend([
+            self.btn_folder, self.btn_normalize, self.btn_genre, self.btn_batch, self.btn_reset
+        ])
 
     def _on_input_changed(self):
         """입력 변경 시 실행 버튼 비활성화 (재분석 유도)"""
@@ -798,21 +788,25 @@ class WNAPMainWindow(ctk.CTk):
             self.target_entry.delete(0, "end")
             self.target_entry.insert(0, self.config.target_folder)
         
-        self.dry_run_var.set(self.config.dry_run)
-        self.log_level_var.set(self.config.log_level)
+
+        # self.log_level_var.set(self.config.log_level) # Removed
     
     def _update_config_from_ui(self):
         """UI 값을 설정에 반영"""
         self.config.source_folder = self.source_entry.get()
         self.config.target_folder = self.target_entry.get() or "정리완료"
-        self.config.dry_run = self.dry_run_var.get()
-        self.config.log_level = self.log_level_var.get()
+        # dry_run은 실행 시 결정됨
+        # self.config.log_level = self.log_level_var.get() # Removed
     
     def _process_progress_queue(self):
         """진행 상황 큐 처리 (메인 스레드에서 실행)"""
         try:
             while True:
-                current, total, filename = self.progress_queue.get_nowait()
+                data = self.progress_queue.get_nowait()
+                # data format: (current, total, filename) or (current, total, filename, task)
+                current, total, filename = data[0], data[1], data[2]
+                task = data[3] if len(data) > 3 else None
+                
                 progress = current / total if total > 0 else 0
                 self.progress_bar.set(progress)
                 self.progress_label.configure(text=f"[{current}/{total}] {filename}")
@@ -820,14 +814,46 @@ class WNAPMainWindow(ctk.CTk):
                     text=f"⏳ 처리 중 ({current}/{total})",
                     text_color=THEME["status_warning"]
                 )
+                
+                # Real-time Treeview Update
+                if task and self.result_tree.exists(str(current - 1)):
+                    # current is 1-based index, treeview iid is 0-based index
+                    item_id = str(current - 1)
+                    
+                    # Update values (Genre, Confidence)
+                    # Get existing values
+                    values = list(self.result_tree.item(item_id, "values"))
+                    # (Original, Normalized, Genre, Confidence, Source)
+                    # Update Genre, Conf, Source
+                    genre = task.genre or "-"
+                    confidence = task.confidence or "-"
+                    source = task.source or "-"
+                    
+                    values[2] = genre
+                    values[3] = confidence
+                    values[4] = source
+                    
+                    self.result_tree.item(item_id, values=values)
+                    
+                    # Row Coloring based on status
+                    if task.status == 'completed':
+                        self.result_tree.item(item_id, tags=('completed',))
+                    elif task.status == 'skipped':
+                        self.result_tree.item(item_id, tags=('skipped',))
+                    elif task.status == 'failed':
+                        self.result_tree.item(item_id, tags=('failed',))
+                        
+                    self.result_tree.see(item_id) # Scroll to item
+                    
         except queue.Empty:
             pass
         
         self.after(50, self._process_progress_queue)
     
-    def _on_progress(self, current: int, total: int, filename: str):
+    def _on_progress(self, *args):
         """진행 상황 콜백 (백그라운드 스레드에서 호출됨)"""
-        self.progress_queue.put((current, total, filename))
+        # args: (current, total, filename, [task])
+        self.progress_queue.put(args)
     
     def _process_genre_confirm_queue(self):
         """장르 확인 요청 큐 처리 (메인 스레드에서 실행)"""
@@ -849,48 +875,18 @@ class WNAPMainWindow(ctk.CTk):
     
     def _on_genre_confirm(self, filename: str, suggested_genre: str, confidence: str) -> Optional[str]:
         """장르 확인 콜백 (백그라운드 스레드에서 호출됨)"""
+        # Smart Filter: High confidence -> Auto accept
+        # 배치 처리 시 혹은 일반 실행 시에도 피로도를 줄이기 위해 High는 자동 통과
+        if confidence and confidence.lower() == 'high':
+            # self._log_to_file(f"자동 확정 (High Confidence): {filename} -> {suggested_genre}")
+            return suggested_genre
+
         self.genre_confirm_queue.put((filename, suggested_genre, confidence))
         try:
             selected_genre = self.genre_confirm_response.get(timeout=300)
             return selected_genre
         except queue.Empty:
             return None
-
-    def _on_treeview_double_click(self, event):
-        """Treeview 행 더블클릭 시 폴더 열기"""
-        selection = self.result_tree.selection()
-        if not selection:
-            return
-        
-        item = selection[0]
-        values = self.result_tree.item(item, "values")
-        
-        if not values:
-            return
-        
-        # 원본 파일명으로 태스크 찾기
-        original_name = values[0].rstrip("...")  # 잘린 이름 처리
-        file_path = self._find_file_path_by_name(original_name)
-        
-        if not file_path:
-            messagebox.showwarning("경고", "파일 경로를 찾을 수 없습니다.")
-            return
-        
-        folder_path = file_path.parent
-        if not folder_path.exists():
-            messagebox.showwarning("경고", f"폴더가 존재하지 않습니다:\n{folder_path}")
-            return
-        
-        self._open_folder_and_select_file(folder_path, file_path)
-    
-    def _find_file_path_by_name(self, name: str) -> Optional[Path]:
-        """파일명으로 태스크에서 경로 찾기"""
-        for task in self.tasks_cache:
-            if task.raw_name and task.raw_name.startswith(name):
-                return task.original_path
-            if task.original_path and str(task.original_path.name).startswith(name):
-                return task.original_path
-        return None
     
     def _open_folder_and_select_file(self, folder: Path, file: Path):
         """OS별 폴더 열기 및 파일 선택"""
@@ -967,6 +963,9 @@ class WNAPMainWindow(ctk.CTk):
             elif normalized and '\\' in str(normalized):
                 normalized = Path(normalized).name
             
+            # [미분류] 태그 제거 (for UI v1.3.1)
+            normalized = str(normalized).replace("[미분류] ", "").strip()
+            
             genre = task.genre or "-"
             confidence = task.confidence or "-"
             source = task.source or "-"
@@ -986,7 +985,8 @@ class WNAPMainWindow(ctk.CTk):
             else:
                 tags.append("oddrow")
             
-            self.result_tree.insert("", "end", values=(
+            # iid를 인덱스로 설정하여 더블클릭 시 쉽게 매핑
+            self.result_tree.insert("", "end", iid=str(idx), values=(
                 original[:50] + "..." if len(original) > 50 else original,
                 normalized[:60] + "..." if len(str(normalized)) > 60 else normalized,
                 genre,
@@ -1077,199 +1077,435 @@ class WNAPMainWindow(ctk.CTk):
     def _validate_inputs(self) -> bool:
         """입력값 검증"""
         source = self.source_entry.get()
-        
         if not source:
             messagebox.showerror("오류", "소스 폴더를 선택해주세요.")
             return False
         
-        if not Path(source).exists():
+        path = Path(source)
+        if not path.exists():
             messagebox.showerror("오류", f"소스 폴더가 존재하지 않습니다:\n{source}")
             return False
         
-        if not Path(source).is_dir():
+        if not path.is_dir():
             messagebox.showerror("오류", f"지정된 경로가 폴더가 아닙니다:\n{source}")
             return False
         
         return True
-    
-    def _run_preview(self):
-        """미리보기 실행 (Dry-run)"""
-        self.dry_run_var.set(True)
-        self._run_pipeline()
-    
-    def _run_pipeline(self):
-        """파이프라인 실행"""
-        if self.is_running:
-            messagebox.showwarning("경고", "이미 실행 중입니다.")
+
+    def _update_button_states(self):
+        """단계별 버튼 활성화/비활성화 상태 업데이트"""
+        # 버튼이 생성되지 않았거나 앱 종료 시점이면 패스
+        if not hasattr(self, 'btn_normalize'): 
             return
-        
-        if not self._validate_inputs():
-            return
-        
-        dry_run = self.dry_run_var.get()
-        
-        # 확인 대화상자 (실행 모드일 때만 엄격한 확인)
-        if not dry_run and self.confirm_var.get():
-            # 미리보기 결과가 있다면 파일 수 포함
-            file_count_msg = ""
-            if self.last_result:
-                file_count_msg = f"\n총 {self.last_result.total_files}개의 파일을 복사합니다."
+
+        # 1단계 완료 -> 2단계 활성화
+        if self.step_folder_done:
+            self.btn_normalize.configure(state="normal")
+        else:
+            self.btn_normalize.configure(state="disabled")
             
-            if not messagebox.askyesno(
-                "최종 실행 확인",
-                f"정말로 파일을 복사하시겠습니까?{file_count_msg}\n\n"
-                f"소스: {self.source_entry.get()}\n"
-                f"타겟: {self.target_entry.get() or '소스폴더/정리완료'}\n\n"
-                "※ 원본 파일은 안전하게 보존됩니다."
-            ):
-                return
+        # 2단계 완료 -> 3단계 활성화
+        # 2단계 완료 -> 3단계 활성화
+        if self.step_normalize_done:
+            self.btn_genre.configure(state="normal")
+            
+            # 장르 추론 완료 여부에 따른 버튼 상태 변경 (One Button Two Actions)
+            # 장르 추론 완료 여부에 따른 버튼 상태 변경 (One Button Two Actions)
+            if self.step_genre_done:
+                self.btn_genre.configure(
+                    text="▶️ 실행 (Rename)", 
+                    fg_color="#27AE60", # Green
+                    hover_color="#2ECC71",
+                    text_color="#FFFFFF",
+                    font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_MEDIUM, weight="bold")
+                )
+            else:
+                self.btn_genre.configure(
+                    text="3. 장르 추론",
+                    fg_color=THEME["accent_blue"],
+                    hover_color=THEME["accent_blue_hover"],
+                    text_color="#FFFFFF"
+                )
+        else:
+            self.btn_genre.configure(state="disabled")
+
+    # ========================================================================
+    # 새 버튼 핸들러 (WNAP v1.3.0)
+    # ========================================================================
+
+    def _on_btn_folder_click(self):
+        """1. 폴더 정리 버튼 클릭"""
+        if not self._validate_inputs(): return
+        self._run_async_task(self._execute_stage1, "Stage 1: 폴더 스캔")
+
+    def _on_btn_normalize_click(self):
+        """2. 파일명 정규화 버튼 클릭"""
+        if not self.step_folder_done: 
+            messagebox.showwarning("순서 오류", "먼저 [1. 폴더 정리]를 실행해주세요.")
+            return
+        self._run_async_task(self._execute_stage1_5, "Stage 1.5: 제목 정규화")
+
+    def _on_btn_genre_click(self):
+        """3. 장르 추론/실행 버튼 클릭"""
+        if not self.step_normalize_done:
+            messagebox.showwarning("순서 오류", "먼저 [2. 파일명 정규화]를 실행해주세요.")
+            return
+
+        # [상태 분기]
+        # State 1: 아직 추론 안함 -> [추론] 실행
+        if not self.step_genre_done:
+            self._run_async_task(self._execute_stage2, "Stage 2: 장르 추론 (검색)")
+            return
+
+        # State 2: 추론 완료 -> [실행] (Rename)
+        if not messagebox.askyesno("실행 확인", f"총 {len(self.tasks_cache)}개의 파일 이름을 실제로 변경하시겠습니까?"):
+            return
+            
+        self._run_async_task(self._execute_stage3, "Stage 3: 파일명 변경 및 이동")
+
+    def _on_btn_batch_click(self):
+        """일괄 처리 버튼 클릭"""
+        if not self._validate_inputs(): return
         
-        # 미리보기 모드 확인 (옵션이 켜져있을 경우)
-        elif dry_run and self.confirm_var.get():
-             if not messagebox.askyesno("미리보기 확인", "미리보기(Dry-run)를 시작하시겠습니까?"):
-                 return
+        if not messagebox.askyesno("일괄 처리", "폴더 스캔부터 실행까지 모든 단계를 자동으로 진행하시겠습니까?"):
+            return
+            
+        self._run_async_task(self._execute_batch, "일괄 처리 (Stage 1~3)")
+
+        self._run_async_task(self._execute_batch, "일괄 처리 (All Stages)")
+
+
+    def _on_btn_reset_click(self):
+        """초기화 버튼 클릭"""
+        # 데이터 초기화
+        for item in self.result_tree.get_children():
+            self.result_tree.delete(item)
+        
+        self.last_result = None
+        self.last_mapping_csv = None
+        self.last_target_folder = None
+        self.tasks_cache = []
+        
+        # 상태 리셋
+        self.step_folder_done = False
+        self.step_normalize_done = False
+        self._update_button_states()
+        
+        self._reset_summary()
+        self.progress_bar.set(0)
+        self.progress_label.configure(text="")
+        self.status_label.configure(text="⏸ 대기 중", text_color=THEME["text_muted"])
+        self.open_csv_btn.configure(state="disabled")
+        self.open_folder_btn.configure(state="disabled")
+        self._log_to_file("UI 및 상태 초기화 완료")
+
+
+    def _run_async_task(self, target_func, description: str):
+        """비동기 작업 실행 공통 래퍼"""
+        if self.is_running: return
         
         # 설정 업데이트
         self._update_config_from_ui()
         
-        # 결과 테이블 초기화
-        for item in self.result_tree.get_children():
-            self.result_tree.delete(item)
-        self._reset_summary()
-        
-        # 프로그레스 바 색상 변경
-        self._update_progress_bar_color(dry_run)
-        
-        # 백그라운드 스레드에서 실행
         self.is_running = True
         self._set_ui_state(False)
         self.progress_bar.set(0)
-        self.progress_label.configure(text="준비 중...")
-        self.status_label.configure(text="⏳ 실행 중...", text_color=THEME["status_warning"])
+        self.progress_label.configure(text=f"{description} 준비 중...")
+        self.status_label.configure(text=f"⏳ {description} 중...", text_color=THEME["status_warning"])
         
-        thread = threading.Thread(
-            target=self._execute_pipeline,
-            args=(dry_run,),
-            daemon=True
-        )
+        thread = threading.Thread(target=target_func, daemon=True)
         thread.start()
-    
-    def _execute_pipeline(self, dry_run: bool):
-        """파이프라인 실행 (백그라운드 스레드)"""
+
+    # ========================================================================
+    # 실제 실행 로직 (백그라운드)
+    # ========================================================================
+
+    def _execute_stage1(self):
+        """Stage 1 실행 로직"""
         try:
-            source_folder = Path(self.source_entry.get())
-            target_folder = self.target_entry.get() or str(source_folder / "정리완료")
+            source_folder = Path(self.config.source_folder)
+            orchestrator = PipelineOrchestrator(self.config, progress_callback=self._on_progress)
             
-            mode_str = "미리보기" if dry_run else "실행"
-            self._log_to_file(f"{'='*60}")
-            self._log_to_file(f"파이프라인 {mode_str} 시작")
-            self._log_to_file(f"소스: {source_folder}")
-            self._log_to_file(f"타겟: {target_folder}")
-            self._log_to_file(f"{'='*60}")
-            
-            # 오케스트레이터 생성
-            orchestrator = PipelineOrchestrator(
-                self.config,
-                progress_callback=self._on_progress,
-                genre_confirm_callback=self._on_genre_confirm
-            )
-            
-            # 실행
-            result = orchestrator.run(source_folder, dry_run=dry_run)
+            # Run Stage 1 (Scan)
+            tasks = orchestrator.run_stage1(source_folder)
             
             # 결과 저장
+            result = PipelineResult(total_files=len(tasks), tasks=tasks)
             self.last_result = result
-            self.last_mapping_csv = result.mapping_csv_path
-            self.last_target_folder = Path(target_folder)
+            self.tasks_cache = tasks
             
-            # 결과 표시 (메인 스레드에서)
-            self.after(0, lambda: self._show_result(result, dry_run))
+            self.step_folder_done = True
+            
+            # UI 업데이트
+            self.after(0, lambda: self._show_stage_result(result, "Stage 1 완료"))
             
         except Exception as e:
-            self._log_to_file(f"오류 발생: {e}")
-            self.after(0, lambda: messagebox.showerror("오류", f"파이프라인 실행 중 오류:\n{e}"))
-        
+            self._handle_error(e)
         finally:
-            self.is_running = False
-            self.after(0, lambda: self._set_ui_state(True))
-            self.after(0, lambda: self.progress_bar.set(1))
-            self.after(0, lambda: self.progress_label.configure(text="완료"))
+            self._finish_task()
 
-    def _show_result(self, result: PipelineResult, dry_run: bool):
-        """실행 결과 표시"""
-        mode = "미리보기" if dry_run else "실행"
-        
-        # 요약 업데이트
-        self._update_summary(result)
-        
-        # 결과 테이블 채우기
+    def _execute_stage1_5(self):
+        """Stage 1.5 실행 로직"""
+        try:
+            # 이전 단계 결과 사용
+            current_tasks = self.tasks_cache
+            orchestrator = PipelineOrchestrator(
+                self.config, 
+                progress_callback=self._on_progress
+            )
+            
+            # Run Stage 1.5 (Parse)
+            tasks = orchestrator.run_stage1_5(current_tasks)
+            
+            # 결과 갱신
+            self.tasks_cache = tasks
+            self.step_normalize_done = True
+            
+            # 임시 결과 객체
+            result = PipelineResult(total_files=len(tasks), tasks=tasks)
+            self.last_result = result
+
+            self.after(0, lambda: self._show_stage_result(result, "Stage 1.5 완료"))
+            
+        except Exception as e:
+            self._handle_error(e)
+        finally:
+            self._finish_task()
+
+    def _execute_stage2(self):
+        """Stage 2 실행 로직 (장르 추론 - Search Only)"""
+        try:
+            current_tasks = self.tasks_cache
+            orchestrator = PipelineOrchestrator(
+                self.config, 
+                progress_callback=self._on_progress,
+                genre_confirm_callback=self._on_genre_confirm # Smart Filter 사용 시 동작
+            )
+            
+            # Run Stage 2 (Search)
+            tasks = orchestrator.run_stage2(current_tasks)
+            
+            # 결과 갱신
+            self.tasks_cache = tasks
+            self.step_genre_done = True
+            
+            # 임시 결과 객체
+            result = PipelineResult(total_files=len(tasks), tasks=tasks)
+            self.last_result = result
+            
+            self.after(0, lambda: self._show_stage_result(result, "Stage 2 완료"))
+            
+            # 버튼 텍스트 변경 (Main Thread에서 실행해야 함, after 사용)
+            self.after(0, lambda: self.btn_genre.configure(
+                text="▶️ 실행 (Rename)", 
+                fg_color=THEME["status_success"],
+                hover_color=THEME["status_success"]
+            ))
+            
+        except Exception as e:
+            self._handle_error(e)
+        finally:
+            self._finish_task()
+
+    def _execute_stage3(self):
+        """Stage 3 실행 로직 (실행 및 이동 - Execute Only)"""
+        try:
+            current_tasks = self.tasks_cache
+            source_folder = Path(self.config.source_folder)
+            orchestrator = PipelineOrchestrator(
+                self.config, 
+                progress_callback=self._on_progress
+            )
+            
+            # Run Stage 3 (Execute)
+            result = orchestrator.run_stage3(current_tasks, source_folder)
+            
+            self.last_result = result
+            self.last_mapping_csv = result.mapping_csv_path
+            
+            target_folder = self.target_entry.get() or str(source_folder / "정리완료")
+            self.last_target_folder = Path(target_folder)
+
+            self.after(0, lambda: self._show_final_result(result))
+            
+        except Exception as e:
+            self._handle_error(e)
+        finally:
+            self._finish_task()
+
+    def _execute_batch(self):
+        """일괄 처리 로직 (Stage 1 -> 1.5 -> 2 -> Popup -> 3)"""
+        try:
+            source_folder = Path(self.config.source_folder)
+            
+            # Orchestrator 인스턴스 생성 (로컬)
+            orchestrator = PipelineOrchestrator(
+                self.config, 
+                progress_callback=self._on_progress
+            )
+            
+            # --- Stage 1: Folder Organizer ---
+            self._log_to_file("=== [일괄 처리] Stage 1 시작 ===")
+            tasks = orchestrator.run_stage1(source_folder)
+            if not tasks:
+                self.after(0, lambda: messagebox.showinfo("완료", "처리할 파일이 없습니다."))
+                return
+
+            self.tasks_cache = tasks # Update Cache
+            self._populate_result_table(tasks) # Initial Table
+            
+            # --- Stage 1.5: Normalize ---
+            self._log_to_file("=== [일괄 처리] Stage 1.5 시작 ===")
+            tasks = orchestrator.run_stage1_5(tasks)
+            self.tasks_cache = tasks
+            self._populate_result_table(tasks) # Update Table
+            
+            # --- Stage 2: Genre Search ---
+            self._log_to_file("=== [일괄 처리] Stage 2 시작 ===")
+            tasks = orchestrator.run_stage2(tasks)
+            self.tasks_cache = tasks
+            
+            # --- Safety Popup (Main Thread) ---
+            # Using queue or direct invoke if thread-safe enough (CTK/Tkinter usually requires main thread)
+            # But since we are in a thread, we must block here.
+            # We can use a trick: `self.after` with a threading.Event?
+            # Or simplified: use messagebox directly. On Windows it usually works from threads but risking freeze.
+            # Safer: split function? No, complex.
+            # Let's try direct messagebox, heavily used in python-tkinter apps, often works if simple.
+            # If not, we'd need a queue-based confirmation. 
+            # Given constraints, and "tkinter not thread safe", strict way is to pause thread via Event.
+            
+            confirm_event = threading.Event()
+            confirm_result = {}
+            
+            def show_confirm():
+                confirm_result['ok'] = messagebox.askyesno(
+                    "최종 실행 확인", 
+                    f"총 {len(tasks)}개의 파일 변경을 진행하시겠습니까?\n(취소 시 여기서 중단됩니다)"
+                )
+                confirm_event.set()
+                
+            self.after(0, show_confirm)
+            confirm_event.wait()
+            
+            if not confirm_result.get('ok'):
+                self._log_to_file("사용자가 일괄 처리를 중단하였습니다.")
+                return
+
+            # --- Stage 3: Execution ---
+            self._log_to_file("=== [일괄 처리] Stage 3 시작 ===")
+            result = orchestrator.run_stage3(tasks, source_folder)
+            
+            # Finalize
+            self.last_result = result
+            self.tasks_cache = result.tasks
+            
+            target_folder = self.target_entry.get() or str(source_folder / "정리완료")
+            self.last_target_folder = Path(target_folder)
+            
+            self.step_folder_done = True
+            self.step_normalize_done = True
+            
+            self.after(0, lambda: self._show_final_result(result))
+            
+        except Exception as e:
+            self._handle_error(e)
+        finally:
+            self._finish_task()
+
+    def _handle_error(self, e):
+        """에러 처리"""
+        self._log_to_file(f"오류 발생: {e}")
+        self.after(0, lambda: messagebox.showerror("오류", f"작업 중 오류 발생:\n{e}"))
+
+    def _finish_task(self):
+        """작업 종료 공통 처리"""
+        self.is_running = False
+        self.after(0, lambda: self._set_ui_state(True))
+        self.after(0, lambda: self.progress_bar.set(1))
+        self.after(0, self._update_button_states)
+
+    def _show_stage_result(self, result: PipelineResult, msg: str):
+        """중간 단계 결과 표시"""
         self._populate_result_table(result.tasks)
-        
-        # 파일 열기 버튼 활성화
+        self.status_label.configure(text=f"✅ {msg}", text_color=THEME["status_success"])
+        self.progress_label.configure(text=f"{msg} ({result.total_files}개 파일)")
+        self._update_summary(result)
+
+    def _show_final_result(self, result: PipelineResult):
+        """최종 실행 결과 표시"""
+        self._show_stage_result(result, "최종 실행 완료")
         if result.mapping_csv_path:
             self.open_csv_btn.configure(state="normal")
-        if not dry_run:
-            self.open_folder_btn.configure(state="normal")
-            # [편의 기능] 실행 완료 시 자동으로 폴더 열기
-            self._open_target_folder()
-            # 실행 후 버튼 다시 비활성화 (재분석 유도)
-            self.run_btn.configure(state="disabled")
-        else:
-            # 미리보기 완료 시: 결과가 있으면 실행 버튼 활성화
-            if result.total_files > 0:
-                self.run_btn.configure(state="normal")
-            else:
-                self.run_btn.configure(state="disabled")
+        self.open_folder_btn.configure(state="normal")
         
-        # 상태 업데이트
-        if result.failed > 0:
-            self.status_label.configure(text="⚠️ 완료 (일부 실패)", text_color=THEME["status_warning"])
-        else:
-            self.status_label.configure(text="✅ 완료", text_color=THEME["status_success"])
-        
-        # 파일 로그 출력
-        self._log_to_file(f"{'='*60}")
-        self._log_to_file(f"파이프라인 {mode} 완료")
-        self._log_to_file(f"총 파일 수: {result.total_files}")
-        self._log_to_file(f"성공: {result.processed}")
-        self._log_to_file(f"실패: {result.failed}")
-        self._log_to_file(f"건너뜀: {result.skipped}")
-        
-        if result.mapping_csv_path:
-            self._log_to_file(f"매핑 파일: {result.mapping_csv_path}")
-        
-        if result.errors:
-            self._log_to_file(f"오류 목록 ({len(result.errors)}건):")
-            for error in result.errors[:10]:
-                self._log_to_file(f"  - {error}")
-            if len(result.errors) > 10:
-                self._log_to_file(f"  ... 외 {len(result.errors) - 10}건")
-        
-        self._log_to_file(f"{'='*60}")
-    
+        # 자동 폴더 열기 (편의성)
+        self._open_target_folder()
+
     def _set_ui_state(self, enabled: bool):
-        """UI 활성화/비활성화 - 실행 중 오작동 방지"""
+        """UI 활성화/비활성화"""
         state = "normal" if enabled else "disabled"
-        
-        # 실행 버튼
-        self.preview_btn.configure(state=state)
-        self.run_btn.configure(state=state)
-        
-        # 실행 중 비활성화할 위젯들
         for widget in self.disable_on_run:
             widget.configure(state=state)
-    
+        # 상태에 따른 버튼 재조정은 _finish_task에서 _update_button_states 호출로 처리
+
     def get_config(self) -> PipelineConfig:
-        """현재 UI 설정을 PipelineConfig로 반환"""
         self._update_config_from_ui()
         return self.config
 
+    def _on_treeview_double_click(self, event):
+        """Treeview 더블클릭 -> 정규화 이름 편집"""
+        region = self.result_tree.identify("region", event.x, event.y)
+        if region != "cell": return
+        
+        item = self.result_tree.focus()
+        if not item: return
+        
+        col = self.result_tree.identify_column(event.x)
+        
+        # 'normalized' 컬럼 (#2) 인 경우에만 편집 허용
+        if col == "#2":
+            # 현재 값 가져오기
+            values = self.result_tree.item(item, "values")
+            current_val = values[1] # normalized
+            
+            # 커스텀 입력 대화상자 사용 (초기값 지원)
+            dialog = EditNameDialog(self, title="파일명 편집", initial_value=current_val)
+            new_val = dialog.get_input()
+            
+            if new_val and new_val != current_val:
+                # 1. 내부 데이터(tasks_cache) 업데이트
+                try:
+                    task_idx = int(item) # iid를 인덱스로 사용
+                    if 0 <= task_idx < len(self.tasks_cache):
+                        task = self.tasks_cache[task_idx]
+                        task.metadata['normalized_name'] = new_val
+                        # 로그 기록
+                        self._log_to_file(f"파일명 수동 변경: {current_val} -> {new_val}")
+                        
+                        # 2. Treeview 업데이트
+                        new_values = list(values)
+                        new_values[1] = new_val
+                        self.result_tree.item(item, values=new_values)
+                except (ValueError, IndexError):
+                    self._log_to_file("태스크 매핑 실패 (정렬됨?)")
+                    messagebox.showwarning("오류", "데이터를 업데이트할 수 없습니다. (목록이 정렬되었을 수 있음)")
+
+        # 원본 파일명(#1) 클릭 시 폴더 열기 (기존 기능 유지)
+        elif col == "#1":
+            try:
+                task_idx = int(item)
+                if 0 <= task_idx < len(self.tasks_cache):
+                    task = self.tasks_cache[task_idx]
+                    if task.original_path and task.original_path.exists():
+                        self._open_folder_and_select_file(task.original_path.parent, task.original_path)
+            except (ValueError, IndexError):
+                 pass
 
 def main():
     """GUI 애플리케이션 실행"""
     app = WNAPMainWindow()
     app.mainloop()
-
 
 if __name__ == "__main__":
     main()

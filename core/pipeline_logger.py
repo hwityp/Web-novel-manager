@@ -46,7 +46,17 @@ class PipelineLogger:
         """
         self.log_level = self._validate_log_level(log_level)
         self.log_dir = log_dir or DEFAULT_LOG_DIR
-        self.log_filename = log_filename
+        
+        # 1. Summary Log (wnap.log) - Fixed name
+        self.summary_log_filename = DEFAULT_LOG_FILENAME
+        
+        # 2. Detail Log (wnap_YYYYMMDD.log) - Daily rotation
+        if log_filename == DEFAULT_LOG_FILENAME:
+            date_str = datetime.now().strftime("%Y%m%d")
+            self.detail_log_filename = f"wnap_{date_str}.log"
+        else:
+            self.detail_log_filename = log_filename
+            
         self.max_bytes = max_bytes
         self.backup_count = backup_count
         self.console_output = console_output
@@ -75,10 +85,9 @@ class PipelineLogger:
         # 고유한 로거 이름 생성 (테스트 시 충돌 방지)
         logger_name = f"pipeline_{id(self)}"
         logger = logging.getLogger(logger_name)
-        logger.setLevel(self._get_log_level_int())
-        
-        # 기존 핸들러 제거 (중복 방지)
-        logger.handlers.clear()
+        # 로거 레벨을 DEBUG로 설정하여 모든 로그가 핸들러에 도달하도록 함
+        # 각 핸들러가 자신의 레벨에 맞게 필터링
+        logger.setLevel(logging.DEBUG)
         
         # 로그 포맷 설정
         formatter = logging.Formatter(
@@ -86,22 +95,26 @@ class PipelineLogger:
             datefmt="%Y-%m-%d %H:%M:%S"
         )
         
-        # 파일 핸들러 설정 (로테이션)
-        self._setup_file_handler(logger, formatter)
+        # 1. Summary File Handler (INFO 고정)
+        self._add_file_handler(logger, formatter, self.summary_log_filename, logging.INFO)
         
-        # 콘솔 핸들러 설정
+        # 2. Detail File Handler (DEBUG 고정 - 터미널 출력 포함)
+        # 사용자 설정보다 더 상세한 내용을 기록하기 위해 항상 DEBUG로 설정
+        self._add_file_handler(logger, formatter, self.detail_log_filename, logging.DEBUG)
+        
+        # 콘솔 핸들러 설정 (사용자 설정 레벨 따름)
         if self.console_output:
             self._setup_console_handler(logger, formatter)
         
         return logger
     
-    def _setup_file_handler(self, logger: logging.Logger, formatter: logging.Formatter):
-        """파일 핸들러 설정 (로테이션 지원)"""
+    def _add_file_handler(self, logger: logging.Logger, formatter: logging.Formatter, filename: str, level: int):
+        """파일 핸들러 추가 (공통 메서드)"""
         # 로그 디렉토리 생성
         self.log_dir = Path(self.log_dir)
         self.log_dir.mkdir(parents=True, exist_ok=True)
         
-        log_path = self.log_dir / self.log_filename
+        log_path = self.log_dir / filename
         
         file_handler = RotatingFileHandler(
             filename=log_path,
@@ -109,7 +122,7 @@ class PipelineLogger:
             backupCount=self.backup_count,
             encoding='utf-8'
         )
-        file_handler.setLevel(self._get_log_level_int())
+        file_handler.setLevel(level)
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
     
@@ -123,7 +136,7 @@ class PipelineLogger:
     @property
     def log_file_path(self) -> Path:
         """현재 로그 파일 경로 반환"""
-        return self.log_dir / self.log_filename
+        return self.log_dir / self.detail_log_filename
     
     def debug(self, message: str):
         """DEBUG 레벨 로그"""

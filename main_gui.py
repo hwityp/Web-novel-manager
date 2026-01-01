@@ -15,6 +15,10 @@ Validates: Requirements 8.2
 """
 import sys
 import os
+from dotenv import load_dotenv
+
+# 환경 변수 로드 (API 키 등)
+load_dotenv(override=True)
 
 # ============================================================================
 # PyInstaller 경로 보정 로직 (EXE 실행 환경 지원)
@@ -47,11 +51,29 @@ def _setup_paths():
 _BASE_PATH, _APP_PATH = _setup_paths()
 
 
+# ============================================================================
+# CLI 인자 파싱
+# ============================================================================
+def get_parser():
+    import argparse
+    parser = argparse.ArgumentParser(description="WNAP GUI Launcher")
+    parser.add_argument(
+        '--log-level',
+        default='INFO',
+        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'],
+        help='Logging level (default: INFO)'
+    )
+    return parser
+
 def main():
     """GUI 애플리케이션 실행"""
     from gui.main_window import WNAPMainWindow
     
-    app = WNAPMainWindow()
+    # Parse CLI Arguments
+    parser = get_parser()
+    args = parser.parse_args()
+    
+    app = WNAPMainWindow(log_level=args.log_level)
     app.mainloop()
 
 

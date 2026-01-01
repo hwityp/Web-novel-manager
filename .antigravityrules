@@ -1,0 +1,37 @@
+# WNAP Project Rules: Development & Refactoring Guidelines (v1.3.2)
+
+## 0. Language Policy (언어 정책)
+* **Always respond in Korean**: 모든 대화, 계획 보고, 코드 설명은 반드시 한국어로 작성하라.
+* 기술 용어는 영어로 병기할 수 있으나 주된 설명 언어는 한국어여야 한다.
+
+## 1. Core Principles (기본 원칙)
+* **Preserve Existing Code**: 기존의 `core/`, `gui/`, `modules/` 내 코드는 138개의 테스트를 통과한 검증된 자산이므로 로직을 새로 짜지 말고 기존 함수를 재사용(Reuse)하라.
+* **Surgical Fix Only**: 코드 수정은 반드시 필요한 지점에만 국한하며, 파일 전체를 다시 작성하거나 구조를 임의로 변경하지 마라.
+* **Safety First**: 파일 이동(Move)은 절대 금지하며, 반드시 `shutil.copy2`를 사용한 복사(Copy) 기반 로직만 허용하여 원본 파일을 100% 보존하라.
+* **Code Integrity Check**: 코드를 제출하기 전, 모든 변수와 함수가 해당 스코프 내에서 정의되었거나 올바르게 임포트되었는지 전수 조사하라. 
+* 특히 변수명 오타(`formatter` vs `format`)로 인한 `NameError` 발생 시 즉시 자가 교정하라.
+
+## 2. Search & API Management (검색 및 자원 관리)
+* **Hybrid Search Sequence**: 장르 분류 시 [네이버 API -> 구글 CSE API -> 키워드 Fallback] 순서를 엄격히 준수하라.
+* **NovelNet (ssn.so) Filtering**: 소설넷 검색 시 유효하지 않은 페이지를 차단하기 위해 `/novel/` 경로가 포함된 URL만 허용(Whitelist)하라.
+* `/profile/`, `/author/`, `/notifications/`, `/comments/`가 포함된 URL은 블랙리스트로 관리하여 즉시 스킵하라.
+* **API Circuit Breaker**: 구글 API 403/429 에러 감지 시 즉시 '서킷 브레이커'를 가동하여 로컬 추론 모드로 전환하라.
+
+## 3. Filename Normalization (정규화 수칙)
+* **Normalization First**: 장르 추론 확률을 높이기 위해, 검색 API 호출 전 파일명에서 권수, 날짜 등 노이즈를 제거하는 '정규화' 작업을 선행하라.
+* **Earliest Match Strategy**: 정규식 패턴이 처음 나타나는 위치(Earliest Index)를 제목 분리점으로 확정하라.
+* **Backward Parsing**: 제목에 숫자가 포함된 경우를 대비하여 파일명 끝에서부터 메타데이터를 찾는 방식을 병행하라.
+
+## 4. Operational Workflow (작업 절차)
+* **Plan Before Action**: 코드 수정 전, 파일/라인과 변경 이유를 담은 계획을 보고하고 승인을 받아라.
+* **Logging System**: 모든 처리 과정을 `logs/wnap_YYYYMMDD.log` 형태의 일자별 파일로 기록하고, `utf-8` 인코딩을 적용하여 한글 깨짐을 방지하라.
+* **CLI Log Level Control**: GUI 내부의 로그 설정 프레임을 제거하고, `py main_gui.py --log-level` 인자를 통해 로그 레벨을 제어하라.
+
+## 5. UI/UX Constraint (V1.3.2 표준)
+* **Layout Optimization**: 실행 옵션 섹션을 삭제하고 해당 공간을 '처리 결과 테이블'로 확장하라.
+* **Typography & Table**: 테이블 내부 폰트 크기를 1.2배 확대하고, '정규화 파일명' 컬럼의 너비를 최대로 확장하라.
+* **Button Style Machine**: 하단 버튼은 상태에 따라 색상과 활성화를 제어하라.
+    * **[실행 (Rename)]**: 녹색(#27AE60), 흰색 글자, Bold 처리.
+    * **[일괄 처리]**: 청색(#2980B9), 흰색 글자 적용.
+* **Real-time Feedback**: 일괄 처리 중에도 개별 파일의 처리 결과와 프로그레스 바를 테이블에 즉시 반영(Redraw)하라.
+* **Explicit Confirmation**: 실행(Rename) 단계 진입 전 반드시 파일 개수를 명시한 컨펌 다이얼로그를 통해 사용자의 동의를 구하라.

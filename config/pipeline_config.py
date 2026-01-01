@@ -86,6 +86,10 @@ class PipelineConfig:
     max_retries: int = 1
     dry_run: bool = False
     
+    # 구글 검색 설정
+    google_api_key: str = ""
+    google_cse_id: str = ""
+    
     def __post_init__(self):
         """초기화 후 유효성 검증 및 기본값 적용"""
         self._validate_and_fix()
@@ -121,7 +125,9 @@ class PipelineConfig:
             'genre_whitelist': self.genre_whitelist,
             'log_level': self.log_level,
             'max_retries': self.max_retries,
-            'dry_run': self.dry_run
+            'dry_run': self.dry_run,
+            'google_api_key': self.google_api_key,
+            'google_cse_id': self.google_cse_id
         }
     
     @classmethod
@@ -134,7 +140,9 @@ class PipelineConfig:
             genre_whitelist=data.get('genre_whitelist', sorted(GENRE_WHITELIST)),
             log_level=data.get('log_level', 'INFO'),
             max_retries=data.get('max_retries', 1),
-            dry_run=data.get('dry_run', False)
+            dry_run=data.get('dry_run', False),
+            google_api_key=data.get('google_api_key', ""),
+            google_cse_id=data.get('google_cse_id', "")
         )
     
     def to_json(self, indent: int = 2) -> str:

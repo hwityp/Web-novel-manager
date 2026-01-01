@@ -1,6 +1,6 @@
 {
-  "source_folder": "",
-  "target_folder": "정리완료",
+  "source_folder": "C:/Users/hwity/문서/임시폴더",
+  "target_folder": "C:/Users/hwity/문서/정리완료",
   "protected_folders": [
     "Downloads",
     "Tempfile",
@@ -23,5 +23,7 @@
   ],
   "log_level": "INFO",
   "max_retries": 1,
-  "dry_run": false
+  "dry_run": false,
+  "google_api_key": "",
+  "google_cse_id": ""
 }
