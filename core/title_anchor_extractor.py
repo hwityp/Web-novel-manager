@@ -150,6 +150,8 @@ class TitleAnchorExtractor:
         r'특별편',
         r'번외편',
         r'스핀오프',
+        r'후일담',
+        r'특외',
     ]
     
     # 중국 소설 제목 패턴 (~지, ~기로 끝나는 제목)
@@ -195,6 +197,13 @@ class TitleAnchorExtractor:
         # 외전 마커 패턴 (+ 외전, + 에필 등)
         self.side_story_pattern = re.compile(
             r'\s*\+\s*(?:' + '|'.join(self.SIDE_STORY_PATTERNS) + r')[\s\d\-~,]*',
+            re.IGNORECASE
+        )
+        
+        # [NEW] 단독 외전 패턴 (compile dynamically from SIDE_STORY_PATTERNS)
+        # 예: " 제목 ... 외전 1"
+        self.standalone_side_pattern = re.compile(
+            r'\s+(' + '|'.join(self.SIDE_STORY_PATTERNS) + r')(?:\s*\d*[-~]?\d*)?(?:\s|$)',
             re.IGNORECASE
         )
         
@@ -437,7 +446,7 @@ class TitleAnchorExtractor:
         # 6. 단독 "외전" 패턴 처리 (+ 없이 단독으로 있는 경우) - 여러 개일 수 있으므로 while loop
         # 예: "1-294 完 외전 에필" → 외전, 에필 추출
         while True:
-            standalone_side_match = re.search(r'\s+(외전|에필로그|에필|번외|특별편|番外|후기)(?:\s*\d*[-~]?\d*)?(?:\s|$)', residual)
+            standalone_side_match = self.standalone_side_pattern.search(residual)
             if not standalone_side_match:
                 break
             

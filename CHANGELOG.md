@@ -5,6 +5,13 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [1.3.6] - 2026-01-09
+
+### ⚡ Refinements (개선)
+- **Normalization Logic**:
+  - **New Side Story Keywords**: Added support for '후일담' and '특외' as recognized side story markers.
+    - Example: `... 完 후일담.txt` → `... (완) + 후일담.txt`
+
 ## [1.3.5] - 2026-01-02
 
 ### ⚡ Refinements (개선)
