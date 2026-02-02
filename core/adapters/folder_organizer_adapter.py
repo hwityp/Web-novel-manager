@@ -70,14 +70,22 @@ class FolderOrganizerAdapter:
         # 먼저 파일 목록 스캔 (scan_only와 동일한 방식)
         tasks = self.scan_only(source_folder)
         
-        # 폴더 정리 실행 (압축 해제 등)
+        # 폴더 정리 실행 (압축 해제 등 -> [UPDATED] 평탄화 및 Temp 백업)
         organizer = self._get_organizer(source_folder)
         try:
-            organizer.organize_folders()
+            # User Request: "폴더 정리" 버튼 클릭 시 평탄화(Subfolder -> Root) 및 원본 백업(Subfolder -> Temp)
+            organizer.flatten_folders()
+            
+            # [CRITICAL UPDATE]
+            # 파일 위치가 변경되었으므로(Subfolder -> Root), 정리 후 다시 스캔해야 함.
+            # 이전 tasks는 유효하지 않은 경로를 가리킬 수 있음.
+            self.logger.info("폴더 정리 완료. 변경된 파일 목록을 재스캔합니다.")
+            tasks = self.scan_only(source_folder)
+            
         except Exception as e:
             self.logger.warning(f"폴더 정리 중 오류 발생 (계속 진행): {e}")
         
-        self.logger.info(f"FolderOrganizer 처리 완료: {len(tasks)}개 파일 발견")
+        self.logger.info(f"FolderOrganizer 처리 완료: {len(tasks)}개 파일 발견 (최종)")
         return tasks
     
     def _collect_files(self, folder: Path) -> set:

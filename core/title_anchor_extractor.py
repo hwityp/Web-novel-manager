@@ -123,6 +123,8 @@ class TitleAnchorExtractor:
         r'\[노벨피아\]',
         r'\(\s*AI번역\s*\)',                 # (AI번역)
         r'\[\s*AI번역\s*\]',                 # [AI번역]
+        r'\(\s*AI\s*번역\s*\)',              # (AI 번역) [NEW]
+        r'\[\s*AI\s*번역\s*\]',              # [AI 번역] [NEW]
     ]
     
     # 완결 마커 패턴
@@ -134,6 +136,10 @@ class TitleAnchorExtractor:
         r'\(\s*완\s*\)',                    # (완)
         r'\[\s*완\s*\]',                    # [완]
         r'(?<!\S)完(?!\S)',                 # 完 (독립된 문자)
+        r'(?<!\S)완(?!\S)',                 # 완 (독립된 문자)
+        r'(?<!\S)완결(?!\S)',               # 완결 (독립된 문자)
+        r'(?<!\S)完\s*(?=\+)',              # 完 (뒤에 +가 오는 경우) [NEW]
+        r'(?<!\S)완\s*(?=\+)',              # 완 (뒤에 +가 오는 경우) [NEW]
         r'\(\s*Complete\s*\)',              # (Complete)
         r'\(\s*END\s*\)',                   # (END)
         r'\(\s*Fin\s*\)',                   # (Fin)
@@ -152,6 +158,8 @@ class TitleAnchorExtractor:
         r'스핀오프',
         r'후일담',
         r'특외',
+        r'외포',                             # 외전 포함 [NEW]
+        r'外',                              # 外 (외전 단축) [NEW]
     ]
     
     # 중국 소설 제목 패턴 (~지, ~기로 끝나는 제목)
@@ -211,7 +219,9 @@ class TitleAnchorExtractor:
         self.range_pattern = re.compile(r'(\d+)\s*[-~]\s*(\d+)\s*[화권부편회장]?')
         
         # 단일 숫자 패턴 (120, 126 등 - 끝에 있는 단일 숫자)
-        self.single_number_pattern = re.compile(r'\s+(\d+)\s*$')
+        # [UPDATED] 뒤에 부/권 등의 단위가 오거나 완결 마커, 또는 문자열 끝인 경우 매칭
+        # Lookahead includes \d+부 etc.
+        self.single_number_pattern = re.compile(r'\s+(\d+)(?=\s*(?:完|완|\(완\)|\(完\)|\s*[화권부편회장]|\s*\d+\s*[화권부편회장]|\s*$))')
         
         # 저자 구분자 패턴 (제목 - 저자)
         self.author_separator_pattern = re.compile(r'\s+[-–—]\s+([^-–—]+)$')
@@ -366,7 +376,8 @@ class TitleAnchorExtractor:
             candidates.append(range_match)
             
         # 3. 단일 숫자 패턴 (120, 126 등 - 끝에 있는 단일 숫자)
-        single_num_match = re.search(r'\s+(\d+)\s*(?:完|완|\(완\)|\(完\)|\s*$)', name)
+        # [UPDATED] Use compiled pattern
+        single_num_match = self.single_number_pattern.search(name)
         if single_num_match:
             candidates.append(single_num_match)
             
@@ -415,6 +426,13 @@ class TitleAnchorExtractor:
             is_completed = True
             side_story_parts.append("외전")
             residual = re.sub(r'본편\s*및\s*외전\s*完[,\s]*', '', residual)
+        
+        # 1.5 "완+외" / "完+外" 패턴 처리 [NEW]
+        elif re.search(r'(?:完|완)\s*\+?\s*(?:外|외)', residual):
+            is_completed = True
+            side_story_parts.append("외전")
+            residual = re.sub(r'(?:完|완)\s*\+?\s*(?:外|외)[,\s]*', '', residual)
+
         # 2. "본편 및 외전" 패턴 처리 (完 없는 경우)
         elif re.search(r'본편\s*및\s*외전', residual):
             is_completed = True
@@ -512,6 +530,11 @@ class TitleAnchorExtractor:
         side_text = re.sub(r'^\s*\+\s*', '', side_text)
         for pattern in ['番外', '번외편', '번외']:
             side_text = re.sub(pattern, '외전', side_text, flags=re.IGNORECASE)
+        
+        # [NEW] Handle specific abbreviations
+        if '외포' in side_text: side_text = side_text.replace('외포', '외전')
+        if '外' in side_text: side_text = side_text.replace('外', '외전')
+
         side_text = re.sub(r'에필로그', '에필', side_text, flags=re.IGNORECASE)
         return side_text.strip()
     

@@ -19,8 +19,8 @@ from pathlib import Path
 import argparse
 
 # 버전 정보
-__version__ = "1.3.6"
-__release_date__ = "2026-01-09"
+__version__ = "1.3.8"
+__release_date__ = "2026-02-02"
 
 def get_full_version():
     return f"WNAP v{__version__}"

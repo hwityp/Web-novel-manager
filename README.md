@@ -1,12 +1,12 @@
 # WNAP - Web Novel Archive Pipeline
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.13">
-  <img src="https://img.shields.io/badge/Core%20Tests-138%20passed-00C853?style=for-the-badge&logo=pytest&logoColor=white" alt="138 Core Tests">
-  <img src="https://img.shields.io/badge/Mock%20Tests-21%20scenarios-00C853?style=for-the-badge&logo=pytest&logoColor=white" alt="21 Mock Scenarios">
-  <img src="https://img.shields.io/badge/PBT-Property%20Based-FF6F00?style=for-the-badge" alt="Property Based Testing">
-  <img src="https://img.shields.io/badge/Platform-Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows">
-  <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="MIT License">
+  <img src="https://img.shields.io/badge/Python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="파이썬 3.13">
+  <img src="https://img.shields.io/badge/Core%20Tests-138%20passed-00C853?style=for-the-badge&logo=pytest&logoColor=white" alt="138개 핵심 테스트 통과">
+  <img src="https://img.shields.io/badge/Mock%20Tests-21%20scenarios-00C853?style=for-the-badge&logo=pytest&logoColor=white" alt="21개 모의 시나리오 통과">
+  <img src="https://img.shields.io/badge/PBT-Property%20Based-FF6F00?style=for-the-badge" alt="속성 기반 테스트">
+  <img src="https://img.shields.io/badge/Platform-Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="윈도우">
+  <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="MIT 라이선스">
 </p>
 
 <p align="center">
@@ -23,9 +23,9 @@
 
 | 핵심 기술 | 설명 |
 |-----------|------|
-| **Title Anchor Strategy** | 다양한 파일명 패턴에서 핵심 제목을 정확하게 추출하는 독자적 파싱 알고리즘. 저자명, 번역 정보, 플랫폼 태그 등의 노이즈를 제거하고 순수한 제목만 추출 |
-| **Search-First Genre Classification** | 네이버 검색 + 12개 플랫폼 크롤링을 통한 정확한 장르 추출. 캐시 → 검색 → 키워드 폴백의 3단계 전략으로 90% 이상의 분류 정확도 달성 |
-| **Intelligent Archive Processing** | 압축 파일 내용을 분석하여 최적의 처리 방식을 자동 결정. 단일 TXT 추출, 전체 해제, 폴더별 재압축 등 8가지 시나리오 지원 |
+| **타이틀 앵커 전략 (Title Anchor)** | 다양한 파일명 패턴에서 핵심 제목을 정확하게 추출하는 독자적 파싱 알고리즘. 저자명, 번역 정보, 플랫폼 태그 등의 노이즈를 제거하고 순수한 제목만 추출 |
+| **검색 우선 장르 분류 (Search-First)** | 네이버 검색 + 12개 플랫폼 크롤링을 통한 정확한 장르 추출. 캐시 → 검색 → 키워드 폴백의 3단계 전략으로 90% 이상의 분류 정확도 달성 |
+| **지능형 아카이브 처리** | 압축 파일 내용을 분석하여 최적의 처리 방식을 자동 결정. 단일 TXT 추출, 전체 해제, 폴더별 재압축 등 8가지 시나리오 지원 |
 
 ---
 
@@ -93,9 +93,9 @@
 
 | 테스트 유형 | 개수 | 설명 |
 |-------------|------|------|
-| **Core Unit Tests** | 138개 | 개별 함수/클래스 검증 |
-| **Folder Organizer Mock Tests** | 21개 | 개요.txt 8가지 시나리오 + 보호 폴더 + 결정 로직 검증 |
-| **Property-based Tests** | 24개 | Hypothesis 기반 데이터 무결성 검증 |
+| **핵심 유닛 테스트 (Core Unit Tests)** | 138개 | 개별 함수/클래스 검증 |
+| **폴더 정리 모의 테스트 (Mock Tests)** | 21개 | 개요.txt 8가지 시나리오 + 보호 폴더 + 결정 로직 검증 |
+| **속성 기반 테스트 (Property-based)** | 24개 | Hypothesis 기반 데이터 무결성 검증 |
 
 ### Property-Based Testing (PBT)
 
@@ -103,13 +103,13 @@
 
 | Property | 설명 |
 |----------|------|
-| **Similarity Range** | 유사도 값은 항상 0.0 ~ 1.0 범위 |
-| **Similarity Symmetry** | similarity(A, B) == similarity(B, A) |
-| **Mapping Produces Valid Genre** | 매핑 결과는 항상 유효한 장르 |
-| **Cache Round-Trip** | 캐시 저장 후 조회 시 동일 값 반환 |
-| **Pipeline Stage Order** | 파이프라인 단계 순서 보장 (1→2→3) |
-| **Fault Isolation** | 개별 파일 오류가 전체 파이프라인에 영향 없음 |
-| **Dry-Run Immutability** | Dry-run 모드에서 파일 시스템 변경 없음 |
+| **유사도 범위 (Similarity Range)** | 유사도 값은 항상 0.0 ~ 1.0 범위 |
+| **유사도 대칭성 (Similarity Symmetry)** | similarity(A, B) == similarity(B, A) |
+| **유효 장르 매핑 (Valid Genre)** | 매핑 결과는 항상 유효한 장르 |
+| **캐시 왕복 (Cache Round-Trip)** | 캐시 저장 후 조회 시 동일 값 반환 |
+| **파이프라인 순서 (Pipeline Order)** | 파이프라인 단계 순서 보장 (1→2→3) |
+| **결함 격리 (Fault Isolation)** | 개별 파일 오류가 전체 파이프라인에 영향 없음 |
+| **Dry-Run 불변성 (Immutability)** | Dry-run 모드에서 파일 시스템 변경 없음 |
 
 ---
 
@@ -164,16 +164,16 @@ python build_exe.py --clean
 
 ```
 wnap/
-├── main.py                     # CLI 엔트리포인트
-├── main_gui.py                 # GUI 엔트리포인트
+├── main.py                     # CLI 진입점 (Entry Point)
+├── main_gui.py                 # GUI 진입점 (Entry Point)
 ├── core/                       # 핵심 모듈
-│   ├── adapters/               # Adapter Pattern 구현
+│   ├── adapters/               # 어댑터 패턴 (Adapter Pattern) 구현
 │   │   ├── folder_organizer_adapter.py
 │   │   ├── genre_classifier_adapter.py
 │   │   └── filename_normalizer_adapter.py
 │   └── utils/                  # 유틸리티
 ├── modules/                    # 독립 모듈
-│   ├── classifier/             # Search-First 장르 분류기
+│   ├── classifier/             # 검색 우선 장르 분류기
 │   ├── normalizer/             # 파일명 정규화
 │   └── organizer/              # 폴더 정리기
 ├── gui/                        # GUI 모듈
@@ -203,20 +203,20 @@ wnap/
 
 | 버전 | 날짜 | 주요 변경 사항 |
 |------|------|----------------|
-| **v1.2.0** | 2024-12-28 | **Safety First Refactoring**: 원본 보존 엔진(Copy-based), 경로 오류 수정, UX 고도화 (버튼 제어, 안전 팝업) |
-| **v1.1.0** | 2024-12-28 | Search-First 장르 분류, GUI UX 전면 개선, 장르 확인 다이얼로그 재설계 |
-| **v1.0.0** | 2024-12-28 | 최초 릴리스 - 3개 모듈 통합, Title Anchor Parsing, 138개 테스트 통과 |
+| **v1.2.0** | 2024-12-28 | **안전 우선 리팩토링 (Safety First)**: 원본 보존 엔진(Copy-based), 경로 오류 수정, UX 고도화 (버튼 제어, 안전 팝업) |
+| **v1.1.0** | 2024-12-28 | 검색 우선(Search-First) 장르 분류, GUI UX 전면 개선, 장르 확인 다이얼로그 재설계 |
+| **v1.0.0** | 2024-12-28 | 최초 릴리스 - 3개 모듈 통합, 타이틀 앵커 파싱(Title Anchor Parsing), 138개 테스트 통과 |
 
 ---
 
 ## 📄 라이선스
 
-MIT License - Copyright (c) 2024
+MIT 라이선스 - Copyright (c) 2024
 
 ---
 
 <p align="center">
-  <strong>Made with ❤️ for Web Novel Enthusiasts</strong>
+  <strong>웹소설 애호가를 위해 정성을 담아 만들었습니다</strong>
 </p>
 
 <p align="center">

@@ -595,6 +595,69 @@ class FolderOrganizer:
         """압축 파일인지 확인"""
         return file_path.suffix.lower() in ['.zip', '.rar', '.7z', '.zipx']
     
+    def flatten_folders(self):
+        """
+        [NEW] 폴더 평탄화: 서브 폴더를 Temp로 백업 후, 기존 프로세스를 통해 루트로 정리
+        User Request: "기존의 프로세트(압축해제, 모이기 등)를 따르면서 원본은 Temp에 보존"
+        """
+        temp_dir = self.source_folder / "Temp"
+        temp_dir.mkdir(exist_ok=True)
+        
+        # Temp 폴더 보호
+        if "Temp" not in self.protected_folders:
+            self.protected_folders.append("Temp")
+            
+        # 1. 대상 서브폴더 식별
+        subfolders = [
+            f for f in self.source_folder.iterdir() 
+            if f.is_dir() and not self.is_protected_folder(f)
+        ]
+        
+        self.logger.info(f"폴더 정리(평탄화+백업) 시작 (대상 {len(subfolders)}개)")
+        
+        moved_folders = []
+        
+        # 2. 원본 폴더를 Temp로 이동 (백업)
+        for subfolder in subfolders:
+            try:
+                dest = temp_dir / subfolder.name
+                
+                # 이미 Temp에 있으면 삭제 (최신 상태로 갱신)
+                if dest.exists():
+                    try:
+                        shutil.rmtree(str(dest))
+                    except Exception as e:
+                        self.logger.warning(f"기존 백업 삭제 실패 {dest}: {e}")
+                
+                shutil.move(str(subfolder), str(dest))
+                self.logger.info(f"원본 백업 이동: {subfolder.name} -> Temp/")
+                moved_folders.append(dest)
+                
+            except Exception as e:
+                self.logger.error(f"백업 이동 실패 {subfolder.name}: {e}")
+        
+        # 3. Temp에 있는 폴더를 소스로 하여 루트에 정리 (기존 로직 사용)
+        original_target = self.target_folder
+        
+        # 타겟을 현재 소스 폴더(Root)로 변경하여 결과물이 Root에 생성되도록 함
+        self.target_folder = self.source_folder
+        
+        try:
+            for folder in moved_folders:
+                try:
+                    self.logger.info(f"정리 실행: {folder.name}")
+                    # process_folder_contents는 내부적으로 압축해제, 폴더 생성, 파일 복사 등을 수행
+                    result = self.process_folder_contents(folder)
+                    if result:
+                        self.logger.info(f"정리 완료: {folder.name}")
+                    else:
+                        self.logger.warning(f"정리 실패/스킵: {folder.name}")
+                except Exception as e:
+                    self.logger.error(f"정리 로직 실행 실패 {folder.name}: {e}")
+        finally:
+            # 타겟 폴더 원복 (안전장치)
+            self.target_folder = original_target
+    
     def organize_folders(self):
         """메인 폴더 정리 함수"""
         self.logger.info(f"폴더 정리 시작: {self.source_folder}")
