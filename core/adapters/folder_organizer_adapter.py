@@ -113,6 +113,11 @@ class FolderOrganizerAdapter:
     def is_protected_folder(self, folder_path: Path) -> bool:
         """보호된 폴더인지 확인"""
         folder_name = folder_path.name
+        
+        # [Fix] Temp 폴더는 Flatten 과정에서 생성되는 백업 폴더이므로 스캔 제외 필히 적용
+        if folder_name in ["Temp", ".git", "__pycache__", ".vs", "logs", "config"]:
+            return True
+            
         return self.config.is_protected_folder(folder_name)
     
     def get_processable_folders(self, source_folder: Path) -> List[Path]:

@@ -524,9 +524,10 @@ class WNAPMainWindow(ctk.CTk):
         title_label.pack(side="left")
         
         # 버튼들
-        self.open_csv_btn = ctk.CTkButton(
+        # 버튼들
+        self.save_csv_btn = ctk.CTkButton(
             header_frame,
-            text="📄 CSV 열기",
+            text="💾 CSV 저장", # Renamed
             font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_SMALL, weight="bold"),
             width=100,
             height=32,
@@ -536,9 +537,9 @@ class WNAPMainWindow(ctk.CTk):
             text_color=THEME["button_text"],
             text_color_disabled=THEME["button_text_disabled"],
             state="disabled",
-            command=self._open_mapping_csv
+            command=self._save_to_csv # Changed handler
         )
-        self.open_csv_btn.pack(side="right", padx=(PADDING_SMALL, 0))
+        self.save_csv_btn.pack(side="right", padx=(PADDING_SMALL, 0))
         
         self.open_folder_btn = ctk.CTkButton(
             header_frame,
@@ -551,7 +552,7 @@ class WNAPMainWindow(ctk.CTk):
             hover_color=THEME["accent_gray_hover"],
             text_color=THEME["button_text"],
             text_color_disabled=THEME["button_text_disabled"],
-            state="disabled",
+            state="normal", # Always normal, manages internal logic
             command=self._open_target_folder
         )
         self.open_folder_btn.pack(side="right", padx=(PADDING_SMALL, 0))
@@ -1001,33 +1002,73 @@ class WNAPMainWindow(ctk.CTk):
         self.result_tree.tag_configure("evenrow", background=THEME["table_row_even"])
         self.result_tree.tag_configure("oddrow", background=THEME["table_row_odd"])
 
-    def _open_mapping_csv(self):
-        """매핑 CSV 파일 열기"""
-        if self.last_mapping_csv and self.last_mapping_csv.exists():
-            try:
-                if sys.platform == "win32":
-                    os.startfile(str(self.last_mapping_csv))
-                elif sys.platform == "darwin":
-                    subprocess.run(["open", str(self.last_mapping_csv)])
-                else:
-                    subprocess.run(["xdg-open", str(self.last_mapping_csv)])
-                self._log_to_file(f"CSV 파일 열기: {self.last_mapping_csv}")
-            except Exception as e:
-                messagebox.showerror("오류", f"파일을 열 수 없습니다:\n{e}")
-        else:
-            messagebox.showwarning("경고", "매핑 CSV 파일이 없습니다.")
-    
+    def _save_to_csv(self):
+        """[NEW] 현재 목록을 CSV로 저장"""
+        if not self.tasks_cache:
+            messagebox.showwarning("경고", "저장할 데이터가 없습니다.")
+            return
+
+        try:
+            # 기본 파일명 생성
+            import datetime
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            default_name = f"wnap_list_{timestamp}.csv"
+            
+            filepath = filedialog.asksaveasfilename(
+                title="CSV 저장",
+                initialfile=default_name,
+                defaultextension=".csv",
+                filetypes=[("CSV Files", "*.csv"), ("All Files", "*.*")]
+            )
+            
+            if not filepath:
+                return
+                
+            # CSV 저장
+            import csv
+            with open(filepath, 'w', newline='', encoding='utf-8-sig') as f:
+                writer = csv.writer(f)
+                writer.writerow(["Original", "Normalized", "Genre", "Status", "Confidence", "Source"])
+                
+                for task in self.tasks_cache:
+                    original = task.raw_name or (task.original_path.name if task.original_path else "")
+                    normalized = task.metadata.get('normalized_name', '')
+                    genre = task.genre or ""
+                    status = task.status
+                    conf = task.confidence or ""
+                    src = task.source or ""
+                    writer.writerow([original, normalized, genre, status, conf, src])
+                    
+            messagebox.showinfo("완료", f"파일이 저장되었습니다:\n{filepath}")
+            self._log_to_file(f"CSV 저장 완료: {filepath}")
+            
+        except Exception as e:
+            self._log_to_file(f"CSV 저장 실패: {e}")
+            messagebox.showerror("오류", f"CSV 저장 중 오류 발생:\n{e}")
+
     def _open_target_folder(self):
-        """타겟 폴더 열기"""
+        """타겟/소스 폴더 열기 (Smart Fallback)"""
+        # 1. 실행 결과 타겟 폴더
         folder = self.last_target_folder
-        if not folder:
-            source = self.source_entry.get()
-            target = self.target_entry.get()
-            if target:
-                folder = Path(target)
-            elif source:
-                folder = Path(source) / "정리완료"
         
+        # 2. UI 입력값 (Target)
+        if not folder or not folder.exists():
+            target_input = self.target_entry.get()
+            if target_input:
+                folder = Path(target_input)
+        
+        # 3. UI 입력값 (Source) / 정리완료
+        if not folder or not folder.exists():
+             source_input = self.source_entry.get()
+             if source_input:
+                 # Check if '정리완료' exists
+                 candidate = Path(source_input) / "정리완료"
+                 if candidate.exists():
+                     folder = candidate
+                 else:
+                     # Fallback to Source itself (better than nothing)
+                     folder = Path(source_input)
+
         if folder and folder.exists():
             try:
                 if sys.platform == "win32":
@@ -1040,7 +1081,7 @@ class WNAPMainWindow(ctk.CTk):
             except Exception as e:
                 messagebox.showerror("오류", f"폴더를 열 수 없습니다:\n{e}")
         else:
-            messagebox.showwarning("경고", "타겟 폴더가 존재하지 않습니다.")
+            messagebox.showwarning("경고", "열 수 있는 폴더를 찾지 못했습니다.\n소스 또는 타겟 폴더를 설정해주세요.")
     
     def _sort_treeview(self, col: str, reverse: bool):
         """

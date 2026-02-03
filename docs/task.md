@@ -117,4 +117,16 @@
     - [x] `FolderOrganizerAdapter`가 기본적으로 평탄화 로직 사용하도록 변경
     - [x] 정리 후 파일 목록 재스캔 (`Re-scan`) 로직 추가 (Pipeline 연계 보장)
 - [x] 버전 1.3.8 업데이트 (`core/version.py`, `build_exe.py`)
-- [x] 실행 파일 빌드 (`WNAP_Manager_v1.3.8.exe`)
+- [x] 실행 파일 재빌드 (`Single Executable` 모드)
+    - [x] `build_exe.py`를 `--onefile`로 수정
+    - [x] `sys._MEIPASS` 경로 호환성 확인 (`core/path_utils.py`)
+    - [x] Output: `dist/WNAP_Manager_v1.3.8.exe`
+
+- [x] 개선 및 오류 수정 (v1.3.9)
+    - [x] 폴더 정리 버튼이 `Dry-Run`으로만 동작하던 문제 수정 (실제 실행 적용)
+    - [x] 폴더 정리 후 재스캔 시 `Temp` 백업 폴더가 포함되는 문제 수정 (Temp 제외)
+    - [x] 일괄 처리(Batch) 프로세스에도 폴더 정리 수정 사항 자동 적용 확인
+    - [x] 파일명 정규화 시 숫자/단위 뒤에 붙은 완결 마커(`1부完`) 인식 오류 수정
+    - [x] 폴더 정리 평탄화 (Flatten) 로직 강화 (개별 파일 포함 Root 처리 및 압축 해제 Flatten 적용)
+    - [x] `폴더 열기` 버튼 동작 오류 수정 (스마트 폴백 적용)
+    - [x] `CSV 열기` 버튼을 `CSV 저장` 기능으로 변경 및 구현

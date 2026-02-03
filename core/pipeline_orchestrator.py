@@ -219,11 +219,11 @@ class PipelineOrchestrator:
         
         return result
     
-    def run_stage1(self, source_folder: Path) -> List[NovelTask]:
-        """Stage 1: 폴더 정리 (Scan Only)"""
+    def run_stage1(self, source_folder: Path, dry_run: bool = False) -> List[NovelTask]:
+        """Stage 1: 폴더 정리 (Scan or Organize)"""
         self._stage_history = []
         self._record_stage(self.STAGE_FOLDER_ORGANIZER)
-        tasks = self._run_stage1(Path(source_folder), dry_run=True) # 목록만 가져옴
+        tasks = self._run_stage1(Path(source_folder), dry_run=dry_run)
         return tasks
 
     def run_stage1_5(self, tasks: List[NovelTask]) -> List[NovelTask]:

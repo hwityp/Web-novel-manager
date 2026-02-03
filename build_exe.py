@@ -19,8 +19,8 @@ from pathlib import Path
 import argparse
 
 # 버전 정보
-__version__ = "1.3.8"
-__release_date__ = "2026-02-02"
+__version__ = "1.3.9"
+__release_date__ = "2026-02-03"
 
 def get_full_version():
     return f"WNAP v{__version__}"
@@ -77,7 +77,7 @@ def build_exe(debug: bool = False):
     cmd = [
         sys.executable, '-m', 'PyInstaller',
         '--name', exe_name,
-        '--onedir',  # 폴더 모드 (기본)
+        '--onefile',  # 단일 파일 모드
         '--clean',   # 캐시 정리
         # CustomTkinter 전체 수집 (테마 포함)
         '--collect-all', 'customtkinter',
@@ -119,8 +119,8 @@ def build_exe(debug: bool = False):
         print("=" * 60)
         
         # 결과 확인
-        # onedir 모드이므로 dist/exe_name/exe_name.exe
-        dist_folder = Path(f'dist/{exe_name}')
+        # onefile 모드이므로 dist/exe_name.exe
+        dist_folder = Path('dist')
         exe_path = dist_folder / f"{exe_name}.exe"
         
         if exe_path.exists():
@@ -133,16 +133,28 @@ def build_exe(debug: bool = False):
                 shutil.copy(env_src, dist_folder / '.env')
                 print(f"📋 .env 설정 파일 복사 완료")
             
+            # 후처리: 기본 config 파일 복사 (사용자 편의용)
+            config_src = Path('config/pipeline_config.json')
+            config_dest = dist_folder / 'config' / 'pipeline_config.json'
+            if config_src.exists():
+                 config_dest.parent.mkdir(exist_ok=True)
+                 shutil.copy(config_src, config_dest)
+                 print(f"📋 기본 설정 파일 복사 완료")
+
             print()
             print("🚀 실행 방법:")
             print(f"   {exe_path.absolute()}")
         else:
-             # 혹시 onedir 구조가 다를 수 있음
+             # 혹시 경로가 다를 수 있음
              print(f"⚠️ 예상 경로에 파일이 없습니다: {exe_path}")
              # dist 폴더 내용 출력
              for p in Path('dist').rglob('*.exe'):
                  print(f"   발견된 EXE: {p}")
              return False
+            
+    except subprocess.CalledProcessError as e:
+        print(f"❌ 빌드 실패: {e}")
+        return False
             
     except subprocess.CalledProcessError as e:
         print(f"❌ 빌드 실패: {e}")

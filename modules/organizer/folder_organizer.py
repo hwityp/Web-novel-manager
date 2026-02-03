@@ -316,55 +316,63 @@ class FolderOrganizer:
         # 기본: 모두 해제 (내부의 추가 압축파일은 그대로 유지됨)
         return "extract_all", None
     
-    def process_archive_file(self, archive_path, folder_name):
-        """압축 파일 처리"""
+    def process_archive_file(self, archive_path, folder_name, flatten: bool = False):
+        """
+        압축 파일 처리
+        :param flatten: True이면 압축 해제 시 별도의 폴더를 생성하지 않고 타겟에 바로 품.
+                        (단, extract_all의 경우 파일이 많으면 난잡해질 수 있으나 User Request 우선)
+        """
         method, target_file = self.determine_archive_processing_method(archive_path, folder_name)
         archive_name = Path(archive_path).stem
         
-        self.logger.info(f"압축 파일 처리: {archive_path} - 방법: {method}")
+        self.logger.info(f"압축 파일 처리: {archive_path} - 방법: {method}, Flatten={flatten}")
         
         if method == "extract_single_file":
-            # 루트의 단일 파일만 추출
+            # 루트의 단일 파일만 추출 (Flatten 여부와 관계없이 타겟에 바로 품)
             ok = self.extract_specific_file(archive_path, target_file, self.target_folder)
-            if ok:
-                pass
-            # Source cleanup removed for safety
-            # self._cleanup_source_after_processing(Path(archive_path))
             return ok
             
         elif method == "move_as_is":
-            # 압축 파일 그대로 이동
+            # 압축 파일 그대로 이동 (Flatten=True면 Root로, 아니면 Root/ZipName? 보통 Root로 감)
+            # 여기서는 파일 자체가 이동됨.
             dest_path = self.target_folder / Path(archive_path).name
             shutil.copy2(str(archive_path), str(dest_path))
             return True
             
         elif method == "extract_all":
-            # 새 폴더 만들고 압축 해제
-            new_folder = self.target_folder / archive_name
-            new_folder.mkdir(exist_ok=True)
-            ok = self.extract_archive(archive_path, new_folder)
-            if ok:
-                pass
-            # Source cleanup removed for safety
-            # self._cleanup_source_after_processing(Path(archive_path))
+            # Flatten=True면 Root에 바로 해제
+            # Flatten=False면 폴더 생성 후 해제
+            if flatten:
+                dest_folder = self.target_folder
+            else:
+                dest_folder = self.target_folder / archive_name
+                dest_folder.mkdir(exist_ok=True)
+                
+            ok = self.extract_archive(archive_path, dest_folder)
             return ok
 
         elif method == "extract_and_recompress_folders":
-            # 압축 해제 후 최상위 폴더들을 각각 ZIP으로 재압축
+            # 이건 구조 변경이므로 폴더 생성 유지 권장하지만, Flatten이면...
+            # Flatten이면 그냥 내용을 Root에 푸는게 맞음. (구조 유지X)
+            # 하지만 이 method는 '폴더만 있는 구조'를 '폴더별 zip'으로 바꾸는 것.
+            # Root에 zip들이 널브러지는 결과. -> Flatten 의도에 부합.
+            
             with tempfile.TemporaryDirectory() as temp_dir:
                 temp_path = Path(temp_dir)
                 if self.extract_archive(archive_path, temp_path):
-                    new_folder = self.target_folder / archive_name
-                    new_folder.mkdir(exist_ok=True)
+                    if flatten:
+                         dest_base = self.target_folder
+                    else:
+                         dest_base = self.target_folder / archive_name
+                         dest_base.mkdir(exist_ok=True)
+                         
                     for item in temp_path.iterdir():
                         if item.is_dir():
                             zip_name = f"{item.name}.zip"
-                            zip_path = new_folder / zip_name
+                            zip_path = dest_base / zip_name
                             self.compress_folder(item, zip_path)
                         else:
-                            shutil.copy2(item, new_folder)
-                    # Source cleanup removed for safety
-                    # self._cleanup_source_after_processing(Path(archive_path))
+                            shutil.copy2(item, dest_base)
                     return True
         
         return False
@@ -524,43 +532,44 @@ class FolderOrganizer:
         except Exception:
             return False
     
-    def process_folder_contents(self, folder_path):
-        """폴더 내용 처리"""
+    def process_folder_contents(self, folder_path, flatten: bool = False):
+        """
+        폴더 내용 처리
+        :param flatten: True이면 파일 수에 관계없이 타겟 폴더로 직접 이동 (서브폴더 생성 금지)
+        """
         if not folder_path.exists():
             return True
         files = list(folder_path.iterdir())
         regular_files = [f for f in files if f.is_file() and not self.is_archive(f)]
         archive_files = [f for f in files if f.is_file() and self.is_archive(f)]
         
-        # 압축 파일이 2개 이상인 경우
+        # 압축 파일이 2개 이상인 경우 (폴더 구조 유지 권장)
         if len(archive_files) >= 2:
             folder_name = folder_path.name
-            new_folder = self.target_folder / folder_name
-            new_folder.mkdir(exist_ok=True)
+            dest_folder = self.target_folder if flatten else (self.target_folder / folder_name)
+            if not flatten: dest_folder.mkdir(exist_ok=True)
             
             for file in files:
                 if file.is_file():
-                    dest_path = new_folder / file.name
+                    dest_path = dest_folder / file.name
                     shutil.copy2(str(file), str(dest_path))
-            # 정리 후 빈 폴더 재귀 삭제
-            # Source folder cleanup removed for safety
-            # self._remove_empty_dirs(folder_path)
             return True
         
         # 압축 파일이 1개인 경우
         elif len(archive_files) == 1:
             archive_file = archive_files[0]
-            ok = self.process_archive_file(archive_file, folder_path.name)
-            # 남은 항목(파일/폴더)이 있으면 폴더를 만들어 이동
+            ok = self.process_archive_file(archive_file, folder_path.name, flatten=flatten)
+            
             if not folder_path.exists():
                 return ok or True
             remaining_items = [p for p in folder_path.iterdir() if p.exists()]
             remaining_items = [p for p in remaining_items if p.name != archive_file.name]
             if remaining_items:
-                new_folder = self.target_folder / folder_path.name
-                new_folder.mkdir(exist_ok=True)
+                dest_folder = self.target_folder if flatten else (self.target_folder / folder_path.name)
+                if not flatten: dest_folder.mkdir(exist_ok=True)
+                
                 for item in remaining_items:
-                    dest_path = new_folder / item.name
+                    dest_path = dest_folder / item.name
                     try:
                         if item.is_file():
                             shutil.copy2(str(item), str(dest_path))
@@ -568,15 +577,12 @@ class FolderOrganizer:
                             shutil.copy2(str(item), str(dest_path))
                     except Exception as e:
                         self.logger.error(f"남은 항목 이동 실패 {item}: {e}")
-            # 정리 후 빈 폴더 재귀 삭제
-            # Source folder cleanup removed for safety
-            # self._remove_empty_dirs(folder_path)
             return ok or True
         
         # 일반 파일만 있는 경우
         else:
-            if len(regular_files) <= 3:
-                # 3개 이하: 직접 이동
+            if flatten or len(regular_files) <= 3:
+                # flatten=True 이거나 3개 이하: 직접 이동
                 for file in regular_files:
                     dest_path = self.target_folder / file.name
                     shutil.copy2(str(file), str(dest_path))
@@ -597,7 +603,7 @@ class FolderOrganizer:
     
     def flatten_folders(self):
         """
-        [NEW] 폴더 평탄화: 서브 폴더를 Temp로 백업 후, 기존 프로세스를 통해 루트로 정리
+        [NEW] 폴더 평탄화: Root의 모든 파일/폴더를 Temp로 백업 후, Root로 완전히 평탄화
         User Request: "기존의 프로세트(압축해제, 모이기 등)를 따르면서 원본은 Temp에 보존"
         """
         temp_dir = self.source_folder / "Temp"
@@ -607,53 +613,63 @@ class FolderOrganizer:
         if "Temp" not in self.protected_folders:
             self.protected_folders.append("Temp")
             
-        # 1. 대상 서브폴더 식별
-        subfolders = [
-            f for f in self.source_folder.iterdir() 
-            if f.is_dir() and not self.is_protected_folder(f)
-        ]
+        # 1. 대상 식별 (파일 + 폴더) - Temp 및 보호폴더 제외
+        items_to_move = []
+        for item in self.source_folder.iterdir():
+            # 보호 폴더 제외 (Temp 포함)
+            if self.is_protected_folder(item):
+                continue
+            items_to_move.append(item)
         
-        self.logger.info(f"폴더 정리(평탄화+백업) 시작 (대상 {len(subfolders)}개)")
+        if not items_to_move:
+             self.logger.info("정리할 항목이 없습니다.")
+             return
+
+        self.logger.info(f"폴더 정리(평탄화+백업) 시작 (대상 {len(items_to_move)}개 항목)")
         
-        moved_folders = []
+        moved_items = []
         
-        # 2. 원본 폴더를 Temp로 이동 (백업)
-        for subfolder in subfolders:
+        # 2. 원본(파일/폴더)을 Temp로 이동 (백업)
+        for item in items_to_move:
             try:
-                dest = temp_dir / subfolder.name
+                dest = temp_dir / item.name
                 
                 # 이미 Temp에 있으면 삭제 (최신 상태로 갱신)
                 if dest.exists():
                     try:
-                        shutil.rmtree(str(dest))
+                        if dest.is_dir():
+                            shutil.rmtree(str(dest))
+                        else:
+                            dest.unlink()
                     except Exception as e:
                         self.logger.warning(f"기존 백업 삭제 실패 {dest}: {e}")
                 
-                shutil.move(str(subfolder), str(dest))
-                self.logger.info(f"원본 백업 이동: {subfolder.name} -> Temp/")
-                moved_folders.append(dest)
+                shutil.move(str(item), str(dest))
+                self.logger.info(f"원본 백업 이동: {item.name} -> Temp/")
+                moved_items.append(dest)
                 
             except Exception as e:
-                self.logger.error(f"백업 이동 실패 {subfolder.name}: {e}")
+                self.logger.error(f"백업 이동 실패 {item.name}: {e}")
         
-        # 3. Temp에 있는 폴더를 소스로 하여 루트에 정리 (기존 로직 사용)
-        original_target = self.target_folder
-        
+        # 3. Temp에 있는 내용을 소스로 하여 루트에 정리
         # 타겟을 현재 소스 폴더(Root)로 변경하여 결과물이 Root에 생성되도록 함
+        original_target = self.target_folder
         self.target_folder = self.source_folder
         
         try:
-            for folder in moved_folders:
-                try:
-                    self.logger.info(f"정리 실행: {folder.name}")
-                    # process_folder_contents는 내부적으로 압축해제, 폴더 생성, 파일 복사 등을 수행
-                    result = self.process_folder_contents(folder)
-                    if result:
-                        self.logger.info(f"정리 완료: {folder.name}")
-                    else:
-                        self.logger.warning(f"정리 실패/스킵: {folder.name}")
-                except Exception as e:
-                    self.logger.error(f"정리 로직 실행 실패 {folder.name}: {e}")
+            # 3-1. Temp 폴더 처리 (Loose Files -> Root)
+            self.logger.info(f"Root 파일 정리 실행 (from Temp)")
+            self.process_folder_contents(temp_dir, flatten=True)
+            
+            # 3-2. Temp 내의 서브폴더 처리 (Subfolders -> Root)
+            for item in temp_dir.iterdir():
+                if item.is_dir():
+                     try:
+                        self.logger.info(f"서브폴더 정리 실행: {item.name}")
+                        self.process_folder_contents(item, flatten=True)
+                     except Exception as e:
+                        self.logger.error(f"서브폴더 정리 실패 {item.name}: {e}")
+                        
         finally:
             # 타겟 폴더 원복 (안전장치)
             self.target_folder = original_target
