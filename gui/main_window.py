@@ -1532,6 +1532,50 @@ class WNAPMainWindow(ctk.CTk):
                     self._log_to_file("태스크 매핑 실패 (정렬됨?)")
                     messagebox.showwarning("오류", "데이터를 업데이트할 수 없습니다. (목록이 정렬되었을 수 있음)")
 
+        # [NEW] 'genre' 컬럼 (#3) 편집 허용
+        elif col == "#3":
+            values = self.result_tree.item(item, "values")
+            current_genre = values[2] # genre
+            current_normalized = values[1] # normalized name
+            
+            dialog = EditNameDialog(self, title="장르 편집", initial_value=current_genre)
+            new_genre = dialog.get_input()
+            
+            if new_genre is not None and new_genre != current_genre:
+                try:
+                    task_idx = int(item)
+                    if 0 <= task_idx < len(self.tasks_cache):
+                        task = self.tasks_cache[task_idx]
+                        old_genre_tag = f"[{current_genre}]" if current_genre else ""
+                        new_genre_tag = f"[{new_genre}]" if new_genre else ""
+                        
+                        # 1. 태스크 장르 업데이트
+                        task.genre = new_genre
+                        task.metadata['genre'] = new_genre
+                        
+                        # 2. 정규화된 파일명 업데이트 (장르 태그 교체)
+                        new_normalized = current_normalized
+                        if old_genre_tag and old_genre_tag in current_normalized:
+                             new_normalized = current_normalized.replace(old_genre_tag, new_genre_tag, 1)
+                        elif new_genre_tag:
+                             # 기존 장르가 없었다면 맨 앞에 추가
+                             new_normalized = f"{new_genre_tag} {current_normalized}"
+                        
+                        # 공백 정리 (혹시 모를 이중 공백)
+                        new_normalized = new_normalized.strip()
+                        task.metadata['normalized_name'] = new_normalized
+                        
+                        self._log_to_file(f"장르 수동 변경: {current_genre} -> {new_genre}")
+                        
+                        # 3. Treeview 업데이트
+                        new_values = list(values)
+                        new_values[1] = new_normalized
+                        new_values[2] = new_genre
+                        self.result_tree.item(item, values=new_values)
+                        
+                except (ValueError, IndexError):
+                     pass
+
         # 원본 파일명(#1) 클릭 시 폴더 열기 (기존 기능 유지)
         elif col == "#1":
             try:

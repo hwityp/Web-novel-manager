@@ -5,6 +5,13 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.12] - 2026-02-03
+
+### Added
+- **장르 수동 편집 기능:**
+  - 결과 테이블에서 **장르(Genre)** 컬럼을 더블클릭하여 직접 장르를 수정할 수 있습니다.
+  - 장르 수정 시, 파일명 앞의 `[장르]` 태그도 자동으로 동기화되어 업데이트됩니다.
+
 ## [v1.3.11] - 2026-02-03
 
 ### Fixed
