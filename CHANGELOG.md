@@ -5,6 +5,11 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.14] - 2026-02-03
+
+### Fixed
+- **Hotfix:** 장르 태그 보존 로직이 실제 파일명 생성 시 적용되지 않던 문제를 수정했습니다. (정규화 어댑터 로직 보완)
+
 ## [v1.3.13] - 2026-02-03
 
 ### Fixed

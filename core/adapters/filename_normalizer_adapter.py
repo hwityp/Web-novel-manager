@@ -56,6 +56,11 @@ class FilenameNormalizerAdapter:
                 task.range_info = parse_result.range_info or task.range_info
                 task.is_completed = parse_result.is_completed or task.is_completed
                 task.side_story = parse_result.side_story or task.side_story
+                
+                # [Fix] 원본 장르 보존
+                if not task.genre and parse_result.original_genre:
+                    task.genre = parse_result.original_genre
+                    
                 self.logger.debug(f"메타데이터 추출 완료: {task.raw_name} -> {task.title}")
         except Exception as e:
             self.logger.warning(f"메타데이터 추출 실패: {e}")
@@ -82,6 +87,10 @@ class FilenameNormalizerAdapter:
                 task.range_info = parse_result.range_info or task.range_info
                 task.is_completed = parse_result.is_completed or task.is_completed
                 task.side_story = parse_result.side_story or task.side_story
+                
+                # [Fix] 원본 장르 보존 (정규화 시점에서도 적용)
+                if not task.genre and parse_result.original_genre:
+                    task.genre = parse_result.original_genre
             
             # 2. 장르 화이트리스트 검증
             genre = self._validate_genre(task.genre)
@@ -119,6 +128,49 @@ class FilenameNormalizerAdapter:
             self.logger.error(f"파일명 정규화 실패: {task.raw_name} - {e}")
         
         return task
+
+    def preview_normalized_name(self, task: NovelTask) -> str:
+        """
+        정규화된 파일명 미리보기 (dry-run용)
+        
+        Args:
+            task: NovelTask
+            
+        Returns:
+            정규화된 파일명 문자열
+        """
+        # 제목 앵커 추출
+        if not task.title:
+            parse_result = self._extractor.extract(task.raw_name)
+            title = parse_result.title
+            volume_info = parse_result.volume_info
+            range_info = parse_result.range_info
+            is_completed = parse_result.is_completed
+            side_story = parse_result.side_story
+            original_genre = parse_result.original_genre # [Fix]
+        else:
+            title = task.title
+            volume_info = task.volume_info
+            range_info = task.range_info
+            is_completed = task.is_completed
+            side_story = task.side_story
+            original_genre = ""
+        
+        # 장르 결정 (task.genre 우선, 없으면 원본 장르 사용)
+        genre_candidate = task.genre or original_genre
+        genre = self._validate_genre(genre_candidate)
+        
+        normalized = self._build_normalized_name(
+            genre=genre,
+            title=title or task.raw_name,
+            volume_info=volume_info,
+            range_info=range_info,
+            is_completed=is_completed,
+            side_story=side_story
+        )
+        
+        extension = task.current_path.suffix if task.current_path else '.txt'
+        return normalized + extension
     
     def _validate_genre(self, genre: str) -> str:
         """
@@ -277,41 +329,4 @@ class FilenameNormalizerAdapter:
         """
         return [self.normalize(task) for task in tasks]
     
-    def preview_normalized_name(self, task: NovelTask) -> str:
-        """
-        정규화된 파일명 미리보기 (dry-run용)
-        
-        Args:
-            task: NovelTask
-            
-        Returns:
-            정규화된 파일명 문자열
-        """
-        # 제목 앵커 추출
-        if not task.title:
-            parse_result = self._extractor.extract(task.raw_name)
-            title = parse_result.title
-            volume_info = parse_result.volume_info
-            range_info = parse_result.range_info
-            is_completed = parse_result.is_completed
-            side_story = parse_result.side_story
-        else:
-            title = task.title
-            volume_info = task.volume_info
-            range_info = task.range_info
-            is_completed = task.is_completed
-            side_story = task.side_story
-        
-        genre = self._validate_genre(task.genre)
-        
-        normalized = self._build_normalized_name(
-            genre=genre,
-            title=title or task.raw_name,
-            volume_info=volume_info,
-            range_info=range_info,
-            is_completed=is_completed,
-            side_story=side_story
-        )
-        
-        extension = task.current_path.suffix if task.current_path else '.txt'
-        return normalized + extension
+
