@@ -19,7 +19,7 @@ from pathlib import Path
 import argparse
 
 # 버전 정보
-__version__ = "1.3.12"
+__version__ = "1.3.13"
 RELEASE_DATE = "2026-02-03"
 
 def get_full_version():

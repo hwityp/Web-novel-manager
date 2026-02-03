@@ -22,6 +22,7 @@ class TitleParseResult:
     is_completed: bool = False    # 완결 여부
     side_story: str = ""          # 외전 정보 (예: "외전 1-5")
     extension: str = ""           # 파일 확장자
+    original_genre: str = ""      # [NEW] 파일명에서 추출한 장르 (예: "선협")
     
     def to_normalized_filename(self, genre: str = "") -> str:
         """
@@ -30,9 +31,10 @@ class TitleParseResult:
         """
         parts = []
         
-        # 장르
-        if genre:
-            parts.append(f"[{genre}]")
+        # 장르 (입력된 장르 > 원본 추출 장르 순)
+        final_genre = genre or self.original_genre
+        if final_genre:
+            parts.append(f"[{final_genre}]")
         
         # 제목
         parts.append(self.title)
@@ -240,8 +242,8 @@ class TitleAnchorExtractor:
         if not name:
             return TitleParseResult(title="", extension=extension)
         
-        # 2. 노이즈 제거
-        cleaned, author = self._remove_noise(name)
+        # 2. 노이즈 제거 및 장르 추출
+        cleaned, author, original_genre = self._remove_noise(name)
         
         # 3. 제목 앵커 추출
         title, residual = self._extract_title_anchor(cleaned)
@@ -256,7 +258,8 @@ class TitleAnchorExtractor:
             range_info=range_info,
             is_completed=is_completed,
             side_story=side_story,
-            extension=extension
+            extension=extension,
+            original_genre=original_genre
         )
     
     def _split_extension(self, filename: str) -> Tuple[str, str]:
@@ -279,9 +282,10 @@ class TitleAnchorExtractor:
         # 유효하지 않은 확장자면 전체를 이름으로 반환
         return filename, ""
     
-    def _remove_noise(self, name: str) -> Tuple[str, str]:
-        """노이즈 제거 및 저자명 추출"""
+    def _remove_noise(self, name: str) -> Tuple[str, str, str]:
+        """노이즈 제거, 저자명 추출, 장르 태그 추출"""
         author = ""
+        genre = ""
         
         # 저자 구분자 패턴 확인 (제목 - 저자)
         author_match = self.author_separator_pattern.search(name)
@@ -294,8 +298,14 @@ class TitleAnchorExtractor:
         # 노이즈 패턴 제거
         name = self.noise_pattern.sub('', name)
         
-        # 장르 태그 제거
-        name = self.genre_tag_pattern.sub('', name)
+        # [NEW] 장르 태그 추출 및 제거
+        genre_match = self.genre_tag_pattern.search(name)
+        if genre_match:
+            # 매칭된 태그에서 괄호 제외하고 순수 텍스트만 추출
+            raw_genre = genre_match.group(0)
+            genre = re.sub(r'[\[\]\(\)]', '', raw_genre).strip()
+            # 이름에서 제거
+            name = self.genre_tag_pattern.sub('', name)
         
         # 성인 등급 태그 제거
         name = self.adult_tag_pattern.sub('', name)
@@ -306,7 +316,7 @@ class TitleAnchorExtractor:
         # 연속 공백 정리
         name = ' '.join(name.split())
         
-        return name.strip(), author
+        return name.strip(), author, genre
     
     def _extract_title_anchor(self, cleaned: str) -> Tuple[str, str]:
         """제목 앵커 추출"""

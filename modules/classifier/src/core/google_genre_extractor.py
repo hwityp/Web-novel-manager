@@ -34,7 +34,8 @@ class GoogleGenreExtractor:
         '공포': [r'공포', r'호러', r'미스터리', r'스릴러'],
         '로맨스': [r'로맨스', r'순정'],
         '라이트노벨': [r'라이트\s*노벨', r'라노벨'],
-        '드라마': [r'드라마']
+        '드라마': [r'드라마'],
+        '패러디': [r'패러디', r'팬픽', r'2차\s*창작', r'fanfic']
     }
 
     def __init__(self, api_key: str, cse_id: str):
