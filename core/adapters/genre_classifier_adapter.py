@@ -145,6 +145,25 @@ class GenreClassifierAdapter:
             task.status = 'processing'
             return task
             
+        # [Fix] 이미 유효한 장르가 설정되어 있는 경우 (예: 파일명 태그 추출 결과)
+        # 검색이나 추가 추론 없이 기존 장르 유지
+        if task.genre and task.genre != '미분류':
+            # 매핑 로더를 통해 표준 장르명으로 변환 (안전장치)
+            mapped_genre = self.mapping_loader.map_genre(task.genre)
+            
+            if mapped_genre in GENRE_WHITELIST:
+                task.genre = mapped_genre
+                # confidence가 설정되어 있지 않다면 high로 설정
+                if not task.confidence or task.confidence == 'low':
+                    task.confidence = 'high'
+                # source가 설정되어 있지 않다면 tag로 설정
+                if not task.source or task.source == '-':
+                    task.source = 'tag'
+                
+                self.logger.debug(f"  [기존 장르 유지] {task.genre} (API 검색 건너뜀)")
+                print(f"  [기존 장르 유지] {task.genre} (API 검색 건너뜀)")
+                return task
+            
         # [최적화] 원본 파일명에 이미 장르 태그가 있는 경우 API 검색 건너뛰기
         # 예: "[선협] 제목..." -> 선협 (API 절약)
         import re

@@ -5,6 +5,11 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.15] - 2026-02-03
+
+### Fixed
+- **Hotfix:** 보존된 장르 태그가 '장르 추론(Inference)' 단계에서 검색 결과로 덮어씌워지는 문제를 수정했습니다. (장르가 이미 확정된 경우 API 검색 건너뜀)
+
 ## [v1.3.14] - 2026-02-03
 
 ### Fixed
