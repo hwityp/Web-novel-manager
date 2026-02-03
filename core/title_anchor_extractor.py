@@ -70,10 +70,10 @@ class TitleAnchorExtractor:
         r'@\S+',                           # @닉네임
         r'ⓒ\S+',                           # ⓒ닉네임
         r'©\S+',                           # ©닉네임
-        r'저자[:\s]*\S+',                  # 저자: 이름
-        r'작가[:\s]*\S+',                  # 작가: 이름
-        r'글[:\s]*\S+',                    # 글: 이름
-        r'by\s+\S+',                       # by Author
+        r'(?<!\S)저자[:\s]*\S+',           # 저자: 이름 (단어 앞 경계 확인)
+        r'(?<!\S)작가[:\s]*\S+',           # 작가: 이름
+        r'(?<!\S)글[:\s]*\S+',             # 글: 이름
+        r'(?<!\S)by\s+\S+',                # by Author
     ]
     
     # 사이트/카페 정보 패턴
@@ -89,8 +89,8 @@ class TitleAnchorExtractor:
     
     # 번역 정보 패턴
     TRANSLATOR_PATTERNS = [
-        r'번역[:\s]*\S+',
-        r'역자[:\s]*\S+',           # "역자: 이름" 형태만 매칭 (역전기 등 제외)
+        r'(?<!\S)번역[:\s]*\S+',
+        r'(?<!\S)역자[:\s]*\S+',           # "역자: 이름" (면역자 등 오매칭 방지)
         r'\[번역\]',
         r'\(번역\)',
     ]
@@ -390,7 +390,6 @@ class TitleAnchorExtractor:
         paren_completion_match = re.search(r'\.?\s*[\(\[]\s*완(?:결)?\s*[\)\]]\.?\s*$', name)
         if paren_completion_match:
             candidates.append(paren_completion_match)
-            
         # 5. 일반 완결 마커
         completion_match = self.completion_pattern.search(name)
         if completion_match:
@@ -422,7 +421,33 @@ class TitleAnchorExtractor:
         range_info = ""
         is_completed = False
         side_story_parts = []  # 외전, 후기 등 여러 부가 정보 수집
-        
+        complex_found = False
+
+        # [Special Case] Range + Comp + Volume + Range (e.g. "1-546 完 2부 212")
+        # 처리가 복잡한 다중 파트/범위 패턴을 통째로 잡아내어 순서를 보존함
+        # Regex: Range(1-546) + Comp(完) + Volume(2부) + Range(212 or 1-212)
+        complex_match = re.search(r'^(\d+\s*[-~]\s*\d+)\s*(?:完|완|완결)\s*(\d+\s*부)\s*(\d+(?:\s*[-~]\s*\d+)?)', residual)
+        if complex_match:
+            part1_range = complex_match.group(1).replace(' ', '')
+            part2_vol = complex_match.group(2).replace(' ', '')
+            part2_range_raw = complex_match.group(3).replace(' ', '')
+            
+            # Part 2 Range Normalization (e.g. 212 -> 1-212)
+            if '-' not in part2_range_raw and '~' not in part2_range_raw:
+                part2_range = f"1-{part2_range_raw}"
+            else:
+                part2_range = part2_range_raw
+                
+            # Construct formatted string as 'range_info'
+            # Format: 1-546 (완) 2부 1-212
+            combined_info = f"{part1_range} (완) {part2_vol} {part2_range}"
+            
+            range_info = combined_info
+            
+            # 매칭된 부분 제거 (외전 등 추가 파싱을 위해 loop continue)
+            residual = residual[complex_match.end():].strip()
+            complex_found = True
+
         # 0. "1-324본편" 같은 붙어있는 패턴 분리
         residual = re.sub(r'(\d+)(본편)', r'\1 \2', residual)
         
@@ -496,34 +521,36 @@ class TitleAnchorExtractor:
                 side_story_parts.append(side_text)
             residual = residual[:side_match.start()] + " " + residual[side_match.end():]
         
-        # 8. 부 정보 추출 (1-2부, 1부 등)
-        volume_match = re.search(r'(\d+)\s*[-~]\s*(\d+)\s*부|(\d+)\s*부', residual)
-        if volume_match:
-            if volume_match.group(1) and volume_match.group(2):
-                volume_info = f"{volume_match.group(1)}-{volume_match.group(2)}부"
-            elif volume_match.group(3):
-                volume_info = f"{volume_match.group(3)}부"
-            residual = residual[:volume_match.start()] + residual[volume_match.end():]
-        
-        # 9. 범위 정보 추출 (1-536, 1-536화 등)
-        range_match = self.range_pattern.search(residual)
-        if range_match:
-            try:
-                start = str(int(range_match.group(1)))
-                end = str(int(range_match.group(2)))
-                range_info = f"{start}-{end}"
-            except ValueError:
-                # Fallback in case of non-integer (unlikely due to regex \d)
-                range_info = f"{range_match.group(1)}-{range_match.group(2)}"
+        # Standard Volume/Range Parsing (Skip if complex pattern was found)
+        if not complex_found:
+            # 8. 부 정보 추출 (1-2부, 1부 등)
+            volume_match = re.search(r'(\d+)\s*[-~]\s*(\d+)\s*부|(\d+)\s*부', residual)
+            if volume_match:
+                if volume_match.group(1) and volume_match.group(2):
+                    volume_info = f"{volume_match.group(1)}-{volume_match.group(2)}부"
+                elif volume_match.group(3):
+                    volume_info = f"{volume_match.group(3)}부"
+                residual = residual[:volume_match.start()] + residual[volume_match.end():]
+            
+            # 9. 범위 정보 추출 (1-536, 1-536화 등)
+            range_match = self.range_pattern.search(residual)
+            if range_match:
+                try:
+                    start = str(int(range_match.group(1)))
+                    end = str(int(range_match.group(2)))
+                    range_info = f"{start}-{end}"
+                except ValueError:
+                    # Fallback in case of non-integer (unlikely due to regex \d)
+                    range_info = f"{range_match.group(1)}-{range_match.group(2)}"
 
-        else:
-            # 단일 숫자 범위 (120, 126 등)
-            single_match = re.search(r'(\d+)', residual)
-            if single_match:
-                num = single_match.group(1)
-                # 2자리 이상 숫자만 범위로 인식
-                if len(num) >= 2:
-                    range_info = f"1-{num}"
+            else:
+                # 단일 숫자 범위 (120, 126 등)
+                single_match = re.search(r'(\d+)', residual)
+                if single_match:
+                    num = single_match.group(1)
+                    # 2자리 이상 숫자만 범위로 인식
+                    if len(num) >= 2:
+                        range_info = f"1-{num}"
         
         # 10. 외전 정보 조합
         side_story = ", ".join(side_story_parts) if side_story_parts else ""
