@@ -15,7 +15,7 @@ class FolderOrganizer:
     def __init__(self, source_folder, target_folder="정리완료"):
         self.source_folder = Path(source_folder)
         self.target_folder = self.source_folder / target_folder
-        self.protected_folders = ["Downloads", "Tempfile", target_folder]
+        self.protected_folders = ["Downloads", "Tempfile", "Temp", target_folder]
         self.seven_zip = find_7z_executable()
         
         # 로깅 설정

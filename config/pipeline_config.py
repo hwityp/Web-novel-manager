@@ -68,7 +68,7 @@ GENRE_WHITELIST: Set[str] = {
 }
 
 # 기본 보호 폴더 목록
-DEFAULT_PROTECTED_FOLDERS: List[str] = ["Downloads", "Tempfile", "정리완료"]
+DEFAULT_PROTECTED_FOLDERS: List[str] = ["Downloads", "Tempfile", "Temp", "정리완료"]
 
 # 유효한 로그 레벨
 VALID_LOG_LEVELS: Set[str] = {"DEBUG", "INFO", "WARNING", "ERROR"}
