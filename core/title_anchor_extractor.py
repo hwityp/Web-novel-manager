@@ -388,8 +388,13 @@ class TitleAnchorExtractor:
         if author_match:
             potential_author = author_match.group(1).strip()
             if len(potential_author) < 20 and not re.search(r'\d{2,}', potential_author):
-                author = potential_author
-                name = name[:author_match.start()].strip()
+                # [Fix] 한글이 포함되어 있고 공백이 포함된 경우 부제(Subtitle)일 확률이 높음 (예: "신의 목소리")
+                # 영어 이름("J. K. Rowling") 등은 통과시키되, 한국어 부제 절삭을 방지
+                is_korean_spaced = bool(re.search(r'[가-힣]', potential_author)) and ' ' in potential_author
+                
+                if not is_korean_spaced:
+                    author = potential_author
+                    name = name[:author_match.start()].strip()
         
         # 노이즈 패턴 제거
         name = self.noise_pattern.sub('', name)
