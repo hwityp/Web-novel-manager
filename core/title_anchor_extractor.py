@@ -12,6 +12,95 @@ from dataclasses import dataclass
 from typing import Tuple, Optional, List
 
 
+def compose_korean_jamo(text: str) -> str:
+    """
+    한글 자소 분리 및 시각적 변형(야민정음식 알파벳 치환 등) 복구
+    예: 'ㄷH공ㅂlㄱr' -> '대공비가'
+    """
+    if not text:
+        return text
+        
+    # 1. 시각적 변형 영문자 -> 한글 자소 치환
+    replacements = {
+        'r': 'ㅏ', 'R': 'ㅏ', 'l': 'ㅣ', 'I': 'ㅣ', 'H': 'ㅐ', 'k': 'ㅏ',
+        'o': 'ㅐ', 'i': 'ㅑ', 'j': 'ㅓ', 'p': 'ㅔ', 'u': 'ㅕ', 'h': 'ㅗ',
+        'y': 'ㅛ', 'n': 'ㅜ', 'b': 'ㅠ', 'm': 'ㅡ'
+    }
+    
+    chars = list(text)
+    def is_hangul(c): return 0x3131 <= ord(c) <= 0x318E or 0xAC00 <= ord(c) <= 0xD7A3
+    
+    for idx, c in enumerate(chars):
+        if c in replacements:
+            # 영문자가 독립적인 단어가 아니라 한글과 붙어있을 때만 치환 (해리포터 등의 영문 오작동 방지)
+            prev_is_hangul = idx > 0 and is_hangul(chars[idx-1])
+            next_is_hangul = idx < len(chars)-1 and is_hangul(chars[idx+1])
+            if prev_is_hangul or next_is_hangul:
+                chars[idx] = replacements[c]
+                
+    text = ''.join(chars)
+    
+    # 2. 자소 조합 로직
+    CHOSUNG = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
+    JUNGSUNG = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ']
+    JONGSUNG = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
+    
+    VOWEL_COMBINE = {('ㅗ', 'ㅣ'): 'ㅚ', ('ㅜ', 'ㅣ'): 'ㅟ', ('ㅡ', 'ㅣ'): 'ㅢ', ('ㅏ', 'ㅣ'): 'ㅐ', ('ㅓ', 'ㅣ'): 'ㅔ'}
+    
+    def get_parts(char):
+        if '가' <= char <= '힣':
+            offset = ord(char) - 0xAC00
+            j = offset % 28
+            m = (offset // 28) % 21
+            c = (offset // 28) // 21
+            return c, m, j
+        return None
+        
+    def make_char(c, m, j=0):
+        return chr(0xAC00 + c * 588 + m * 28 + j)
+        
+    chars = list(text)
+    changed = True
+    while changed:
+        changed = False
+        i = 0
+        while i < len(chars) - 1:
+            c1, c2 = chars[i], chars[i+1]
+            # 초성 + 중성 -> 완성형
+            if c1 in CHOSUNG and c2 in JUNGSUNG:
+                c_idx = CHOSUNG.index(c1)
+                m_idx = JUNGSUNG.index(c2)
+                chars[i:i+2] = [make_char(c_idx, m_idx, 0)]
+                changed = True
+                break
+            
+            parts1 = get_parts(c1)
+            # 완성형(종성없음) + 종성/중성 결합
+            if parts1 and parts1[2] == 0:
+                c, m, _ = parts1
+                # 종성 결합
+                if c2 in JONGSUNG and c2 != '':
+                    # 뒤에 모음이 오면 종성이 아니라 다음 글자의 초성이어함
+                    if i + 2 < len(chars) and chars[i+2] in JUNGSUNG:
+                        pass
+                    else:
+                        j_idx = JONGSUNG.index(c2)
+                        chars[i:i+2] = [make_char(c, m, j_idx)]
+                        changed = True
+                        break
+                # 이중 모음 결합 (ㅗ+ㅣ = ㅚ 등)
+                vowel1 = JUNGSUNG[m]
+                if (vowel1, c2) in VOWEL_COMBINE:
+                    new_vowel = VOWEL_COMBINE[(vowel1, c2)]
+                    m_idx = JUNGSUNG.index(new_vowel)
+                    chars[i:i+2] = [make_char(c, m_idx, 0)]
+                    changed = True
+                    break
+            i += 1
+    return ''.join(chars)
+
+
+
 @dataclass
 class TitleParseResult:
     """제목 파싱 결과 데이터클래스"""
@@ -127,6 +216,10 @@ class TitleAnchorExtractor:
         r'\[\s*AI번역\s*\]',                 # [AI번역]
         r'\(\s*AI\s*번역\s*\)',              # (AI 번역) [NEW]
         r'\[\s*AI\s*번역\s*\]',              # [AI 번역] [NEW]
+        r'\[\s*(?:소설|웹소설)\s*(?:-\s*텍|텍본|txt)?\s*\]',  # [소설 - 텍], [소설] 등등 범용 태그
+        r'\(\s*(?:소설|웹소설)\s*(?:-\s*텍|텍본|txt)?\s*\)',  # (소설 - 텍) 등 범용 태그
+        r'\[\s*텍본\s*\]',                   # [텍본] 단독 태그
+        r'\(\s*텍본\s*\)',
     ]
     
     # 완결 마커 패턴
@@ -241,6 +334,9 @@ class TitleAnchorExtractor:
         # 빈 이름 처리
         if not name:
             return TitleParseResult(title="", extension=extension)
+            
+        # [NEW] 한글 자소 분리 및 시각적 변형 텍스트를 정상 한글로 조립
+        name = compose_korean_jamo(name)
         
         # 2. 노이즈 제거 및 장르 추출
         cleaned, author, original_genre = self._remove_noise(name)
