@@ -179,7 +179,7 @@ class PipelineOrchestrator:
                     
                     # 실제 파일 이동 (dry_run이 아닐 때만)
                     if not dry_run and task.status == 'completed':
-                        self._move_file(task)
+                        self._copy_file(task)
                     
                     # 결과 집계
                     if task.status == 'completed':
@@ -240,6 +240,29 @@ class PipelineOrchestrator:
                 
             except Exception as e:
                 self.logger.warning(f"Stage 1.5 실패: {task.raw_name} - {e}")
+            processed_tasks.append(task)
+        return processed_tasks
+
+    def apply_normalization_to_source(self, tasks: List[NovelTask]) -> List[NovelTask]:
+        """[NEW] 소스 폴더의 원본 파일 이름을 정규화된 이름으로 즉시 교체"""
+        processed_tasks = []
+        for idx, task in enumerate(tasks):
+            try:
+                preview_name = task.metadata.get('normalized_name')
+                if preview_name and task.current_path and task.current_path.exists():
+                    new_path = task.current_path.with_name(preview_name)
+                    if task.current_path != new_path:
+                        try:
+                            # 윈도우 파일 시스템 고려 (동일 이름 대소문자 등 방지용 임시 파일명 우회 필요 여부 검토)
+                            os.rename(task.current_path, new_path)
+                            task.current_path = new_path
+                            task.metadata['target_path'] = str(new_path)
+                            self.logger.info(f"소스 폴더 즉시 적용: {task.raw_name} -> {preview_name}")
+                        except Exception as rename_err:
+                            self.logger.error(f"소스 폴더 즉시 적용 실패: {task.raw_name} - {rename_err}")
+                
+            except Exception as e:
+                self.logger.warning(f"소스 폴더 적용 실패: {task.raw_name} - {e}")
             processed_tasks.append(task)
         return processed_tasks
 
@@ -483,7 +506,8 @@ class PipelineOrchestrator:
         if 'target_path' not in task.metadata:
             return
         
-        target_path = Path(task.metadata['target_path'])
+        # 단계 1: 파일 이동/복사
+        target_path = Path(task.metadata.get('target_path', ''))
         source_path = task.current_path
         
         try:
@@ -507,6 +531,7 @@ class PipelineOrchestrator:
                     src_str = f'\\\\?\\{src_str}'
                 if not dst_str.startswith('\\\\?\\'):
                     dst_str = f'\\\\?\\{dst_str}'
+
             
             # 파일 복사 (원본 보존)
             shutil.copy2(src_str, dst_str)

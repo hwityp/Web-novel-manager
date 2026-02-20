@@ -47,7 +47,7 @@ class KakaoExtractor(BasePlatformExtractor):
                 return genre_result
             
             # 본문에서 장르 추출
-            genre_result = self._extract_from_text(soup, url)
+            genre_result = self._extract_from_text_common(soup, url, confidence=0.85)
             if genre_result:
                 # 현판 → 스포츠 재분류 필요 여부 표시
                 if genre_result['genre'] == '현판':
@@ -59,18 +59,7 @@ class KakaoExtractor(BasePlatformExtractor):
         
         return None
     
-    def _extract_urls(self, links: List[Any]) -> List[str]:
-        """URL 추출"""
-        urls = []
-        seen = set()
-        
-        for link in links:
-            href = link.get('href', '') if hasattr(link, 'get') else str(link)
-            if href and href not in seen:
-                seen.add(href)
-                urls.append(href)
-        
-        return urls
+
     
     def _verify_title(self, soup, title: str, author: Optional[str] = None) -> bool:
         """제목 확인 (저자명 포함)"""
@@ -117,21 +106,4 @@ class KakaoExtractor(BasePlatformExtractor):
         
         return None
     
-    def _extract_from_text(self, soup, url: str) -> Optional[Dict[str, Any]]:
-        """본문에서 장르 추출"""
-        text_content = soup.get_text()
-        sorted_genres = sorted(self.genre_mapping.keys(), key=len, reverse=True)
-        
-        for genre_key in sorted_genres:
-            if genre_key in text_content:
-                mapped_genre = self.genre_mapping[genre_key]
-                print(f"  [{self.platform_name}] 본문 장르: {genre_key} → {mapped_genre}")
-                return {
-                    'genre': mapped_genre,
-                    'confidence': 0.85,
-                    'source': f'{self.platform_name.lower()}_page',
-                    'raw_genre': genre_key,
-                    'url': url
-                }
-        
-        return None
+

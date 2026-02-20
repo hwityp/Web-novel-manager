@@ -682,7 +682,7 @@ class WNAPMainWindow(ctk.CTk):
             border_color=THEME["accent_blue"]
         )
         button_frame.grid(row=2, column=0, padx=PADDING_LARGE, pady=(PADDING_BASE, PADDING_LARGE), sticky="ew")
-        for i in range(5):
+        for i in range(6):
             button_frame.grid_columnconfigure(i, weight=1)
             
         # 버튼 높이 1.5배 (약 68px)
@@ -710,6 +710,22 @@ class WNAPMainWindow(ctk.CTk):
         )
         self.btn_normalize.grid(row=0, column=1, padx=PADDING_SMALL, pady=PADDING_LARGE, sticky="ew")
         
+        # [NEW] 소스 폴더 즉시 적용 버튼 (동일 라인 배치)
+        self.btn_apply_source = ctk.CTkButton(
+            button_frame, text="소스 폴더에 저장",
+            font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_MEDIUM, weight="bold"),
+            height=BTN_H, corner_radius=BUTTON_CORNER_RADIUS,
+            fg_color=THEME["accent_green"], hover_color="#2ECC71",
+            text_color="#FFFFFF",
+            text_color_disabled="#D0D0D0",
+            state="disabled",
+            command=self._on_btn_apply_source_click
+        )
+        self.btn_apply_source.grid(row=0, column=2, padx=PADDING_SMALL, pady=PADDING_LARGE, sticky="ew")
+        
+        # 비활성화 목록에 버튼 추가
+        self.disable_on_run.append(self.btn_apply_source)
+        
         # 3. 장르 추론 및 실행 (Glow Effect)
         self.btn_genre = ctk.CTkButton(
             button_frame, text="3. 장르 추론/실행",
@@ -722,7 +738,7 @@ class WNAPMainWindow(ctk.CTk):
             state="disabled",
             command=self._on_btn_genre_click
         )
-        self.btn_genre.grid(row=0, column=2, padx=PADDING_SMALL, pady=PADDING_LARGE, sticky="ew")
+        self.btn_genre.grid(row=0, column=3, padx=PADDING_SMALL, pady=PADDING_LARGE, sticky="ew")
         
         # 4. 일괄 처리 (Blue Color)
         self.btn_batch = ctk.CTkButton(
@@ -735,7 +751,7 @@ class WNAPMainWindow(ctk.CTk):
             border_width=0,
             command=self._on_btn_batch_click
         )
-        self.btn_batch.grid(row=0, column=3, padx=PADDING_SMALL, pady=PADDING_LARGE, sticky="ew")
+        self.btn_batch.grid(row=0, column=4, padx=PADDING_SMALL, pady=PADDING_LARGE, sticky="ew")
         
         # 5. 초기화
         self.btn_reset = ctk.CTkButton(
@@ -745,7 +761,7 @@ class WNAPMainWindow(ctk.CTk):
             fg_color=THEME["status_error"], hover_color="#FCA5A5",
             command=self._on_btn_reset_click
         )
-        self.btn_reset.grid(row=0, column=4, padx=(PADDING_SMALL, PADDING_LARGE), pady=PADDING_LARGE, sticky="ew")
+        self.btn_reset.grid(row=0, column=5, padx=(PADDING_SMALL, PADDING_LARGE), pady=PADDING_LARGE, sticky="ew")
 
         # 실행 중 비활성화할 버튼 목록 업데이트
         self.disable_on_run.extend([
@@ -1145,9 +1161,9 @@ class WNAPMainWindow(ctk.CTk):
         else:
             self.btn_normalize.configure(state="disabled")
             
-        # 2단계 완료 -> 3단계 활성화
-        # 2단계 완료 -> 3단계 활성화
+        # 2단계 완료 -> 정규화 즉시 적용 활성화, 3단계 활성화
         if self.step_normalize_done:
+            self.btn_apply_source.configure(state="normal")
             self.btn_genre.configure(state="normal")
             
             # 장르 추론 완료 여부에 따른 버튼 상태 변경 (One Button Two Actions)
@@ -1169,6 +1185,8 @@ class WNAPMainWindow(ctk.CTk):
                 )
         else:
             self.btn_genre.configure(state="disabled")
+            if hasattr(self, 'btn_apply_source'):
+                self.btn_apply_source.configure(state="disabled")
 
     # ========================================================================
     # 새 버튼 핸들러 (WNAP v1.3.0)
@@ -1185,6 +1203,16 @@ class WNAPMainWindow(ctk.CTk):
             messagebox.showwarning("순서 오류", "먼저 [1. 폴더 정리]를 실행해주세요.")
             return
         self._run_async_task(self._execute_stage1_5, "Stage 1.5: 제목 정규화")
+
+    def _on_btn_apply_source_click(self):
+        """정규화 결과 내보내기 버튼 클릭"""
+        if not getattr(self, "step_normalize_done", False):
+            return
+            
+        if not messagebox.askyesno("저장 확인", f"현재 미리보기 중인 {len(self.tasks_cache)}개의 정규화된 이름을 원본 소스 폴더의 실제 파일에 그대로 적용하시겠습니까?"):
+            return
+            
+        self._run_async_task(self._execute_apply_source, "파일 이름 변경 (In-place)")
 
     def _on_btn_genre_click(self):
         """3. 장르 추론/실행 버튼 클릭"""
@@ -1295,7 +1323,7 @@ class WNAPMainWindow(ctk.CTk):
                 progress_callback=self._on_progress
             )
             
-            # Run Stage 1.5 (Parse)
+            # Run Stage 1.5 (Parse Only)
             tasks = orchestrator.run_stage1_5(current_tasks)
             
             # 결과 갱신
@@ -1307,6 +1335,32 @@ class WNAPMainWindow(ctk.CTk):
             self.last_result = result
 
             self.after(0, lambda: self._show_stage_result(result, "Stage 1.5 완료"))
+            
+        except Exception as e:
+            self._handle_error(e)
+        finally:
+            self._finish_task()
+
+    def _execute_apply_source(self):
+        """소스 폴더 즉시 적용 실행 로직"""
+        try:
+            current_tasks = self.tasks_cache
+            orchestrator = PipelineOrchestrator(
+                self.config, 
+                progress_callback=self._on_progress
+            )
+            
+            # Run apply_normalization_to_source
+            tasks = orchestrator.apply_normalization_to_source(current_tasks)
+            
+            # 결과 갱신
+            self.tasks_cache = tasks
+            
+            result = PipelineResult(total_files=len(tasks), tasks=tasks)
+            self.last_result = result
+            
+            self.after(0, lambda: self._show_stage_result(result, "소스 변경 완료"))
+            self.after(0, lambda: messagebox.showinfo("완료", "정규화된 파일명이 소스 폴더에 즉시 변경(저장)되었습니다."))
             
         except Exception as e:
             self._handle_error(e)
@@ -1400,6 +1454,12 @@ class WNAPMainWindow(ctk.CTk):
             tasks = orchestrator.run_stage1_5(tasks)
             self.tasks_cache = tasks
             self._populate_result_table(tasks) # Update Table
+            
+            # --- Stage 1.5 (Apply to Source): 정규화 결과 즉시 소스에 저장 적용 ---
+            self._log_to_file("=== [일괄 처리] 정규화 결과 소스 폴더에 즉시 저장 ===")
+            tasks = orchestrator.apply_normalization_to_source(tasks)
+            self.tasks_cache = tasks
+            self._populate_result_table(tasks)
             
             # --- Stage 2: Genre Search ---
             self._log_to_file("=== [일괄 처리] Stage 2 시작 ===")

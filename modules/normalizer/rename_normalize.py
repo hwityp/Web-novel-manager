@@ -436,6 +436,94 @@ def normalize_unicode_spaces(text: str) -> str:
     return re.sub(r'\s+', ' ', text.strip())
 
 
+def compose_korean_jamo(text: str) -> str:
+    """
+    한글 자소 분리 및 시각적 변형(야민정음식 알파벳 치환 등) 복구
+    예: 'ㄷH공ㅂlㄱr' -> '대공비가'
+    """
+    if not text:
+        return text
+        
+    # 1. 시각적 변형 영문자 -> 한글 자소 치환
+    replacements = {
+        'r': 'ㅏ', 'R': 'ㅏ', 'l': 'ㅣ', 'I': 'ㅣ', 'H': 'ㅐ', 'k': 'ㅏ',
+        'o': 'ㅐ', 'i': 'ㅑ', 'j': 'ㅓ', 'p': 'ㅔ', 'u': 'ㅕ', 'h': 'ㅗ',
+        'y': 'ㅛ', 'n': 'ㅜ', 'b': 'ㅠ', 'm': 'ㅡ'
+    }
+    
+    chars = list(text)
+    def is_hangul(c): return 0x3131 <= ord(c) <= 0x318E or 0xAC00 <= ord(c) <= 0xD7A3
+    
+    for idx, c in enumerate(chars):
+        if c in replacements:
+            # 영문자가 독립적인 단어가 아니라 한글과 붙어있을 때만 치환 (해리포터 등의 영문 오작동 방지)
+            prev_is_hangul = idx > 0 and is_hangul(chars[idx-1])
+            next_is_hangul = idx < len(chars)-1 and is_hangul(chars[idx+1])
+            if prev_is_hangul or next_is_hangul:
+                chars[idx] = replacements[c]
+                
+    text = ''.join(chars)
+    
+    # 2. 자소 조합 로직
+    CHOSUNG = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
+    JUNGSUNG = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ']
+    JONGSUNG = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
+    
+    VOWEL_COMBINE = {('ㅗ', 'ㅣ'): 'ㅚ', ('ㅜ', 'ㅣ'): 'ㅟ', ('ㅡ', 'ㅣ'): 'ㅢ', ('ㅏ', 'ㅣ'): 'ㅐ', ('ㅓ', 'ㅣ'): 'ㅔ'}
+    
+    def get_parts(char):
+        if '가' <= char <= '힣':
+            offset = ord(char) - 0xAC00
+            j = offset % 28
+            m = (offset // 28) % 21
+            c = (offset // 28) // 21
+            return c, m, j
+        return None
+        
+    def make_char(c, m, j=0):
+        return chr(0xAC00 + c * 588 + m * 28 + j)
+        
+    chars = list(text)
+    changed = True
+    while changed:
+        changed = False
+        i = 0
+        while i < len(chars) - 1:
+            c1, c2 = chars[i], chars[i+1]
+            # 초성 + 중성 -> 완성형
+            if c1 in CHOSUNG and c2 in JUNGSUNG:
+                c_idx = CHOSUNG.index(c1)
+                m_idx = JUNGSUNG.index(c2)
+                chars[i:i+2] = [make_char(c_idx, m_idx, 0)]
+                changed = True
+                break
+            
+            parts1 = get_parts(c1)
+            # 완성형(종성없음) + 종성/중성 결합
+            if parts1 and parts1[2] == 0:
+                c, m, _ = parts1
+                # 종성 결합
+                if c2 in JONGSUNG and c2 != '':
+                    # 뒤에 모음이 오면 종성이 아니라 다음 글자의 초성이어함
+                    if i + 2 < len(chars) and chars[i+2] in JUNGSUNG:
+                        pass
+                    else:
+                        j_idx = JONGSUNG.index(c2)
+                        chars[i:i+2] = [make_char(c, m, j_idx)]
+                        changed = True
+                        break
+                # 이중 모음 결합 (ㅗ+ㅣ = ㅚ 등)
+                vowel1 = JUNGSUNG[m]
+                if (vowel1, c2) in VOWEL_COMBINE:
+                    new_vowel = VOWEL_COMBINE[(vowel1, c2)]
+                    m_idx = JUNGSUNG.index(new_vowel)
+                    chars[i:i+2] = [make_char(c, m_idx, 0)]
+                    changed = True
+                    break
+            i += 1
+    return ''.join(chars)
+
+
 def extract_extension(name: str) -> Tuple[str, str]:
     """
     파일명에서 확장자를 분리
@@ -2845,8 +2933,11 @@ def extract_range_and_extras(text: str, extras_from_complete: Optional[List[str]
                         before_text = text[:start]
                         after_text = text[end:] if end < len(text) else ''
                         
+                        # 단일 숫자 (단위 없음)이면서 뒤에 한글/알파벳이 이어지면 제목의 일부로 간주 (해리포터 1편 등 방지)
+                        if not m.group(2) and re.search(r'[가-힣a-zA-Z]', after_text):
+                            range_info = None
                         # 외전/후기/에필 키워드가 바로 앞에 있는지 확인
-                        if re.search(r'(외전|外|후기|에필로그|에필|후일담)\s*$', before_text):
+                        elif re.search(r'(외전|外|후기|에필로그|에필|후일담)\s*$', before_text):
                             # 외전/후기 범위이므로 본편 범위로 추출하지 않음
                             range_info = None
                         # §§COMMA§§가 앞뒤에 있으면 큰 숫자의 일부이므로 제외
@@ -3283,6 +3374,9 @@ def normalize_line(raw: str) -> Optional[str]:
 
     if not name.strip():
         return None
+        
+    # 필터 우회용 한글 자소/알파벳 변형 복구 (예: ㄷH공ㅂlㄱr -> 대공비가)
+    name = compose_korean_jamo(name)
 
     # 원본에서 미완/연재중 여부 감지(표시 삽입 억제용)
     is_incomplete_flag = has_incomplete_flag(name)
@@ -3353,6 +3447,9 @@ def normalize_line_without_genre_inference(raw: str) -> Optional[str]:
 
     if not name.strip():
         return None
+        
+    # 필터 우회용 한글 자소/알파벳 변형 복구 (예: ㄷH공ㅂlㄱr -> 대공비가)
+    name = compose_korean_jamo(name)
     
     # 이미 표준 형식인지 확인 (멱등성 보장)
     # 표준 형식: "제목 범위 (완) + extras" 또는 "제목 시즌 범위 (완) + extras"

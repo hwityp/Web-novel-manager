@@ -7,11 +7,11 @@ WNAP 버전 정보
 - PATCH: 하위 호환성 있는 버그 수정
 """
 
-__version__ = "1.3.16"
-RELEASE_DATE = "2026-02-03"
+__version__ = "1.3.17"
+RELEASE_DATE = "2026-02-21"
 
-VERSION_INFO = (1, 3, 16)
-__release_date__ = "2026-02-03"
+VERSION_INFO = (1, 3, 17)
+__release_date__ = "2026-02-21"
 __author__ = "WNAP Team"
 __app_name__ = "WNAP - Web Novel Archive Pipeline"
 
@@ -23,7 +23,12 @@ def get_version() -> str:
 
 def get_version_info() -> tuple:
     """버전 튜플 반환 (major, minor, patch)"""
-    return __version_info__
+    # 버전 문자열("1.3.13")에서 버전을 추출
+    try:
+        parts = __version__.split('.')
+        return tuple(int(p) for p in parts[:3])
+    except Exception:
+        return (1, 0, 0)
 
 
 def get_full_version() -> str:

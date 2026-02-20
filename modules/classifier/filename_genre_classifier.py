@@ -12,10 +12,7 @@ import os
 import re
 import sys
 
-# src 폴더를 Python 경로에 추가
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
-
-from core.hybrid_classifier_v2 import HybridClassifier
+from modules.classifier.src.core.hybrid_classifier_v2 import HybridClassifier
 
 
 class FilenameGenreClassifier:

@@ -70,18 +70,7 @@ class NaverSeriesExtractor(BasePlatformExtractor):
         
         return None
     
-    def _extract_urls(self, links: List[Any]) -> List[str]:
-        """URL 추출"""
-        urls = []
-        seen = set()
-        
-        for link in links:
-            href = link.get('href', '') if hasattr(link, 'get') else str(link)
-            if href and href not in seen:
-                seen.add(href)
-                urls.append(href)
-        
-        return urls
+
     
     def _verify_title(self, soup, title: str, author: Optional[str] = None) -> bool:
         """제목 확인 (저자명 포함)"""

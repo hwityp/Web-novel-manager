@@ -698,21 +698,12 @@ class FolderOrganizer:
             except Exception as e:
                 self.logger.error(f"폴더 처리 중 오류 {subfolder.name}: {e}")
         
-        # 빈 폴더 삭제 로직 제거 (안전성 보장)
-        # for folder in processed_folders: ...
-            try:
-                if folder.exists() and folder.is_dir() and not any(folder.iterdir()):
-                    self._force_remove_dir(folder)
-                    self.logger.info(f"빈 폴더 삭제: {folder.name}")
-            except Exception as e:
-                self.logger.error(f"폴더 삭제 실패 {folder.name}: {e}")
-        
-        # 전체 트리에서 빈 폴더 최종 정리
-        try:
-            # self._remove_empty_dirs(self.source_folder)
-            pass
-        except Exception:
-            pass
+        # 빈 폴더 삭제 로직은 안전성을 위해 제외
+        # 전체 트리에서 빈 폴더 최종 정리 로직 주석 처리
+        # try:
+        #     self._remove_empty_dirs(self.source_folder)
+        # except Exception:
+        #     pass
         
         self.logger.info("폴더 정리 완료")
 

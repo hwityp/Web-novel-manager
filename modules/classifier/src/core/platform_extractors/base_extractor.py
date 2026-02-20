@@ -430,3 +430,35 @@ class BasePlatformExtractor(ABC):
                         }
         
         return False, {}
+
+    def _extract_urls(self, links: List[Any]) -> List[str]:
+        """URL 공통 추출 로직"""
+        urls = []
+        seen = set()
+        
+        for link in links:
+            href = link.get('href', '') if hasattr(link, 'get') else str(link)
+            if href and href not in seen:
+                seen.add(href)
+                urls.append(href)
+        
+        return urls
+
+    def _extract_from_text_common(self, soup, url: str, confidence: float = 0.80) -> Optional[Dict[str, Any]]:
+        """본문에서 장르 공통 추출 로직"""
+        text_content = soup.get_text()
+        sorted_genres = sorted(self.genre_mapping.keys(), key=len, reverse=True)
+        
+        for genre_key in sorted_genres:
+            if genre_key in text_content:
+                mapped_genre = self.genre_mapping[genre_key]
+                print(f"  [{self.platform_name}] 본문 장르: {genre_key} → {mapped_genre}")
+                return {
+                    'genre': mapped_genre,
+                    'confidence': confidence,
+                    'source': f'{self.platform_name.lower()}_page',
+                    'raw_genre': genre_key,
+                    'url': url
+                }
+        
+        return None

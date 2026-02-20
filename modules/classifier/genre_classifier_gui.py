@@ -11,11 +11,9 @@ import json
 import shutil
 import sys
 from datetime import datetime
-from filename_genre_classifier import FilenameGenreClassifier
+from core.version import __version__, __app_name__ as __version_name__, get_full_version as get_full_version_string
+from modules.classifier.filename_genre_classifier import FilenameGenreClassifier
 import threading
-
-# 버전 정보 import
-from version import __version__, __version_name__, get_full_version_string
 
 
 # 로그 파일 설정
@@ -984,7 +982,7 @@ class GenreClassifierGUI:
             return
         
         try:
-            from api_config_manager import APIConfigManager
+            from modules.classifier.api_config_manager import APIConfigManager
             
             # APIConfigManager로 암호화 저장
             manager = APIConfigManager()
@@ -1001,7 +999,7 @@ class GenreClassifierGUI:
     def auto_load_api_keys(self):
         """저장된 API 키 자동 로드 (메시지 없이)"""
         try:
-            from api_config_manager import APIConfigManager
+            from modules.classifier.api_config_manager import APIConfigManager
             
             # APIConfigManager로 로드 (자동 복호화)
             manager = APIConfigManager()
@@ -1023,7 +1021,7 @@ class GenreClassifierGUI:
     def load_api_keys(self):
         """API 키 불러오기 (버튼 클릭 시)"""
         try:
-            from api_config_manager import APIConfigManager
+            from modules.classifier.api_config_manager import APIConfigManager
             
             # APIConfigManager로 로드 (자동 복호화)
             manager = APIConfigManager()
@@ -1213,33 +1211,7 @@ class GenreClassifierGUI:
         # 통계 업데이트
         self.update_statistics()
     
-    def update_statistics(self):
-        """통계 업데이트"""
-        if not self.results:
-            self.stats_label.config(text="통계: 파일 0개")
-            return
-        
-        total = len(self.results)
-        
-        # 장르별 통계
-        from collections import Counter
-        genres = [r['genre'] for r in self.results]
-        genre_counts = Counter(genres)
-        
-        # 평균 신뢰도
-        confidences = [r['confidence'] for r in self.results if r['confidence'] > 0]
-        avg_confidence = sum(confidences) / len(confidences) if confidences else 0
-        
-        # 통계 텍스트
-        stats_text = f"통계: 총 {total}개 | "
-        stats_text += f"평균 신뢰도 {avg_confidence:.0%} | "
-        
-        top_genres = genre_counts.most_common(3)
-        genre_str = ", ".join([f"{g}({c})" for g, c in top_genres])
-        stats_text += f"주요 장르: {genre_str}"
-        
-        self.stats_label.config(text=stats_text)
-    
+
     def finish_processing(self):
         """처리 완료"""
         self.is_processing = False
@@ -2485,14 +2457,7 @@ class GenreClassifierGUI:
 
 
 
-    def on_closing(self):
-        """프로그램 종료 시 처리"""
-        if self.is_processing:
-            if messagebox.askyesno("확인", "분류 작업이 진행 중입니다. 종료하시겠습니까?"):
-                self.is_processing = False
-                self.root.destroy()
-        else:
-            self.root.destroy()
+
 
 
 def main():

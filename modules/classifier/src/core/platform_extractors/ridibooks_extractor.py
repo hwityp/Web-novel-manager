@@ -60,18 +60,7 @@ class RidibooksExtractor(BasePlatformExtractor):
         # 복수 장르가 있으면 우선순위에 따라 선택
         return self._select_best_genre(genre_candidates)
     
-    def _extract_urls(self, links: List[Any]) -> List[str]:
-        """링크에서 URL 추출"""
-        urls = []
-        seen = set()
-        
-        for link in links:
-            href = link.get('href', '') if hasattr(link, 'get') else str(link)
-            if href and href not in seen:
-                seen.add(href)
-                urls.append(href)
-        
-        return urls
+
     
     def _select_best_genre(self, genre_candidates: List[Dict[str, Any]]) -> Dict[str, Any]:
         """복수 장르 중 우선순위에 따라 최적 장르 선택
