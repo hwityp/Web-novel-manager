@@ -107,6 +107,11 @@ class PipelineConfig:
         # protected_folders가 리스트인지 확인
         if not isinstance(self.protected_folders, list):
             self.protected_folders = DEFAULT_PROTECTED_FOLDERS.copy()
+        else:
+            # 설정 파일에서 로드된 리스트에 필수 보호 폴더(Temp 등)가 빠져있으면 강제 추가
+            for default_folder in DEFAULT_PROTECTED_FOLDERS:
+                if default_folder not in self.protected_folders:
+                    self.protected_folders.append(default_folder)
         
         # genre_whitelist가 리스트인지 확인
         if not isinstance(self.genre_whitelist, list):

@@ -929,7 +929,6 @@ class WNAPMainWindow(ctk.CTk):
         self.progress_bar.set(0)
         self.progress_label.configure(text="")
         self.status_label.configure(text="⏸ 대기 중", text_color=THEME["text_muted"])
-        self.open_csv_btn.configure(state="disabled")
         self.open_folder_btn.configure(state="disabled")
         self.last_result = None
         self.last_mapping_csv = None
@@ -1264,7 +1263,6 @@ class WNAPMainWindow(ctk.CTk):
         self.progress_bar.set(0)
         self.progress_label.configure(text="")
         self.status_label.configure(text="⏸ 대기 중", text_color=THEME["text_muted"])
-        self.open_csv_btn.configure(state="disabled")
         self.open_folder_btn.configure(state="disabled")
         self._log_to_file("UI 및 상태 초기화 완료")
 
@@ -1536,8 +1534,6 @@ class WNAPMainWindow(ctk.CTk):
     def _show_final_result(self, result: PipelineResult):
         """최종 실행 결과 표시"""
         self._show_stage_result(result, "최종 실행 완료")
-        if result.mapping_csv_path:
-            self.open_csv_btn.configure(state="normal")
         self.open_folder_btn.configure(state="normal")
         
         # 자동 폴더 열기 (편의성)
