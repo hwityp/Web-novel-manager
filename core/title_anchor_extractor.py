@@ -345,11 +345,13 @@ class TitleAnchorExtractor:
         title, residual = self._extract_title_anchor(cleaned)
         
         # 4. 잔여 문자열에서 메타데이터 파싱
-        volume_info, range_info, is_completed, side_story = self._parse_residual(residual)
+        volume_info, range_info, is_completed, side_story, author_from_res = self._parse_residual(residual)
+        
+        final_author = author or author_from_res
         
         return TitleParseResult(
             title=title.strip(),
-            author=author.strip(),
+            author=final_author.strip(),
             volume_info=volume_info,
             range_info=range_info,
             is_completed=is_completed,
@@ -383,20 +385,7 @@ class TitleAnchorExtractor:
         author = ""
         genre = ""
         
-        # 저자 구분자 패턴 확인 (제목 - 저자)
-        author_match = self.author_separator_pattern.search(name)
-        if author_match:
-            potential_author = author_match.group(1).strip()
-            if len(potential_author) < 20 and not re.search(r'\d{2,}', potential_author):
-                # [Fix] 한글이 포함되어 있고 공백이 포함된 경우 부제(Subtitle)일 확률이 높음 (예: "신의 목소리")
-                # 영어 이름("J. K. Rowling") 등은 통과시키되, 한국어 부제 절삭을 방지
-                is_korean_spaced = bool(re.search(r'[가-힣]', potential_author)) and ' ' in potential_author
-                
-                if not is_korean_spaced:
-                    author = potential_author
-                    name = name[:author_match.start()].strip()
-        
-        # 노이즈 패턴 제거
+        # 노이즈 패턴 제거 (직접적인 작가명, 사이트 마커 등)
         name = self.noise_pattern.sub('', name)
         
         # [NEW] 장르 태그 추출 및 제거
@@ -523,16 +512,25 @@ class TitleAnchorExtractor:
         
         return title, residual
     
-    def _parse_residual(self, residual: str) -> Tuple[str, str, bool, str]:
+    def _parse_residual(self, residual: str) -> Tuple[str, str, bool, str, str]:
         """잔여 문자열에서 메타데이터 파싱"""
         if not residual:
-            return "", "", False, ""
+            return "", "", False, "", ""
         
         volume_info = ""
         range_info = ""
         is_completed = False
         side_story_parts = []  # 외전, 후기 등 여러 부가 정보 수집
         complex_found = False
+        author_from_res = ""
+
+        # [Fix] 잔여 문자열 끝에 있는 " - 저자명" 패턴 추출 (완결/화수 이후에 있는 경우만 저자명으로 간주)
+        author_match = self.author_separator_pattern.search(residual)
+        if author_match:
+            potential_author = author_match.group(1).strip()
+            if len(potential_author) < 20 and not re.search(r'\d{2,}', potential_author):
+                author_from_res = potential_author
+                residual = residual[:author_match.start()].strip()
 
         # [Special Case] Range + Comp + Volume + Range (e.g. "1-546 完 2부 212")
         # 처리가 복잡한 다중 파트/범위 패턴을 통째로 잡아내어 순서를 보존함
@@ -666,7 +664,7 @@ class TitleAnchorExtractor:
         # 10. 외전 정보 조합
         side_story = ", ".join(side_story_parts) if side_story_parts else ""
         
-        return volume_info, range_info, is_completed, side_story
+        return volume_info, range_info, is_completed, side_story, author_from_res
     
     def _normalize_side_story(self, side_text: str) -> str:
         """외전 정보 정규화"""
