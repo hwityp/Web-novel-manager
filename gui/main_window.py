@@ -129,7 +129,7 @@ TOOLTIP_TEXTS = {
 
 
 class EditNameDialog(ctk.CTkToplevel):
-    """파일명 편집 다이얼로그 (초기값 지원)"""
+    """파일명/장르 편집 다이얼로그 (초기값 지원)"""
     def __init__(self, parent, title: str, initial_value: str = ""):
         super().__init__(parent)
         self.title(title)
@@ -151,8 +151,10 @@ class EditNameDialog(ctk.CTkToplevel):
         # UI 구성
         self.configure(fg_color=THEME["bg_card"])
         
+        # title에 '장르' 포함 시 안내문 변경
+        prompt_text = "새로운 장르를 입력하세요:" if "장르" in title else "새로운 파일명을 입력하세요:"
         label = ctk.CTkLabel(
-            self, text="새로운 파일명을 입력하세요:",
+            self, text=prompt_text,
             font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_BASE),
             text_color=THEME["text_primary"]
         )
@@ -1238,8 +1240,6 @@ class WNAPMainWindow(ctk.CTk):
         if not messagebox.askyesno("일괄 처리", "폴더 스캔부터 실행까지 모든 단계를 자동으로 진행하시겠습니까?"):
             return
             
-        self._run_async_task(self._execute_batch, "일괄 처리 (Stage 1~3)")
-
         self._run_async_task(self._execute_batch, "일괄 처리 (All Stages)")
 
 

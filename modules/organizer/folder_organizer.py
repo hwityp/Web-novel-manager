@@ -605,9 +605,16 @@ class FolderOrganizer:
         """
         [NEW] 폴더 평탄화: Root의 모든 파일/폴더를 Temp로 백업 후, Root로 완전히 평탄화
         User Request: "기존의 프로세트(압축해제, 모이기 등)를 따르면서 원본은 Temp에 보존"
+        - Temp 폴더가 없으면 새로 생성, 있으면 기존 내용을 유지한 채 사용.
+        - 동명 항목이 Temp에 이미 있으면 덮어쓰지 않고 건너뜀 (경고 로그).
         """
         temp_dir = self.source_folder / "Temp"
+        temp_dir_existed = temp_dir.exists()
         temp_dir.mkdir(exist_ok=True)
+        if temp_dir_existed:
+            self.logger.info("Temp 폴더가 이미 존재합니다. 기존 내용을 유지한 채 사용합니다.")
+        else:
+            self.logger.info("Temp 폴더를 새로 생성했습니다.")
         
         # Temp 폴더 보호
         if "Temp" not in self.protected_folders:
@@ -634,15 +641,13 @@ class FolderOrganizer:
             try:
                 dest = temp_dir / item.name
                 
-                # 이미 Temp에 있으면 삭제 (최신 상태로 갱신)
+                # 이미 Temp에 동명 항목이 있으면 덮어쓰지 않고 건너뜀
                 if dest.exists():
-                    try:
-                        if dest.is_dir():
-                            shutil.rmtree(str(dest))
-                        else:
-                            dest.unlink()
-                    except Exception as e:
-                        self.logger.warning(f"기존 백업 삭제 실패 {dest}: {e}")
+                    self.logger.warning(
+                        f"건너뜀 (이미 Temp에 존재): {item.name} "
+                        f"-> Temp/{item.name} 은 기존 백업을 유지합니다."
+                    )
+                    continue
                 
                 shutil.move(str(item), str(dest))
                 self.logger.info(f"원본 백업 이동: {item.name} -> Temp/")
