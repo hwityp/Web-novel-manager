@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-파일명 정규화 도구 - 핵심 로직 모듈  [정본 파일 ✅]
+파일명 정규화 도구 - 구버전 독립형 도구 (Legacy Standalone)
 
-⚠️  이 파일이 GUI(WNAP)가 실제 사용하는 유일한 정본 파일입니다.
-    경로: modules/organizer/renameFiles/rename_normalize.py
+⚠️  이 파일은 GUI 파이프라인에서 사용되지 않습니다.
+    GUI 정규화 엔진: core/title_anchor_extractor.py (TitleAnchorExtractor)
+    GUI 어댑터:      core/adapters/filename_normalizer_adapter.py
 
-    다른 복사본(modules/normalizer/rename_normalize.py)은 _cleanup_temp로 이동됐습니다.
-    버그 수정·기능 추가는 반드시 이 파일에만 적용하세요.
+    이 파일은 텍스트 파일 기반 일괄 정규화를 위한 독립형 도구입니다.
+    버그 수정·기능 추가는 core/title_anchor_extractor.py에 적용하세요.
 
 한국 웹소설/라이트노벨 파일명을 표준화된 형식으로 변환하는 정규화 로직을 제공합니다.
 

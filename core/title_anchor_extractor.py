@@ -186,10 +186,17 @@ class TitleAnchorExtractor:
         r'\(번역\)',
     ]
     
-    # 장르 태그 패턴 (제거 대상) - 완결은 제외 (완결 마커로 처리)
+    # 장르 태그 패턴 (장르로 추출 + 제거 대상) - 완결/판본 태그는 제외
     GENRE_TAG_PATTERNS = [
-        r'\[(?:판타지|무협|현판|퓨판|로판|겜판|SF|역사|선협|언정|공포|스포츠|소설|단행본|연재중|개정판|합본|특별판|미분류)\]',
-        r'\((?:판타지|무협|현판|퓨판|로판|겜판|SF|역사|선협|언정|공포|스포츠|소설|단행본|연재중|개정판|합본|특별판|미분류)\)',
+        r'\[(?:판타지|무협|현판|퓨판|로판|겜판|SF|역사|선협|언정|공포|스포츠|소설|단행본|연재중|미분류)\]',
+        r'\((?:판타지|무협|현판|퓨판|로판|겜판|SF|역사|선협|언정|공포|스포츠|소설|단행본|연재중|미분류)\)',
+    ]
+
+    # 판본/에디션 태그 (제거하되 장르로 추출하지 않음 - 제목에도 포함하지 않음)
+    # 단, [개정판]처럼 TitleParseResult.volume_info에 메모하지 않음 (현재 구조상 단순 제거)
+    EDITION_TAG_PATTERNS = [
+        r'\[(?:개정판|완전판|수정판|합본|특별판|무삭제판|개정증보판)\]',
+        r'\((?:개정판|완전판|수정판|합본|특별판|무삭제판|개정증보판)\)',
     ]
     
     # 성인 등급 태그 패턴 (제거 대상)
@@ -212,13 +219,16 @@ class TitleAnchorExtractor:
         r'\[조아라\]',
         r'\[리디북스\]',
         r'\[노벨피아\]',
-        r'\(\s*AI번역\s*\)',                 # (AI번역)
-        r'\[\s*AI번역\s*\]',                 # [AI번역]
-        r'\(\s*AI\s*번역\s*\)',              # (AI 번역) [NEW]
-        r'\[\s*AI\s*번역\s*\]',              # [AI 번역] [NEW]
-        r'\[\s*(?:소설|웹소설)\s*(?:-\s*텍|텍본|txt)?\s*\]',  # [소설 - 텍], [소설] 등등 범용 태그
-        r'\(\s*(?:소설|웹소설)\s*(?:-\s*텍|텍본|txt)?\s*\)',  # (소설 - 텍) 등 범용 태그
-        r'\[\s*텍본\s*\]',                   # [텍본] 단독 태그
+        # 장르 + 번역 복합 태그: [현대 판타지 AI번역], [무협 Aㅣ번역], [판타지 기계번역] 등
+        r'\[[가-힣\s]+\s*(?:[Aa][Iㅣl]?번역|AI번역|기계번역|손번역|번역)\]',
+        r'\([가-힣\s]+\s*(?:[Aa][Iㅣl]?번역|AI번역|기계번역|손번역|번역)\)',
+        r'\(\s*AI번역\s*\)',                 # (AI번역) 단독
+        r'\[\s*AI번역\s*\]',                 # [AI번역] 단독
+        r'\(\s*AI\s*번역\s*\)',              # (AI 번역)
+        r'\[\s*AI\s*번역\s*\]',              # [AI 번역]
+        r'\[\s*(?:소설|웹소설)\s*(?:-\s*텍|텍본|txt)?\s*\]',
+        r'\(\s*(?:소설|웹소설)\s*(?:-\s*텍|텍본|txt)?\s*\)',
+        r'\[\s*텍본\s*\]',
         r'\(\s*텍본\s*\)',
     ]
     
@@ -290,8 +300,11 @@ class TitleAnchorExtractor:
         all_noise = self.AUTHOR_PATTERNS + self.SITE_PATTERNS + self.TRANSLATOR_PATTERNS
         self.noise_pattern = re.compile('|'.join(all_noise), re.IGNORECASE)
         
-        # 장르 태그 패턴
+        # 장르 태그 패턴 (장르 추출 후 제거)
         self.genre_tag_pattern = re.compile('|'.join(self.GENRE_TAG_PATTERNS), re.IGNORECASE)
+
+        # 판본 태그 패턴 (장르 추출 없이 단순 제거)
+        self.edition_tag_pattern = re.compile('|'.join(self.EDITION_TAG_PATTERNS), re.IGNORECASE)
         
         # 성인 등급 태그 패턴
         self.adult_tag_pattern = re.compile('|'.join(self.ADULT_TAG_PATTERNS), re.IGNORECASE)
@@ -388,19 +401,20 @@ class TitleAnchorExtractor:
         # 노이즈 패턴 제거 (직접적인 작가명, 사이트 마커 등)
         name = self.noise_pattern.sub('', name)
         
-        # [NEW] 장르 태그 추출 및 제거
+        # 장르 태그 추출 및 제거 (판타지/무협/현판 등 순수 장르만)
         genre_match = self.genre_tag_pattern.search(name)
         if genre_match:
-            # 매칭된 태그에서 괄호 제외하고 순수 텍스트만 추출
             raw_genre = genre_match.group(0)
             genre = re.sub(r'[\[\]\(\)]', '', raw_genre).strip()
-            # 이름에서 제거
             name = self.genre_tag_pattern.sub('', name)
+
+        # 판본 태그 제거 (개정판/합본 등 - 장르로 추출하지 않음, 제목에서도 제거)
+        name = self.edition_tag_pattern.sub('', name)
         
         # 성인 등급 태그 제거
         name = self.adult_tag_pattern.sub('', name)
         
-        # 플랫폼/번역자 태그 제거
+        # 플랫폼/번역자 태그 제거 (장르+번역 복합 태그 포함)
         name = self.platform_tag_pattern.sub('', name)
         
         # 연속 공백 정리

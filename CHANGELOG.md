@@ -5,6 +5,17 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.21] - 2026-02-24
+
+### Fixed
+- **GUI 정규화 버그 수정 (`core/title_anchor_extractor.py`):**
+  - **`[개정판]`이 장르로 오추출되던 버그 수정:** `GENRE_TAG_PATTERNS`에서 `개정판`, `합본`, `특별판`을 제거하고 별도 `EDITION_TAG_PATTERNS`로 분리했습니다. 이제 판본 태그는 단순 제거되며 장르 컬럼에 나타나지 않습니다.
+  - **`[현대 판타지 AI번역]` 복합 태그 미처리 버그 수정:** `PLATFORM_TAG_PATTERNS`에 `[장르 + 번역]` 복합 태그 패턴을 추가하여 정상 제거됩니다.
+
+### Refactored
+- **`modules/organizer/renameFiles/rename_normalize.py` 주석 교정:** 잘못 붙어 있던 "GUI 정본 파일" 주석을 제거하고, 실제 역할인 "구버전 독립형 도구(Legacy Standalone)"로 교정했습니다.
+  - 실제 GUI 정규화 엔진: `core/title_anchor_extractor.py` + `core/adapters/filename_normalizer_adapter.py`
+
 ## [v1.3.20] - 2026-02-24
 
 ### Changed
