@@ -354,8 +354,10 @@ class TitleAnchorExtractor:
         
         # 단일 숫자 패턴 (120, 126 등 - 끝에 있는 단일 숫자)
         # [UPDATED] 뒤에 부/권 등의 단위가 오거나 완결 마커, 또는 문자열 끝인 경우 매칭
-        # Lookahead includes \d+부 etc.
-        self.single_number_pattern = re.compile(r'\s+(\d+)(?=\s*(?:完|완|\(완\)|\(完\)|\s*[화권부편회장]|\s*\d+\s*[화권부편회장]|\s*$))')
+        # 단, '회차가'처럼 단위 뒤에 다른 문자가 연달아 나오는 경우는 제외
+        self.single_number_pattern = re.compile(
+            r'\s+(\d+)(?=\s*(?:完|완|\(완\)|\(完\)|\s*[화권부편회장](?:\s|$|完|완|\(완\)|\(完\))|\s*\d+\s*[화권부편회장](?:\s|$|完|완|\(완\)|\(完\))|\s*$))'
+        )
         
         # 저자 구분자 패턴 (제목 - 저자)
         self.author_separator_pattern = re.compile(r'\s+[-–—]\s+([^-–—]+)$')
