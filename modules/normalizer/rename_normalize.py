@@ -31,12 +31,19 @@ from typing import Tuple, Optional, List, Dict
 # 설정 및 상수
 # ============================================================================
 
-# 버전 정보
+# 버전 정보 - core/version.py 중앙 관리
 try:
-    from version import __version__, __date__
+    from core.version import __version__, RELEASE_DATE as __date__
 except ImportError:
-    __version__ = "1.0"
-    __date__ = "2025-11-29"
+    try:
+        import sys as _sys, os as _os
+        _root = _os.path.abspath(_os.path.join(_os.path.dirname(__file__), '..', '..'))
+        if _root not in _sys.path:
+            _sys.path.insert(0, _root)
+        from core.version import __version__, RELEASE_DATE as __date__
+    except ImportError:
+        __version__ = "1.0"
+        __date__ = "2025-11-29"
 
 # 파일 경로 (독립 실행 시 사용)
 INPUT_FILE = Path('list.txt')

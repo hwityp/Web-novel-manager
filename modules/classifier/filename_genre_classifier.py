@@ -1,12 +1,10 @@
 """
 파일명 기반 장르 분류기 (개선 버전)
 파일명에서 소설 제목 추출 → 장르 분류
-작가명 제거 로직 추가 (v1.3.5)
+작가명 제거 로직 추가
 
-Version: 1.3.5
-Last Updated: 2025-10-22
+버전은 core/version.py에서 중앙 관리됩니다.
 """
-__version__ = "1.3.5"
 
 import os
 import re

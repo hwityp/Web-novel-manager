@@ -1,41 +1,33 @@
 """
 웹소설 장르 분류기 버전 정보
 
-이 파일에서 프로젝트의 메인 버전을 관리합니다.
-모든 모듈은 이 파일을 참조하여 버전을 표시합니다.
+버전은 core.version에서 중앙 관리됩니다.
+이 파일에서 직접 버전을 수정하지 말고, core/version.py를 수정하세요.
 """
 
-__version__ = "1.3.14"
-__version_date__ = "2025-11-03"
-__version_name__ = "리디북스 우선 추출 V3"
+try:
+    from core.version import __version__, RELEASE_DATE as __version_date__, get_version, get_version_info as _get_core_info, get_full_version
+    __version_name__ = ""  # 모듈별 이름은 필요 시 직접 지정
+except ImportError:
+    try:
+        import sys, os
+        _root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+        if _root not in sys.path:
+            sys.path.insert(0, _root)
+        from core.version import __version__, RELEASE_DATE as __version_date__, get_version, get_full_version
+        __version_name__ = ""
+    except ImportError:
+        __version__ = "1.0.0"
+        __version_date__ = "unknown"
+        __version_name__ = ""
 
-# 버전 히스토리
-VERSION_HISTORY = """
-v1.3.14 (2025-11-03) - 리디북스 우선 추출 V3
-  - 네이버시리즈/카카오페이지 현판 → 스포츠 재분류 로직 추가
-  - 네이버시리즈/카카오페이지 판타지 → 역사/겜판/퓨판 세분화 추가
-  - 소설넷 장르 우선순위 개선 (스포츠 최우선)
-  - 리디북스 제목 정제 로직 개선 (로판 등 장르 키워드 추가)
-  - 스포츠 키워드 추가 (호타, 준족)
-  - 무협 저자 DB 추가 (야설록, 해천인, 진산, 풍종호)
-  - 문피아 밀리터리 장르 우선순위 개선
+        def get_version():
+            return __version__
 
-v1.3.13 (2025-11-02)
-  - 네이버 검색 API 지원 추가
-  - 플랫폼별 우선순위 조정 (리디북스 > 문피아 > 네이버시리즈)
+        def get_full_version():
+            return f"v{__version__}"
 
-v1.3.12 (2025-11-01)
-  - 제목 매칭 알고리즘 개선
-  - 저자명 기반 장르 추론 추가
-
-v1.3.9 (2025-10-30)
-  - 제목 키워드 분석기 추가
-  - 짧은 제목 엄격 매칭 개선
-"""
-
-def get_version():
-    """버전 문자열 반환"""
-    return __version__
+# 버전 히스토리는 CHANGELOG.md를 참조하세요
 
 def get_version_info():
     """버전 정보 딕셔너리 반환"""
@@ -47,4 +39,6 @@ def get_version_info():
 
 def get_full_version_string():
     """전체 버전 문자열 반환"""
-    return f"v{__version__} ({__version_name__})"
+    if __version_name__:
+        return f"v{__version__} ({__version_name__})"
+    return f"v{__version__} ({__version_date__})"
