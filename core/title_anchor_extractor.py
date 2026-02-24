@@ -111,7 +111,8 @@ class TitleParseResult:
     is_completed: bool = False    # 완결 여부
     side_story: str = ""          # 외전 정보 (예: "외전 1-5")
     extension: str = ""           # 파일 확장자
-    original_genre: str = ""      # [NEW] 파일명에서 추출한 장르 (예: "선협")
+    original_genre: str = ""      # 파일명에서 추출한 장르 (예: "현판")
+    edition_info: str = ""        # 판본 정보 (예: "[개정판]") - 파일명에 보존
     
     def to_normalized_filename(self, genre: str = "") -> str:
         """
@@ -127,6 +128,10 @@ class TitleParseResult:
         
         # 제목
         parts.append(self.title)
+
+        # 판본 정보 (제목 바로 뒤 - 예: [개정판])
+        if self.edition_info:
+            parts.append(self.edition_info)
         
         # 부 정보
         if self.volume_info:
@@ -155,6 +160,18 @@ class TitleParseResult:
 
 class TitleAnchorExtractor:
     """제목 앵커 추출 및 잔여 문자열 파싱 클래스"""
+
+    # 장르 정규화 맵 (복합 번역 태그에서 추출한 장르 토큰 → 표준 장르)
+    GENRE_NORMALIZATION_MAP = {
+        '현대 판타지': '현판', '현대판타지': '현판', '현판': '현판',
+        '무협': '무협', '신무협': '무협', '퓨전무협': '무협', '퓨전 무협': '무협',
+        '판타지': '판타지',
+        '로맨스 판타지': '로판', '로맨스판타지': '로판', '로판': '로판',
+        '게임 판타지': '겜판', '게임판타지': '겜판', '겜판': '겜판',
+        '퓨전 판타지': '퓨판', '퓨전판타지': '퓨판', '퓨판': '퓨판',
+        '선협': '선협', 'SF': 'SF', '역사': '역사',
+        '공포': '공포', '스포츠': '스포츠', '언정': '언정',
+    }
     
     # 노이즈 패턴 (저자명, 번역 정보 등)
     AUTHOR_PATTERNS = [
@@ -212,25 +229,23 @@ class TitleAnchorExtractor:
     
     # 플랫폼/번역자 태그 패턴 (제거 대상)
     PLATFORM_TAG_PATTERNS = [
-        r'\[임아소\]',                       # [임아소] - 번역 사이트
+        r'\[임아소\]',
         r'\[네이버시리즈\]',
         r'\[카카오페이지\]',
         r'\[문피아\]',
         r'\[조아라\]',
         r'\[리디북스\]',
         r'\[노벨피아\]',
-        # 장르 + 번역 복합 태그: [현대 판타지 AI번역], [무협 Aㅣ번역], [판타지 기계번역] 등
-        r'\[[가-힣\s]+\s*(?:[Aa][Iㅣl]?번역|AI번역|기계번역|손번역|번역)\]',
-        r'\([가-힣\s]+\s*(?:[Aa][Iㅣl]?번역|AI번역|기계번역|손번역|번역)\)',
         r'\(\s*AI번역\s*\)',                 # (AI번역) 단독
         r'\[\s*AI번역\s*\]',                 # [AI번역] 단독
-        r'\(\s*AI\s*번역\s*\)',              # (AI 번역)
-        r'\[\s*AI\s*번역\s*\]',              # [AI 번역]
+        r'\(\s*AI\s*번역\s*\)',
+        r'\[\s*AI\s*번역\s*\]',
         r'\[\s*(?:소설|웹소설)\s*(?:-\s*텍|텍본|txt)?\s*\]',
         r'\(\s*(?:소설|웹소설)\s*(?:-\s*텍|텍본|txt)?\s*\)',
         r'\[\s*텍본\s*\]',
         r'\(\s*텍본\s*\)',
     ]
+
     
     # 완결 마커 패턴
     COMPLETION_PATTERNS = [
@@ -296,15 +311,21 @@ class TitleAnchorExtractor:
     
     def _compile_patterns(self):
         """정규식 패턴 컴파일"""
-        # 노이즈 패턴 통합
         all_noise = self.AUTHOR_PATTERNS + self.SITE_PATTERNS + self.TRANSLATOR_PATTERNS
         self.noise_pattern = re.compile('|'.join(all_noise), re.IGNORECASE)
         
         # 장르 태그 패턴 (장르 추출 후 제거)
         self.genre_tag_pattern = re.compile('|'.join(self.GENRE_TAG_PATTERNS), re.IGNORECASE)
 
-        # 판본 태그 패턴 (장르 추출 없이 단순 제거)
+        # 판본 태그 패턴 (장르 추출 없이, 파일명에서 제거하되 edition_info로 보존)
         self.edition_tag_pattern = re.compile('|'.join(self.EDITION_TAG_PATTERNS), re.IGNORECASE)
+
+        # 장르+번역 복합 태그 패턴 (장르 부분만 추출하여 genre로 사용)
+        # 예: [현대 판타지 AI번역] → 장르: '현판', 태그 전체 제거
+        self.genre_translation_pattern = re.compile(
+            r'\[([가-힣\s]+?)\s*(?:[Aa][Iㅣl]?번역|AI번역|기계번역|손번역|번역)\]',
+            re.IGNORECASE
+        )
         
         # 성인 등급 태그 패턴
         self.adult_tag_pattern = re.compile('|'.join(self.ADULT_TAG_PATTERNS), re.IGNORECASE)
@@ -351,8 +372,8 @@ class TitleAnchorExtractor:
         # [NEW] 한글 자소 분리 및 시각적 변형 텍스트를 정상 한글로 조립
         name = compose_korean_jamo(name)
         
-        # 2. 노이즈 제거 및 장르 추출
-        cleaned, author, original_genre = self._remove_noise(name)
+        # 2. 노이즈 제거 및 장르/판본 추출
+        cleaned, author, original_genre, edition_info = self._remove_noise(name)
         
         # 3. 제목 앵커 추출
         title, residual = self._extract_title_anchor(cleaned)
@@ -370,7 +391,8 @@ class TitleAnchorExtractor:
             is_completed=is_completed,
             side_story=side_story,
             extension=extension,
-            original_genre=original_genre
+            original_genre=original_genre,
+            edition_info=edition_info
         )
     
     def _split_extension(self, filename: str) -> Tuple[str, str]:
@@ -393,35 +415,62 @@ class TitleAnchorExtractor:
         # 유효하지 않은 확장자면 전체를 이름으로 반환
         return filename, ""
     
-    def _remove_noise(self, name: str) -> Tuple[str, str, str]:
-        """노이즈 제거, 저자명 추출, 장르 태그 추출"""
+    def _remove_noise(self, name: str) -> Tuple[str, str, str, str]:
+        """노이즈 제거, 저자명 추출, 장르 태그 추출, 판본 정보 추출"""
         author = ""
         genre = ""
+        edition_info = ""
         
-        # 노이즈 패턴 제거 (직접적인 작가명, 사이트 마커 등)
+        # 노이즈 패턴 제거
         name = self.noise_pattern.sub('', name)
-        
-        # 장르 태그 추출 및 제거 (판타지/무협/현판 등 순수 장르만)
-        genre_match = self.genre_tag_pattern.search(name)
-        if genre_match:
-            raw_genre = genre_match.group(0)
-            genre = re.sub(r'[\[\]\(\)]', '', raw_genre).strip()
-            name = self.genre_tag_pattern.sub('', name)
 
-        # 판본 태그 제거 (개정판/합본 등 - 장르로 추출하지 않음, 제목에서도 제거)
-        name = self.edition_tag_pattern.sub('', name)
-        
+        # [1] 장르+번역 복합 태그 처리 (최우선)
+        # 예: [현대 판타지 AI번역] → 장르='현판', 태그 제거
+        if not genre:
+            trans_match = self.genre_translation_pattern.search(name)
+            if trans_match:
+                raw_genre_part = trans_match.group(1).strip()
+                genre = self._normalize_genre_token(raw_genre_part)
+                name = name[:trans_match.start()] + name[trans_match.end():]
+
+        # [2] 순수 장르 태그 추출 ([현판], [무협] 등)
+        if not genre:
+            genre_match = self.genre_tag_pattern.search(name)
+            if genre_match:
+                raw_genre = genre_match.group(0)
+                genre = re.sub(r'[\[\]\(\)]', '', raw_genre).strip()
+                name = self.genre_tag_pattern.sub('', name)
+
+        # [3] 판본 태그 처리 ([개정판], [합본] 등 - 장르 추출 없이 파일명에 보존)
+        edition_match = self.edition_tag_pattern.search(name)
+        if edition_match:
+            edition_info = edition_match.group(0).strip()  # 예: "[개정판]"
+            # 태그 제거 후 양쪽 공백 정리
+            name = name[:edition_match.start()].rstrip() + " " + name[edition_match.end():].lstrip()
+
         # 성인 등급 태그 제거
         name = self.adult_tag_pattern.sub('', name)
         
-        # 플랫폼/번역자 태그 제거 (장르+번역 복합 태그 포함)
+        # 플랫폼/번역자 태그 제거
         name = self.platform_tag_pattern.sub('', name)
         
         # 연속 공백 정리
         name = ' '.join(name.split())
         
-        return name.strip(), author, genre
-    
+        return name.strip(), author, genre, edition_info
+
+    def _normalize_genre_token(self, raw: str) -> str:
+        """장르 토큰을 표준 장르로 정규화 (GENRE_NORMALIZATION_MAP 참조)"""
+        raw = raw.strip()
+        if raw in self.GENRE_NORMALIZATION_MAP:
+            return self.GENRE_NORMALIZATION_MAP[raw]
+        # 공백 제거 후 재시도 (예: '현대 판타지' → '현대판타지')
+        raw_no_space = raw.replace(' ', '')
+        for key, val in self.GENRE_NORMALIZATION_MAP.items():
+            if key.replace(' ', '') == raw_no_space:
+                return val
+        return raw  # 알 수 없는 장르면 원본 반환
+
     def _extract_title_anchor(self, cleaned: str) -> Tuple[str, str]:
         """제목 앵커 추출"""
         if not cleaned:

@@ -5,6 +5,13 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.22] - 2026-02-24
+
+### Fixed
+- **GUI 파일명 정규화 엣지 케이스 수정 (`core/title_anchor_extractor.py`):**
+  - **`[현대 판타지 AI번역]` 등 복합 태그:** 태그 전체가 제거될 뿐만 아니라, 텍스트 내의 장르 토큰(`현대 판타지` 등)을 인식하여 정규화된 범용 장르(`현판` 등)로 추론하도록 개선했습니다.
+  - **`[개정판]` 등 판본 정보 태그 보존:** 판본 정보가 장르로 추출되지 않도록 수정한 상태에서, 파일명에서 완전히 삭제되지 않고 제목 바로 뒤에 `[개정판]`과 같이 정보가 보존되도록 `TitleParseResult.edition_info` 필드를 신설했습니다.
+
 ## [v1.3.21] - 2026-02-24
 
 ### Fixed
