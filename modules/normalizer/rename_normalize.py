@@ -1099,6 +1099,25 @@ def detect_category(head: str) -> Tuple[Optional[str], str]:
                 token = '현판'
             elif token in ('대체역사','대체 역사'):
                 token = '역사'
+            # 복합 표현 정규화 (번역/AI번역 등 노이즈 포함된 경우)
+            # 예: '현대 판타지 AI번역' | '현대 판타지 Aㅣ번역' → 노이즈 제거 후 '현대 판타지' → '현판'
+            # 야민정음 'Aㅣ', 'Al' 등도 처리
+            _TRANS_NOISE_PAT = re.compile(
+                r'\s*(?:[Aa][ㅣlI]?번역|AI번역|기계번역|손번역|번역가?|[Aa][lI]?번역)\s*',
+                flags=re.IGNORECASE
+            )
+            cleaned_token = _TRANS_NOISE_PAT.sub('', token).strip()
+            if cleaned_token in ('현대판타지', '현대 판타지'):
+                token = '현판'
+            elif cleaned_token in ('신무협', '퓨전무협', '퓨전 무협'):
+                token = '무협'
+            elif cleaned_token in ('퓨전판타지', '퓨전 판타지'):
+                token = '퓨판'
+            elif cleaned_token in ('현판', '무협', '판타지', '퓨판', '겜판', '로판',
+                                   '선협', 'SF', '역사', '스포츠', '공포', '소설', '현대', '언정', '패러디'):
+                # 번역 노이즈 제거 후 유효한 장르면 그대로 사용
+                token = cleaned_token
+
             
             # 장르 매핑 적용 (로맨스→로판, BL→로판, 게임→겜판, 퓨전→퓨판)
             token = GENRE_MAPPING.get(token, token)
@@ -1459,7 +1478,7 @@ def remove_author_info(text: str) -> str:
     # 패턴 5: 범위 뒤에 오는 한글 작가명 제거 (예: "1-231 술푸레나무", "1-140 고다아바")
     # 조건: 숫자-숫자 뒤에 공백 + 2-5글자 한글
     # 주의: "부", "외전", "에필", "후기" 같은 키워드는 보호
-    protected_keywords_after_range = r'(?!부|외전|에필|후기|특외|특별|후일담|번외|에필로그|개정판|완전판|수정판)'
+    protected_keywords_after_range = r'(?!부|외전|에필|후기|특외|특별|후일담|번외|에필로그|개정판|완전판|수정판|완결|완|完|Complete)'
     text = re.sub(rf'(\d{{1,4}}\s*-\s*\d{{1,4}})\s+{protected_keywords_after_range}([가-힣]{{2,5}})\b', r'\1', text)
     
     # 괄호 내용 처리 (단, 개정판/완전판/수정판/구판 등은 보존)
@@ -1506,6 +1525,11 @@ def remove_author_info(text: str) -> str:
     for i, pattern in enumerate(preserved):
         # 괄호를 포함하여 그대로 복원
         text = text.replace(f'__PRESERVED_{i}__', pattern)
+    
+    # 복원된 [개정판] 등 태그 앞뒤에 공백 보장
+    # 예: "[개정판]1-202" → "[개정판] 1-202", "소드마스터[개정판]" → "소드마스터 [개정판]"
+    text = re.sub(r'(\[(?:개정판|완전판|수정판|구판|개정|완전|수정)\])([^\s])', r'\1 \2', text, flags=re.IGNORECASE)
+    text = re.sub(r'([^\s])(\[(?:개정판|완전판|수정판|구판|개정|완전|수정)\])', r'\1 \2', text, flags=re.IGNORECASE)
     
     return re.sub(r'\s+', ' ', text).strip()
 
@@ -3385,7 +3409,11 @@ def normalize_line(raw: str) -> Optional[str]:
     
     # 카테고리가 없으면 파일명에서 장르 추론
     if not category:
-        inferred_genre = infer_genre_from_filename(name)
+        # 장르 추론 시 [개정판], [합본] 등 비장르 대괄호 태그를 제거한 후 추론
+        # 예: "대장벽의 소드마스터 [개정판]1-202 완결" → "대장벽의 소드마스터 1-202 완결"로 추론
+        NON_GENRE_BRACKET_TAGS = r'\[(?:개정판|완전판|수정판|구판|개정|완전|수정|합본|단행본|특별판|19금|15금|19N|19n)\]'
+        name_for_inference = re.sub(NON_GENRE_BRACKET_TAGS, '', name, flags=re.IGNORECASE).strip()
+        inferred_genre = infer_genre_from_filename(name_for_inference)
         # None이 아니고 유효한 장르일 때만 추가
         if inferred_genre and inferred_genre != 'None':
             category = f'[{inferred_genre}]'
