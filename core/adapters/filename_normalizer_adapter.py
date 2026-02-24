@@ -56,6 +56,7 @@ class FilenameNormalizerAdapter:
                 task.range_info = parse_result.range_info or task.range_info
                 task.is_completed = parse_result.is_completed or task.is_completed
                 task.side_story = parse_result.side_story or task.side_story
+                task.edition_info = parse_result.edition_info or task.edition_info
                 
                 # [Fix] 원본 장르 보존
                 if not task.genre and parse_result.original_genre:
@@ -87,6 +88,7 @@ class FilenameNormalizerAdapter:
                 task.range_info = parse_result.range_info or task.range_info
                 task.is_completed = parse_result.is_completed or task.is_completed
                 task.side_story = parse_result.side_story or task.side_story
+                task.edition_info = parse_result.edition_info or task.edition_info
                 
                 # [Fix] 원본 장르 보존 (정규화 시점에서도 적용)
                 if not task.genre and parse_result.original_genre:
@@ -102,7 +104,8 @@ class FilenameNormalizerAdapter:
                 volume_info=task.volume_info,
                 range_info=task.range_info,
                 is_completed=task.is_completed,
-                side_story=task.side_story
+                side_story=task.side_story,
+                edition_info=task.edition_info
             )
             
             # 4. 확장자 추가
@@ -147,6 +150,7 @@ class FilenameNormalizerAdapter:
             range_info = parse_result.range_info
             is_completed = parse_result.is_completed
             side_story = parse_result.side_story
+            edition_info = parse_result.edition_info
             original_genre = parse_result.original_genre # [Fix]
         else:
             title = task.title
@@ -154,6 +158,7 @@ class FilenameNormalizerAdapter:
             range_info = task.range_info
             is_completed = task.is_completed
             side_story = task.side_story
+            edition_info = task.edition_info
             original_genre = ""
         
         # 장르 결정 (task.genre 우선, 없으면 원본 장르 사용)
@@ -166,7 +171,8 @@ class FilenameNormalizerAdapter:
             volume_info=volume_info,
             range_info=range_info,
             is_completed=is_completed,
-            side_story=side_story
+            side_story=side_story,
+            edition_info=edition_info
         )
         
         extension = task.current_path.suffix if task.current_path else '.txt'
@@ -193,12 +199,13 @@ class FilenameNormalizerAdapter:
         volume_info: str = "",
         range_info: str = "",
         is_completed: bool = False,
-        side_story: str = ""
+        side_story: str = "",
+        edition_info: str = ""
     ) -> str:
         """
         표준 형식 파일명 생성 (Requirement 5.1, 5.5)
         
-        형식: [장르] 제목 부정보 범위 (완) + 외전
+        형식: [장르] 제목 [개정판] 부정보 범위 (완) + 외전
         
         Args:
             genre: 장르
@@ -207,6 +214,7 @@ class FilenameNormalizerAdapter:
             range_info: 범위 정보
             is_completed: 완결 여부
             side_story: 외전 정보
+            edition_info: 판본 정보 (예: [개정판])
             
         Returns:
             정규화된 파일명 (확장자 제외)
@@ -220,6 +228,11 @@ class FilenameNormalizerAdapter:
         # 2. 제목 (공백 정규화)
         clean_title = self._normalize_spaces(title)
         parts.append(clean_title)
+
+        # 2.5 판본 정보
+        if edition_info:
+            clean_edition = self._normalize_spaces(edition_info)
+            parts.append(clean_edition)
         
         # 3. 부 정보 (범위 앞에 위치)
         if volume_info:

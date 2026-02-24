@@ -5,6 +5,11 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.23] - 2026-02-24
+
+### Fixed
+- **GUI 정규화 미리보기 판본 누락 현상 수정:** `core/title_anchor_extractor.py`에 보존해둔 판본 정보(`[개정판]` 등)가 GUI의 `adapters/filename_normalizer_adapter.py` 및 `NovelTask` 객체를 거치면서 중간에 유실되던 구조적 버그를 수정하여 UI에 정확히 반영되도록 조치했습니다.
+
 ## [v1.3.22] - 2026-02-24
 
 ### Fixed

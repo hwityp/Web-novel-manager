@@ -27,6 +27,8 @@ class NovelTask:
     range_info: str = ""         # 범위 정보 (예: "1-536")
     is_completed: bool = False   # 완결 여부
     side_story: str = ""         # 외전 정보 (예: "외전 1-5")
+    edition_info: str = ""       # 판본 정보 (예: "[개정판]")
+
     
     # 처리 상태
     status: str = "pending"      # pending, processing, completed, failed, skipped
@@ -50,6 +52,7 @@ class NovelTask:
             'range_info': self.range_info,
             'is_completed': self.is_completed,
             'side_story': self.side_story,
+            'edition_info': self.edition_info,
             'status': self.status,
             'confidence': self.confidence,
             'source': self.source,
@@ -71,6 +74,7 @@ class NovelTask:
             range_info=data.get('range_info', ''),
             is_completed=data.get('is_completed', False),
             side_story=data.get('side_story', ''),
+            edition_info=data.get('edition_info', ''),
             status=data.get('status', 'pending'),
             confidence=data.get('confidence', 'none'),
             source=data.get('source', ''),
