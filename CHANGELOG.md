@@ -5,6 +5,22 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.20] - 2026-02-24
+
+### Changed
+- **진입점(엔트리포인트) 일원화:**
+  - 기존 `main.py`(CLI 전용)와 `main_gui.py`(GUI 전용)를 `main.py` 단일 파일로 통합했습니다.
+  - 인자 없이 실행하거나 `--gui` 플래그를 사용하면 GUI 모드, `-s <폴더>`를 지정하면 CLI 파이프라인 모드로 동작합니다.
+  - `build_exe.py` 빌드 진입점도 `main_gui.py` → `main.py`로 변경했습니다.
+
+### Refactored
+- **모듈 구조 정리 (중복 파일 제거):**
+  - `modules/normalizer/rename_normalize.py`가 GUI에 사용되지 않는 고아 파일임을 확인하고 `_cleanup_temp`로 이동했습니다. (정본: `modules/organizer/renameFiles/rename_normalize.py`)
+  - `modules/normalizer/rename_normalize_gui.py`, `build_exe.py`, `VERSION.txt`, `requirements.txt` 이동.
+  - `modules/organizer/renameFiles/` 내 구버전 빌드 스크립트(`build.bat`, `build.ps1`, `create_release.py`, `FileNameNormalizer.spec`) 이동.
+  - 정본 파일(`modules/organizer/renameFiles/rename_normalize.py`) 상단에 "이 파일이 GUI 정본" 주석 추가로 재발 방지.
+- **버전 관리 중앙화:** `core/version.py`가 모든 모듈의 유일한 버전 소스임을 확립했습니다.
+
 ## [v1.3.19] - 2026-02-24
 
 ### Fixed
