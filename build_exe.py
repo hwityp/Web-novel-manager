@@ -115,7 +115,7 @@ def build_exe(debug: bool = False):
         cmd.append('--noconsole')
 
     # 메인 스크립트
-    cmd.append('main_gui.py')
+    cmd.append('main.py')
 
     print(f"📦 버전: {__version__} ({RELEASE_DATE})")
     print(f"📦 실행 명령어:")
