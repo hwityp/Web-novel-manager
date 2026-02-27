@@ -45,6 +45,25 @@ from modules.classifier.src.core.utils.search_strategy import SearchStrategy
 class NaverGenreExtractorV4:
     """네이버 검색 → 플랫폼 링크 → 장르 추출 (리팩토링 버전)"""
     
+    # 장르 세분화 레벨 (숫자가 클수록 더 세분화됨)
+    GENRE_SPECIFICITY = {
+        '소설': 1,
+        '판타지': 2,
+        '현판': 3,
+        '퓨판': 3,
+        '겜판': 3,
+        '무협': 3,
+        '선협': 3,
+        '로판': 3,
+        '언정': 3,
+        'SF': 3,
+        '미스터리': 3,
+        '밀리터리': 3,
+        '패러디': 3,
+        '역사': 4,  # 역사는 퓨판보다 더 구체적
+        '스포츠': 4,  # 스포츠는 현판보다 더 구체적
+    }
+    
     def __init__(self, naver_api_config=None):
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
@@ -611,12 +630,26 @@ class NaverGenreExtractorV4:
                     print()
                     return result
                 
-                # 판타지 세분화 체크 중이고 역사/겜판/퓨판을 발견한 경우
-                if fantasy_result and result['genre'] in ['역사', '겜판', '퓨판']:
+                # 판타지 세분화 체크 중이고 역사/겜판/퓨판/스포츠를 발견한 경우
+                if fantasy_result and result['genre'] in ['역사', '겜판', '퓨판', '스포츠']:
                     print(f"  [{extractor.platform_name}] '{result['genre']}' 확인됨 → 판타지 대신 {result['genre']} 선택")
                     print(f"  [최종선택] {extractor.platform_name}: {result['genre']}")
                     print()
                     return result
+                
+                # [Fix] fantasy_result 대기 중인데 동일한 '판타지'가 또 나오면 스킵
+                if fantasy_result and result['genre'] == '판타지':
+                    self._log(f"  [{extractor.platform_name}] '판타지' 중복 → 스킵")
+                    continue
+                
+                # [Fix] ridibooks_result(고우선순위)가 이미 세분화된 장르를 갖고 있으면
+                # 낮은 우선순위 플랫폼의 덜 세분화된 결과는 스킵
+                if ridibooks_result and ridibooks_result['genre'] != '소설':
+                    current_specificity = self.GENRE_SPECIFICITY.get(result['genre'], 2)
+                    ridi_specificity = self.GENRE_SPECIFICITY.get(ridibooks_result['genre'], 2)
+                    if ridi_specificity >= current_specificity:
+                        self._log(f"  [{extractor.platform_name}] '{result['genre']}' ≤ 리디북스 '{ridibooks_result['genre']}' → 스킵")
+                        continue
                 
                 # 재매핑 적용
                 remapped_genre = self._remap_genre_by_keywords(result['genre'], title)
@@ -633,7 +666,7 @@ class NaverGenreExtractorV4:
                         return result
                     
                     # 재매핑 후에도 판타지 세분화 체크
-                    if fantasy_result and result['genre'] in ['역사', '겜판', '퓨판']:
+                    if fantasy_result and result['genre'] in ['역사', '겜판', '퓨판', '스포츠']:
                         print(f"  [{extractor.platform_name}] '{result['genre']}' 확인됨 (재매핑 후) → 판타지 대신 {result['genre']} 선택")
                         print(f"  [최종선택] {extractor.platform_name}: {result['genre']}")
                         print()
@@ -683,27 +716,8 @@ class NaverGenreExtractorV4:
         ridi_genre = ridibooks_result['genre']
         munpia_genre = munpia_result['genre']
         
-        # 장르 세분화 레벨 정의 (숫자가 클수록 더 세분화됨)
-        genre_specificity = {
-            '소설': 1,
-            '판타지': 2,
-            '현판': 3,
-            '퓨판': 3,
-            '겜판': 3,
-            '무협': 3,
-            '선협': 3,
-            '로판': 3,
-            '언정': 3,
-            'SF': 3,
-            '미스터리': 3,
-            '밀리터리': 3,
-            '패러디': 3,
-            '역사': 4,  # 역사는 퓨판보다 더 구체적
-            '스포츠': 4,  # 스포츠는 현판보다 더 구체적
-        }
-        
-        ridi_level = genre_specificity.get(ridi_genre, 2)
-        munpia_level = genre_specificity.get(munpia_genre, 2)
+        ridi_level = self.GENRE_SPECIFICITY.get(ridi_genre, 2)
+        munpia_level = self.GENRE_SPECIFICITY.get(munpia_genre, 2)
         
         # 두 장르가 같으면 리디북스 우선 (우선순위가 높음)
         if ridi_genre == munpia_genre:
