@@ -41,6 +41,7 @@ class NaverSeriesExtractor(BasePlatformExtractor):
                     # 현판 → 스포츠 재분류 필요 여부 표시
                     if genre_result['genre'] == '현판':
                         genre_result['needs_sports_check'] = True
+                        genre_result['needs_history_check'] = True
                     # 판타지 → 역사/겜판/퓨판 세분화 필요 여부 표시
                     elif genre_result['genre'] == '판타지':
                         genre_result['needs_fantasy_refinement'] = True

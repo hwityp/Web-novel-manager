@@ -186,9 +186,9 @@ class NaverGenreExtractorV4:
                 'min_keywords': 2  # 최소 2개 키워드 필요
             },
             '역사': {
-                'keywords': ['조선', '고려', '삼국시대', '삼국지', '왕조', '황제', '제국', '전쟁', '임진왜란', '병자호란'],
+                'keywords': ['조선', '고려', '삼국시대', '삼국지', '왕조', '황제', '제국', '전쟁', '임진왜란', '병자호란', '외교관', '봉건', '이성계', '인조반정'],
                 'exclude': ['사이버펑크', '네오', '미래', 'SF', '우주', '마왕', '용사', '마법', '던전', '게이트'],
-                'from_genres': ['판타지'],  # 퓨판, 현판 제외 (이미 구체적인 장르)
+                'from_genres': ['판타지', '현판'],  # 현판도 역사로 재분류 가능
                 'min_keywords': 2  # 최소 2개 키워드 필요
             },
             '겜판': {
@@ -623,9 +623,9 @@ class NaverGenreExtractorV4:
                     self._log(f"  [{extractor.platform_name}] '판타지' 추출 → 다른 플랫폼에서 세분화 확인 (역사/겜판/퓨판)")
                     continue
                 
-                # 현판 체크 중이고 스포츠를 발견한 경우 (재매핑 전에 체크)
-                if hyunpan_result and result['genre'] == '스포츠':
-                    self._log(f"  [{extractor.platform_name}] '스포츠' 확인됨 → 현판 대신 스포츠 선택")
+                # 현판 체크 중이고 스포츠 또는 역사를 발견한 경우 (재매핑 전에 체크)
+                if hyunpan_result and result['genre'] in ['스포츠', '역사']:
+                    self._log(f"  [{extractor.platform_name}] '{result['genre']}' 확인됨 → 현판 대신 {result['genre']} 선택")
                     self._log(f"  [최종선택] {extractor.platform_name}: {result['genre']}")
                     print()
                     return result
@@ -658,9 +658,9 @@ class NaverGenreExtractorV4:
                     result['genre'] = remapped_genre
                     result['confidence'] = max(0.85, result.get('confidence', 0.95) - 0.03)
                     
-                    # 재매핑 후에도 스포츠 체크
-                    if hyunpan_result and result['genre'] == '스포츠':
-                        print(f"  [{extractor.platform_name}] '스포츠' 확인됨 (재매핑 후) → 현판 대신 스포츠 선택")
+                    # 재매핑 후에도 스포츠/역사 체크
+                    if hyunpan_result and result['genre'] in ['스포츠', '역사']:
+                        print(f"  [{extractor.platform_name}] '{result['genre']}' 확인됨 (재매핑 후) → 현판 대신 {result['genre']} 선택")
                         print(f"  [최종선택] {extractor.platform_name}: {result['genre']}")
                         print()
                         return result

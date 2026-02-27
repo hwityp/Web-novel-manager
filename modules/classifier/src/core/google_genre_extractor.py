@@ -28,7 +28,7 @@ class GoogleGenreExtractor:
         '게임판타지': [r'게임\s*판타지', r'겜판'],
         '퓨전판타지': [r'퓨전\s*판타지', r'퓨판'],
         '선협': [r'선협'],
-        '스포츠': [r'스포츠'],
+        '스포츠': [r'스포츠', r'바둑', r'야구', r'축구', r'농구', r'격투기', r'권투', r'복싱', r'골프', r'배구', r'테니스'],
         '대체역사': [r'대체\s*역사', r'역사'],
         'SF': [r'SF', r'공상과학', r'사이파이'],
         '공포': [r'공포', r'호러', r'미스터리', r'스릴러'],
@@ -140,6 +140,13 @@ class GoogleGenreExtractor:
             # 장르 우선순위 결정
             best_genre, score = self._resolve_genre_priority(all_found_genres)
             
+            # [Fix] Google은 단일 키워드 매칭 오류 빈도 높음
+            # total_score(빈도) 1이면 근거가 너무 약함 → 미분류 반환
+            # '판타지'/'소설'은 일반적이므로 1회도 허용
+            if score <= 1 and best_genre not in ['판타지', '소설', '드라마']:
+                self.logger.info(f"Google 결과 근거 부족 (score={score}, genre={best_genre}) → 미분류")
+                return None
+            
             # 신뢰도 계산 (0.6 ~ 0.95)
             # 점수가 높을수록(많이 발견될수록) 신뢰도 상승
             confidence = 0.6 + (min(score, 5) * 0.07)
@@ -196,7 +203,7 @@ class GoogleGenreExtractor:
             '패러디': 100,      # 팬픽/패러디 최우선 (오분류 방지)
             '선협': 90,        # 선협 (무협보다 구체적)
             '무협': 85,
-            '스포츠': 80,
+            '스포츠': 95,      # 스포츠 구체적 키워드(바둑/야구/축구)가 매칭되면 최우선
             '게임판타지': 75,
             '로맨스판타지': 75,
             '현대판타지': 75,
