@@ -1577,6 +1577,7 @@ class WNAPMainWindow(ctk.CTk):
                     if 0 <= task_idx < len(self.tasks_cache):
                         task = self.tasks_cache[task_idx]
                         task.metadata['normalized_name'] = new_val
+                        task.metadata['user_edited'] = True  # 수동 편집 플래그
                         # 로그 기록
                         self._log_to_file(f"파일명 수동 변경: {current_val} -> {new_val}")
                         
@@ -1620,6 +1621,7 @@ class WNAPMainWindow(ctk.CTk):
                         # 공백 정리 (혹시 모를 이중 공백)
                         new_normalized = new_normalized.strip()
                         task.metadata['normalized_name'] = new_normalized
+                        task.metadata['user_edited'] = True  # 수동 편집 플래그
                         
                         self._log_to_file(f"장르 수동 변경: {current_genre} -> {new_genre}")
                         

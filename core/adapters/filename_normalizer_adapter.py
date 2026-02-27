@@ -79,6 +79,27 @@ class FilenameNormalizerAdapter:
             정규화된 파일명이 업데이트된 NovelTask
         """
         try:
+            # [Fix] 사용자가 UI에서 수동 편집한 파일명은 재정규화하지 않음
+            if task.metadata.get('user_edited') and task.metadata.get('normalized_name'):
+                user_name = task.metadata['normalized_name']
+                
+                # 확장자가 없으면 추가
+                if not Path(user_name).suffix:
+                    extension = task.current_path.suffix if task.current_path else '.txt'
+                    user_name = user_name + extension
+
+                # 타겟 경로 생성 및 충돌 처리
+                target_folder = self._get_target_folder(task)
+                target_path = target_folder / user_name
+                target_path = self._handle_collision(target_path)
+                
+                task.metadata['normalized_name'] = target_path.name
+                task.metadata['target_path'] = str(target_path)
+                task.status = 'completed'
+                
+                self.logger.debug(f"사용자 편집 파일명 사용: {task.raw_name} → {target_path.name}")
+                return task
+
             # 1. 제목 앵커 추출 (title이 비어있으면)
             if not task.title:
                 parse_result = self._extractor.extract(task.raw_name)
