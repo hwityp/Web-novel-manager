@@ -35,6 +35,12 @@ def compose_korean_jamo(text: str) -> str:
             # 영문자가 독립적인 단어가 아니라 한글과 붙어있을 때만 치환 (해리포터 등의 영문 오작동 방지)
             prev_is_hangul = idx > 0 and is_hangul(chars[idx-1])
             next_is_hangul = idx < len(chars)-1 and is_hangul(chars[idx+1])
+            # [Fix] 영문 단어/단위(km, mb, rpm 등)의 일부인 경우 치환하지 않음
+            # 인접한 다른 영문자가 있으면 영문 단어의 일부로 판단
+            prev_is_alpha = idx > 0 and chars[idx-1].isascii() and chars[idx-1].isalpha()
+            next_is_alpha = idx < len(chars)-1 and chars[idx+1].isascii() and chars[idx+1].isalpha()
+            if prev_is_alpha or next_is_alpha:
+                continue  # 영문 단어의 일부이므로 치환하지 않음
             if prev_is_hangul or next_is_hangul:
                 chars[idx] = replacements[c]
                 
