@@ -1113,6 +1113,9 @@ def remove_basic_noise(text: str) -> str:
     # 후기포 → 후기
     text = re.sub(r'\b후기포\b', '후기', text)
     
+    # "장" 접미사 제거 (예: 199장 → 199, 숫자 뒤의 '장' 만 제거)
+    text = re.sub(r'(\d+)장\b', r'\1', text)
+    
     # "특별" 키워드 제거 (외전이 있으면 중복)
     text = re.sub(r'\b특별\s*(?=외전)', '', text)
     text = re.sub(r'(?<=외전)\s*특별\b', '', text)
@@ -1249,6 +1252,100 @@ def remove_author_info(text: str) -> str:
     return re.sub(r'\s+', ' ', text).strip()
 
 
+def compose_korean_jamo(text: str) -> str:
+    """
+    한글 자소 분리 및 시각적 변형(야민정음식 알파벳 치환 등) 복구
+    예: 'ㄷH공ㅂlㄱr' -> '대공비가'
+    """
+    if not text:
+        return text
+        
+    # 1. 시각적 변형 영문자 -> 한글 자소 치환
+    replacements = {
+        'r': 'ㅏ', 'R': 'ㅏ', 'l': 'ㅣ', 'I': 'ㅣ', 'H': 'ㅐ', 'k': 'ㅏ',
+        'o': 'ㅐ', 'i': 'ㅑ', 'j': 'ㅓ', 'p': 'ㅔ', 'u': 'ㅕ', 'h': 'ㅗ',
+        'y': 'ㅛ', 'n': 'ㅜ', 'b': 'ㅠ', 'm': 'ㅡ'
+    }
+    
+    chars = list(text)
+    def is_hangul(c): return 0x3131 <= ord(c) <= 0x318E or 0xAC00 <= ord(c) <= 0xD7A3
+    
+    for idx, c in enumerate(chars):
+        if c in replacements:
+            # 영문자가 독립적인 단어가 아니라 한글과 붙어있을 때만 치환
+            prev_is_hangul = idx > 0 and is_hangul(chars[idx-1])
+            next_is_hangul = idx < len(chars)-1 and is_hangul(chars[idx+1])
+            # 영문 단어/단위의 일부인 경우 치환하지 않음
+            prev_is_alpha = idx > 0 and chars[idx-1].isascii() and chars[idx-1].isalpha()
+            next_is_alpha = idx < len(chars)-1 and chars[idx+1].isascii() and chars[idx+1].isalpha()
+            if prev_is_alpha or next_is_alpha:
+                continue
+            if prev_is_hangul or next_is_hangul:
+                chars[idx] = replacements[c]
+                
+    text = ''.join(chars)
+    
+    # 2. 자소 조합 로직
+    CHOSUNG = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
+    JUNGSUNG = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ']
+    JONGSUNG = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
+    
+    VOWEL_COMBINE = {('ㅗ', 'ㅣ'): 'ㅚ', ('ㅜ', 'ㅣ'): 'ㅟ', ('ㅡ', 'ㅣ'): 'ㅢ', ('ㅏ', 'ㅣ'): 'ㅐ', ('ㅓ', 'ㅣ'): 'ㅔ',
+                     ('ㅗ', 'ㅏ'): 'ㅘ', ('ㅜ', 'ㅓ'): 'ㅝ', ('ㅜ', 'ㅔ'): 'ㅞ', ('ㅗ', 'ㅐ'): 'ㅙ'}
+    
+    def get_parts(char):
+        if '가' <= char <= '힣':
+            offset = ord(char) - 0xAC00
+            j = offset % 28
+            m = (offset // 28) % 21
+            c = (offset // 28) // 21
+            return c, m, j
+        return None
+        
+    def make_char(c, m, j=0):
+        return chr(0xAC00 + c * 588 + m * 28 + j)
+        
+    chars = list(text)
+    changed = True
+    while changed:
+        changed = False
+        i = 0
+        while i < len(chars) - 1:
+            c1, c2 = chars[i], chars[i+1]
+            # 초성 + 중성 -> 완성형
+            if c1 in CHOSUNG and c2 in JUNGSUNG:
+                c_idx = CHOSUNG.index(c1)
+                m_idx = JUNGSUNG.index(c2)
+                chars[i:i+2] = [make_char(c_idx, m_idx, 0)]
+                changed = True
+                break
+            
+            parts1 = get_parts(c1)
+            # 완성형(종성없음) + 종성/중성 결합
+            if parts1 and parts1[2] == 0:
+                c, m, _ = parts1
+                # 종성 결합
+                if c2 in JONGSUNG and c2 != '':
+                    # 뒤에 모음이 오면 종성이 아니라 다음 글자의 초성이어야 함
+                    if i + 2 < len(chars) and chars[i+2] in JUNGSUNG:
+                        pass
+                    else:
+                        j_idx = JONGSUNG.index(c2)
+                        chars[i:i+2] = [make_char(c, m, j_idx)]
+                        changed = True
+                        break
+                # 이중 모음 결합 (ㅗ+ㅣ = ㅚ, ㅗ+ㅏ = ㅘ 등)
+                vowel1 = JUNGSUNG[m]
+                if (vowel1, c2) in VOWEL_COMBINE:
+                    new_vowel = VOWEL_COMBINE[(vowel1, c2)]
+                    m_idx = JUNGSUNG.index(new_vowel)
+                    chars[i:i+2] = [make_char(c, m_idx, 0)]
+                    changed = True
+                    break
+            i += 1
+    return ''.join(chars)
+
+
 def has_incomplete_flag(text: str) -> bool:
     """
     미완/연재중 플래그 감지
@@ -1264,7 +1361,8 @@ def has_incomplete_flag(text: str) -> bool:
         미완/연재중 플래그 존재 여부
     """
     # "외전 연재중", "외전 미완" 패턴은 무시 (본편은 완결)
-    if re.search(r'(외전|外)\s*(연재\s*중|미완)', text, re.IGNORECASE):
+    # "외전 N 연재중", "외전 N-M 연재중" 패턴도 무시 (예: 외전 134 연재중, 외전 1-98 연재중)
+    if re.search(r'(외전|外)\s*(?:\d{1,4}(?:\s*-\s*\d{1,4})?\s*)?(연재\s*중|미완)', text, re.IGNORECASE):
         return False
     
     # "[외전N-M화미완]" 패턴도 무시 (본편은 완결)
@@ -1348,6 +1446,12 @@ def extract_complete_and_extras(text: str) -> Tuple[str, bool, Optional[str], Li
         if not any('외전' in e for e in extras):
             extras.append('외전')
         text = re.sub(r'외전포함', '', text, flags=re.IGNORECASE)
+
+    # 번외포함 패턴 처리
+    if re.search(r'번외포함', text, re.IGNORECASE):
+        if '번외' not in extras:
+            extras.append('번외')
+        text = re.sub(r'번외포함', '', text, flags=re.IGNORECASE)
 
     patterns = {
         'has_complete_paren': '(완)' in text,
@@ -1680,6 +1784,25 @@ def extract_complete_and_extras(text: str) -> Tuple[str, bool, Optional[str], Li
         # "연재중" 플래그 제거 (이미 처리됨)
         text = re.sub(r'\s*연재\s*중\s*', '', text, flags=re.IGNORECASE)
     
+    # 새 패턴: N 에필로그 N-M 完 (N은 본편 범위, 에필로그 N-M은 에필 범위)
+    # 예시: "052 에필로그1-3 完" → range=1-52, extras=[에필 1-3], complete=True
+    # 예시: "052 에필로그 1-3 完" → range=1-52, extras=[에필 1-3], complete=True
+    m = re.search(r'(\d{1,5})\s*(에필로그|에필)\s*(\d{1,4})\s*-\s*(\d{1,4})\s*(完|완|Complete)\b', text, re.IGNORECASE)
+    if m and not range_info:
+        has_complete = True
+        range_info = f'1-{int(m.group(1))}'
+        extras.append(f'에필 {int(m.group(3))}-{int(m.group(4))}')
+        text = text[:m.start()] + ' ' + text[m.end():]
+
+    # 새 패턴: N 完 외전 N-M (N은 본편 범위, 외전 N-M은 외전 범위)
+    # 예시: "1000 完 외전 1-98" → range=1-1000, extras=[외전 1-98], complete=True
+    m = re.search(r'(\d{1,5})\s+(完|완|Complete)\s+(외전|外)\s+(\d{1,4})\s*-\s*(\d{1,4})', text, re.IGNORECASE)
+    if m and not range_info:
+        has_complete = True
+        range_info = f'1-{int(m.group(1))}'
+        extras.append(f'외전 {int(m.group(4))}-{int(m.group(5))}')
+        text = text[:m.start()] + ' ' + text[m.end():]
+
     # 새 패턴: N 외전 完 (N은 본편 범위, 외전 아님)
     # 예시: "전구고무1432 외전 完" → range=1-1432, extras=[외전], complete=True
     # 제목과 숫자 사이에 공백이 없는 경우도 처리
@@ -1690,6 +1813,7 @@ def extract_complete_and_extras(text: str) -> Tuple[str, bool, Optional[str], Li
         if '외전' not in [e for e in extras if '외전' in e]:
             extras.append('외전')
         text = text[:m.start()] + ' ' + text[m.end():]
+
     
     # 完+外 N-M 패턴 (예: 完+外 1-3, (완)+外 1-5)
     m = re.search(r'(\(완\)|完|완|Complete)\s*\+?\s*(外|외전|외포|외)\s+(\d{1,4})\s*-\s*(\d{1,4})', text, re.IGNORECASE)
@@ -2963,6 +3087,8 @@ def build_standard_name(category, title, range_info, has_complete, extras):
     result = ' '.join(parts)
     result = re.sub(r'\s+', ' ', result)
     result = re.sub(r'(\]|\))\s+', r'\1 ', result)
+    # 끝 쉴표 제거 (예: "에필, 후기," → "에필, 후기")
+    result = re.sub(r',\s*$', '', result)
     return result.strip()
 
 
@@ -2997,6 +3123,9 @@ def normalize_line(raw: str) -> Optional[str]:
 
     if not name.strip():
         return None
+
+    # 한글 자모 조합 (야민정음식 변환 복구)
+    name = compose_korean_jamo(name)
 
     # 원본에서 미완/연재중 여부 감지(표시 삽입 억제용)
     is_incomplete_flag = has_incomplete_flag(name)
@@ -3067,6 +3196,9 @@ def normalize_line_without_genre_inference(raw: str) -> Optional[str]:
     if not name.strip():
         return None
     
+    # 한글 자모 조합 (야민정음식 변환 복구)
+    name = compose_korean_jamo(name)
+    
     # 정규화가 필요한지 확인
     # 다음 중 하나라도 해당하면 정규화 필요:
     # 1. 완/完/Complete 같은 미정규화 완결 표시가 있음
@@ -3092,7 +3224,7 @@ def normalize_line_without_genre_inference(raw: str) -> Optional[str]:
     
     needs_normalization = (
         bool(re.search(r'(?<!\()(完|완결?|Complete)(?!\))', name, re.IGNORECASE)) or  # 미정규화 완결
-        bool(re.search(r'(?<!\+\s)(外|외포|번외|에필로그|외전포함)', name)) or  # 미정규화 extras
+        bool(re.search(r'(?<!\+\s)(外|외포|번외|에필로그|외전포함|번외포함)', name)) or  # 미정규화 extras
         bool(re.search(r'\b0\d+', name)) or  # 앞에 0이 있는 숫자
         bool(re.search(r'[@ⓒ]', name)) or  # 저자 표시
         bool(re.search(r'[_+](?!\s+(외전|에필|후기))', name)) or  # 특수 기호 (extras 제외)
@@ -3109,7 +3241,10 @@ def normalize_line_without_genre_inference(raw: str) -> Optional[str]:
         bool(re.search(r'\d+\(완\)', name, re.IGNORECASE)) or  # 숫자(완) - 공백 없음
         bool(re.search(r'[가-힣a-zA-Z]\d+\s*-\s*\d+', name)) or  # 제목숫자-숫자 - 공백 없음
         bool(re.search(r'\s+\+\s+\w+\s+\+\s+', name)) or  # + 에필 + 후기 (쉼표로 변경 필요)
-        bool(re.search(r'외전\s+\d+-\d+\s+\(완\)', name, re.IGNORECASE))  # 외전 N-M (완) - (완) 제거 필요
+        bool(re.search(r'외전\s+\d+-\d+\s+\(완\)', name, re.IGNORECASE)) or  # 외전 N-M (완) - (완) 제거 필요
+        bool(re.search(r'\d+장\b', name)) or  # N장 패턴 (199장 등)
+        bool(re.search(r'번외포함', name)) or  # 번외포함 패턴
+        bool(re.search(r',\s*$', name))  # 끝 쉼표
     )
     
     # 정규화가 필요 없으면 그대로 반환

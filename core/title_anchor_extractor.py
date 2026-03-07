@@ -51,7 +51,8 @@ def compose_korean_jamo(text: str) -> str:
     JUNGSUNG = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ']
     JONGSUNG = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
     
-    VOWEL_COMBINE = {('ㅗ', 'ㅣ'): 'ㅚ', ('ㅜ', 'ㅣ'): 'ㅟ', ('ㅡ', 'ㅣ'): 'ㅢ', ('ㅏ', 'ㅣ'): 'ㅐ', ('ㅓ', 'ㅣ'): 'ㅔ'}
+    VOWEL_COMBINE = {('ㅗ', 'ㅣ'): 'ㅚ', ('ㅜ', 'ㅣ'): 'ㅟ', ('ㅡ', 'ㅣ'): 'ㅢ', ('ㅏ', 'ㅣ'): 'ㅐ', ('ㅓ', 'ㅣ'): 'ㅔ',
+                     ('ㅗ', 'ㅏ'): 'ㅘ', ('ㅜ', 'ㅓ'): 'ㅝ', ('ㅜ', 'ㅔ'): 'ㅞ', ('ㅗ', 'ㅐ'): 'ㅙ'}
     
     def get_parts(char):
         if '가' <= char <= '힣':
@@ -279,7 +280,8 @@ class TitleAnchorExtractor:
     
     # 외전 마커 패턴
     SIDE_STORY_PATTERNS = [
-        r'番外',                            # 번외
+        r'番外',                            # 번외 (한자)
+        r'번외',                            # 번외 (한글) [NEW]
         r'외전',
         r'후기',
         r'에필로그',
@@ -291,6 +293,7 @@ class TitleAnchorExtractor:
         r'특외',
         r'외포',                             # 외전 포함 [NEW]
         r'外',                              # 外 (외전 단축) [NEW]
+        r'번외포함',                         # 번외포함 [NEW]
     ]
     
     # 중국 소설 제목 패턴 (~지, ~기로 끝나는 제목)
@@ -344,7 +347,7 @@ class TitleAnchorExtractor:
         
         # 외전 마커 패턴 (+ 외전, + 에필 등)
         self.side_story_pattern = re.compile(
-            r'\s*\+\s*(?:' + '|'.join(self.SIDE_STORY_PATTERNS) + r')[\s\d\-~,]*',
+            r'\s*\+\s*(?:' + '|'.join(self.SIDE_STORY_PATTERNS) + r').*',
             re.IGNORECASE
         )
         
@@ -359,10 +362,10 @@ class TitleAnchorExtractor:
         self.range_pattern = re.compile(r'(\d+)\s*[-~]\s*(\d+)\s*[화권부편회장]?')
         
         # 단일 숫자 패턴 (120, 126 등 - 끝에 있는 단일 숫자)
-        # [UPDATED] 뒤에 부/권 등의 단위가 오거나 완결 마커, 또는 문자열 끝인 경우 매칭
+        # [UPDATED] 뒤에 부/권 등의 단위가 오거나 완결 마커, 또는 외전/에필/번외 등, 또는 문자열 끝인 경우 매칭
         # 단, '회차가'처럼 단위 뒤에 다른 문자가 연달아 나오는 경우는 제외
         self.single_number_pattern = re.compile(
-            r'\s+(\d+)(?=\s*(?:完|완|\(완\)|\(完\)|\s*[화권부편회장](?:\s|$|完|완|\(완\)|\(完\))|\s*\d+\s*[화권부편회장](?:\s|$|完|완|\(완\)|\(完\))|\s*$))'
+            r'\s+(\d+)(?=\s*(?:完|완|\(완\)|\(完\)|\s*[화권부편회장](?:\s|$|完|완|\(완\)|\(完\))|\s*\d+\s*[화권부편회장](?:\s|$|完|완|\(완\)|\(完\))|\s*(?:에필|에필로그|외전|번외|특별편|番外|번외포함)|\s*$))'
         )
         
         # 저자 구분자 패턴 (제목 - 저자)
@@ -525,7 +528,8 @@ class TitleAnchorExtractor:
         """일반 제목 추출"""
         # 1. 외전/에필 + 패턴 먼저 분리 (+ 기호가 있는 경우)
         # 패턴: "제목 1-100 (완) + 외전 1-79"
-        plus_match = re.search(r'\s+\+\s+(?:외전|에필|번외|특별편|番外)[\s\d\-~,]*', name)
+        side_pattern_str = r'\s+\+\s+(?:' + '|'.join(self.SIDE_STORY_PATTERNS) + r').*'
+        plus_match = re.search(side_pattern_str, name, re.IGNORECASE)
         if plus_match:
             main_part = name[:plus_match.start()].strip()
             side_part = name[plus_match.start():].strip()
@@ -628,6 +632,26 @@ class TitleAnchorExtractor:
             residual = residual[complex_match.end():].strip()
             complex_found = True
 
+        # [NEW] N 完 외전 N-M (Bug 7)
+        # 예시: "1000 完 외전 1-98" -> range=1-1000, side=외전 1-98, complete=True
+        m = re.search(r'^(\d{1,5})\s+(完|완|Complete)\s+(외전|外)\s+(\d{1,4})\s*[-~]\s*(\d{1,4})', residual, re.IGNORECASE)
+        if m and not complex_found:
+            range_info = f"1-{int(m.group(1))}"
+            side_story_parts.append(f"외전 {int(m.group(4))}-{int(m.group(5))}")
+            is_completed = True
+            complex_found = True
+            residual = residual[m.end():].strip()
+            
+        # [NEW] N 에필로그 N-M 完 (Bug 4)
+        # 예시: "052 에필로그1-3 完" -> range=1-52, side=에필 1-3, complete=True
+        m = re.search(r'^(\d{1,5})\s*(에필로그|에필)\s*(\d{1,4})\s*[-~]\s*(\d{1,4})\s*(完|완|Complete)\b', residual, re.IGNORECASE)
+        if m and not complex_found:
+            range_info = f"1-{int(m.group(1))}"
+            side_story_parts.append(f"에필 {int(m.group(3))}-{int(m.group(4))}")
+            is_completed = True
+            complex_found = True
+            residual = residual[m.end():].strip()
+
         # 0. "1-324본편" 같은 붙어있는 패턴 분리
         residual = re.sub(r'(\d+)(본편)', r'\1 \2', residual)
         
@@ -638,10 +662,10 @@ class TitleAnchorExtractor:
             residual = re.sub(r'본편\s*및\s*외전\s*完[,\s]*', '', residual)
         
         # 1.5 "완+외" / "完+外" 패턴 처리 [NEW]
-        elif re.search(r'(?:完|완)\s*\+?\s*(?:外|외)', residual):
+        elif re.search(r'(?:完|완)[\s,]*\+?[\s,]*(?:外|외(?:전|포)?)', residual):
             is_completed = True
-            side_story_parts.append("외전")
-            residual = re.sub(r'(?:完|완)\s*\+?\s*(?:外|외)[,\s]*', '', residual)
+            residual = re.sub(r'(?:完|완)[\s,]*\+?[\s,]*(?:外|외(?:전|포)?)(?!\S)', '외전 ', residual)
+
 
         # 2. "본편 및 외전" 패턴 처리 (完 없는 경우)
         elif re.search(r'본편\s*및\s*외전', residual):
@@ -650,9 +674,19 @@ class TitleAnchorExtractor:
             residual = re.sub(r'본편\s*및\s*외전[,\s]*', '', residual)
         
         # 3. 완결 여부 확인 (위에서 처리 안 된 경우)
-        if not is_completed and self.completion_pattern.search(residual):
+        # Bug 8: 完 뒤에 쉼표가 있을 때도 매칭되도록 "완결 마커" 추출 시 연재중/미완 여부만 체크하고 쉼표 무관하게
+        # 근데 연재중/미완이 있으면 완결 취소
+        # [Fix] 외전 N 연재중 같은 경우 본편은 완결이므로 연재중 플래그 무시
+        is_ongoing = False
+        if re.search(r'(?<!외전)\s*(?:연재\s*중|미완)(?!\s*외전)', residual) and not re.search(r'(?:외전|外)\s*(?:\d{1,4}(?:\s*[-~]\s*\d{1,4})?\s*)?(?:연재\s*중|미완)', residual):
+            is_ongoing = True
+            
+        if not is_completed and self.completion_pattern.search(residual) and not is_ongoing:
             is_completed = True
         residual = self.completion_pattern.sub('', residual)
+        
+        # 연재중/미완 키워드 자체는 제거
+        residual = re.sub(r'(?:연재\s*중|미완)', ' ', residual)
         
         # 4. "후기 포함" 패턴 처리
         if re.search(r'후기\s*포함', residual):
@@ -730,7 +764,8 @@ class TitleAnchorExtractor:
                     num = single_match.group(1)
                     # 2자리 이상 숫자만 범위로 인식
                     if len(num) >= 2:
-                        range_info = f"1-{num}"
+                        range_info = f"1-{int(num)}"  # Bug 5: leading zero 제거
+
         
         # 10. 외전 정보 조합
         side_story = ", ".join(side_story_parts) if side_story_parts else ""
@@ -746,6 +781,7 @@ class TitleAnchorExtractor:
         # [NEW] Handle specific abbreviations
         if '외포' in side_text: side_text = side_text.replace('외포', '외전')
         if '外' in side_text: side_text = side_text.replace('外', '외전')
+        if '번외포함' in side_text: side_text = side_text.replace('번외포함', '번외')
 
         side_text = re.sub(r'에필로그', '에필', side_text, flags=re.IGNORECASE)
         return side_text.strip()

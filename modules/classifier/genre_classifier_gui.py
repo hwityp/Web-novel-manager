@@ -595,8 +595,37 @@ class GenreClassifierGUI:
         # 장르별 색상 태그 설정
         self.setup_genre_colors()
         
-        # 더블클릭 이벤트 (장르 수정)
-        self.tree.bind('<Double-1>', lambda e: self.edit_genre())
+        # 더블클릭 전 선택 상태 저장 (tkinter는 Double-1 전에 선택을 단일로 리셋함)
+        self._pre_click_selection = ()
+        self.tree.bind('<ButtonPress-1>', self._save_selection_before_click)
+        
+        # 더블클릭 이벤트 (컬럼에 따라 장르 수정 또는 파일명 수정)
+        self.tree.bind('<Double-1>', self._on_tree_double_click)
+    
+    def _save_selection_before_click(self, event):
+        """클릭 전 현재 선택 상태 저장 (복수 선택 보존용)"""
+        self._pre_click_selection = self.tree.selection()
+    
+    def _on_tree_double_click(self, event):
+        """트리뷰 더블클릭 핸들러 - 클릭된 컬럼에 따라 동작 분기"""
+        # 클릭된 컬럼 감지
+        region = self.tree.identify_region(event.x, event.y)
+        if region != 'cell':
+            return
+        
+        column = self.tree.identify_column(event.x)
+        # column은 '#1', '#2', '#3' 등의 형태
+        # #1=파일명, #2=제목, #3=장르, #4=신뢰도, #5=출처
+        
+        if column == '#3':  # 장르 컬럼 더블클릭
+            # 이전 복수 선택 복원 (Ctrl/Shift 선택 보존)
+            if len(self._pre_click_selection) > 1:
+                # 복수 선택 상태였으면 복원
+                for item in self._pre_click_selection:
+                    self.tree.selection_add(item)
+            self.edit_genre()
+        elif column in ('#1', '#2'):  # 파일명 또는 제목 컬럼 더블클릭
+            self.edit_filename()
     
     def _simplify_method(self, method, result_details=None):
         """분류 방법을 출처로 표시 (플랫폼 이름 우선)"""
@@ -1236,22 +1265,22 @@ class GenreClassifierGUI:
         # 저장 형식 선택 창
         save_window = tk.Toplevel(self.root)
         save_window.title("저장 형식 선택")
-        save_window.geometry("450x250")
+        save_window.geometry("450x300")
         save_window.transient(self.root)
-        save_window.grab_set()
+        # grab_set 제거 - 트리뷰에서 항목 선택 가능하도록
         
         # 메인 창 위치 기준으로 팝업 위치 설정
         self.root.update_idletasks()
         x = self.root.winfo_x() + 150
         y = self.root.winfo_y() + 150
-        save_window.geometry(f"450x250+{x}+{y}")
+        save_window.geometry(f"450x300+{x}+{y}")
         
         # 중앙 정렬을 위한 프레임
         main_frame = ttk.Frame(save_window, padding="20")
         main_frame.pack(fill=tk.BOTH, expand=True)
         
         ttk.Label(main_frame, text="저장 형식을 선택하세요:", 
-                 font=("맑은 고딕", 13, "bold")).pack(pady=(0, 20))
+                 font=("맑은 고딕", 13, "bold")).pack(pady=(0, 15))
         
         format_var = tk.StringVar(value="json")
         
@@ -1262,23 +1291,54 @@ class GenreClassifierGUI:
         ttk.Radiobutton(main_frame, text="텍스트 파일 (상세 정보 포함)", 
                        value="text_detail", variable=format_var).pack(anchor=tk.W, padx=20, pady=5)
         
+        # 구분선
+        ttk.Separator(main_frame, orient='horizontal').pack(fill=tk.X, padx=20, pady=10)
+        
+        # 선택된 항목만 저장 체크박스
+        selected_only_var = tk.BooleanVar(value=False)
+        selected_count = len(self.tree.selection())
+        checkbox_text_var = tk.StringVar(
+            value=f"선택된 항목만 저장 ({selected_count}개 선택됨)" if selected_count > 0 else "선택된 항목만 저장 (선택 없음)"
+        )
+        checkbox = ttk.Checkbutton(main_frame, textvariable=checkbox_text_var,
+                       variable=selected_only_var)
+        checkbox.pack(anchor=tk.W, padx=20, pady=5)
+        
+        # 창이 포커스를 받을 때 선택 수 업데이트
+        def _update_checkbox_text(event=None):
+            count = len(self.tree.selection())
+            checkbox_text_var.set(f"선택된 항목만 저장 ({count}개 선택됨)" if count > 0 else "선택된 항목만 저장 (선택 없음)")
+        save_window.bind('<FocusIn>', _update_checkbox_text)
+        
         def do_save():
+            # 저장할 결과 결정
+            if selected_only_var.get():
+                selected_items = self.tree.selection()
+                if not selected_items:
+                    messagebox.showwarning("경고", "저장할 항목을 선택해주세요.\n트리뷰에서 항목을 선택한 후 다시 시도하세요.")
+                    return
+                selected_filenames = set(self.tree.item(item)['values'][0] for item in selected_items)
+                results_to_save = [r for r in self.results 
+                                  if os.path.basename(r['filename']) in selected_filenames]
+            else:
+                results_to_save = self.results
+            
             format_type = format_var.get()
             save_window.destroy()
             
             if format_type == "json":
-                self._save_as_json()
+                self._save_as_json(results_to_save)
             elif format_type == "text":
-                self._save_as_text()
+                self._save_as_text(results_to_save)
             else:
-                self._save_as_text_detail()
+                self._save_as_text_detail(results_to_save)
         
         def do_cancel():
             save_window.destroy()
         
         # 버튼 프레임
         button_frame = ttk.Frame(main_frame)
-        button_frame.pack(pady=(20, 0))
+        button_frame.pack(pady=(15, 0))
         
         save_format_btn = tk.Button(button_frame, text="💾 저장", command=do_save,
                                     font=("맑은 고딕", 11, "bold"), width=12,
@@ -1292,8 +1352,11 @@ class GenreClassifierGUI:
                                      relief='raised', bd=2, cursor='hand2')
         cancel_format_btn.pack(side=tk.LEFT, padx=10)
     
-    def _save_as_json(self):
+    def _save_as_json(self, results_to_save=None):
         """JSON 형식으로 저장"""
+        if results_to_save is None:
+            results_to_save = self.results
+        
         filename = filedialog.asksaveasfilename(
             defaultextension=".json",
             filetypes=[("JSON 파일", "*.json"), ("모든 파일", "*.*")],
@@ -1303,14 +1366,17 @@ class GenreClassifierGUI:
         if filename:
             try:
                 with open(filename, 'w', encoding='utf-8') as f:
-                    json.dump(self.results, f, ensure_ascii=False, indent=2)
+                    json.dump(results_to_save, f, ensure_ascii=False, indent=2)
                 
-                messagebox.showinfo("저장 완료", f"JSON 파일로 저장되었습니다:\n{filename}")
+                messagebox.showinfo("저장 완료", f"JSON 파일로 저장되었습니다 ({len(results_to_save)}개):\n{filename}")
             except Exception as e:
                 messagebox.showerror("오류", f"저장 실패:\n{str(e)}")
     
-    def _save_as_text(self):
+    def _save_as_text(self, results_to_save=None):
         """텍스트 파일로 저장 (장르별 그룹화, 보기 편한 형식)"""
+        if results_to_save is None:
+            results_to_save = self.results
+        
         filename = filedialog.asksaveasfilename(
             defaultextension=".txt",
             filetypes=[("텍스트 파일", "*.txt"), ("모든 파일", "*.*")],
@@ -1327,15 +1393,15 @@ class GenreClassifierGUI:
                     f.write("║" + " "*35 + "웹소설 장르 분류 결과" + " "*43 + "║\n")
                     f.write("╠" + "═"*98 + "╣\n")
                     f.write(f"║  생성 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}" + " "*68 + "║\n")
-                    f.write(f"║  총 파일 수: {len(self.results)}개" + " "*(85-len(str(len(self.results)))) + "║\n")
+                    f.write(f"║  총 파일 수: {len(results_to_save)}개" + " "*(85-len(str(len(results_to_save)))) + "║\n")
                     f.write("╚" + "═"*98 + "╝\n\n")
                     
                     # 통계
-                    genres = [r['genre'] for r in self.results]
+                    genres = [r['genre'] for r in results_to_save]
                     genre_counts = Counter(genres)
                     
                     # 평균 신뢰도
-                    confidences = [r['confidence'] for r in self.results if r['confidence'] > 0]
+                    confidences = [r['confidence'] for r in results_to_save if r['confidence'] > 0]
                     avg_confidence = sum(confidences) / len(confidences) if confidences else 0
                     
                     f.write("┌─ 📊 통계 요약 " + "─"*83 + "┐\n")
@@ -1344,7 +1410,7 @@ class GenreClassifierGUI:
                     f.write("│\n")
                     f.write("│  장르별 분포:\n")
                     for genre, count in genre_counts.most_common():
-                        percentage = count / len(self.results) * 100
+                        percentage = count / len(results_to_save) * 100
                         bar_length = int(percentage / 2)  # 50% = 25칸
                         bar = "█" * bar_length + "░" * (25 - bar_length)
                         f.write(f"│    {genre:8s} │ {bar} │ {count:3d}개 ({percentage:5.1f}%)\n")
@@ -1353,7 +1419,7 @@ class GenreClassifierGUI:
                     
                     # 장르별로 그룹화
                     genre_groups = defaultdict(list)
-                    for result in self.results:
+                    for result in results_to_save:
                         genre_groups[result['genre']].append(result)
                     
                     # 장르별로 출력
@@ -1412,12 +1478,15 @@ class GenreClassifierGUI:
                     f.write("║    ?  = 미분류 (수동 확인 필요)                                                                  ║\n")
                     f.write("╚" + "═"*98 + "╝\n")
                 
-                messagebox.showinfo("저장 완료", f"텍스트 파일로 저장되었습니다:\n{filename}")
+                messagebox.showinfo("저장 완료", f"텍스트 파일로 저장되었습니다 ({len(results_to_save)}개):\n{filename}")
             except Exception as e:
                 messagebox.showerror("오류", f"저장 실패:\n{str(e)}")
     
-    def _save_as_text_detail(self):
+    def _save_as_text_detail(self, results_to_save=None):
         """텍스트 파일로 저장 (상세 정보 포함)"""
+        if results_to_save is None:
+            results_to_save = self.results
+        
         filename = filedialog.asksaveasfilename(
             defaultextension=".txt",
             filetypes=[("텍스트 파일", "*.txt"), ("모든 파일", "*.*")],
@@ -1431,13 +1500,13 @@ class GenreClassifierGUI:
                     f.write("="*100 + "\n")
                     f.write("웹소설 장르 분류 결과 (상세)\n")
                     f.write(f"생성 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-                    f.write(f"총 파일 수: {len(self.results)}개\n")
+                    f.write(f"총 파일 수: {len(results_to_save)}개\n")
                     f.write("="*100 + "\n\n")
                     
                     # 각 파일별 상세 정보
-                    for i, result in enumerate(self.results, 1):
+                    for i, result in enumerate(results_to_save, 1):
                         f.write(f"\n{'='*100}\n")
-                        f.write(f"[{i}/{len(self.results)}] {os.path.basename(result['filename'])}\n")
+                        f.write(f"[{i}/{len(results_to_save)}] {os.path.basename(result['filename'])}\n")
                         f.write(f"{'='*100}\n\n")
                         
                         # 기본 정보
@@ -1498,33 +1567,33 @@ class GenreClassifierGUI:
                     f.write(f"{'='*100}\n\n")
                     
                     from collections import Counter
-                    genres = [r['genre'] for r in self.results]
+                    genres = [r['genre'] for r in results_to_save]
                     genre_counts = Counter(genres)
                     
                     f.write("장르별 분포:\n")
                     for genre, count in genre_counts.most_common():
-                        percentage = count / len(self.results) * 100
+                        percentage = count / len(results_to_save) * 100
                         f.write(f"  {genre:10s}: {count:4d}개 ({percentage:5.1f}%)\n")
                     
                     f.write("\n")
                     
                     # 출처별 통계
-                    methods = [r['method'] for r in self.results]
+                    methods = [r['method'] for r in results_to_save]
                     method_counts = Counter(methods)
                     
                     f.write("출처별 분포:\n")
                     for method, count in method_counts.most_common():
-                        percentage = count / len(self.results) * 100
+                        percentage = count / len(results_to_save) * 100
                         f.write(f"  {method:20s}: {count:4d}개 ({percentage:5.1f}%)\n")
                     
                     f.write("\n")
                     
                     # 평균 신뢰도
-                    confidences = [r['confidence'] for r in self.results if r['confidence'] > 0]
+                    confidences = [r['confidence'] for r in results_to_save if r['confidence'] > 0]
                     avg_confidence = sum(confidences) / len(confidences) if confidences else 0
                     f.write(f"평균 신뢰도: {avg_confidence:.1%}\n")
                 
-                messagebox.showinfo("저장 완료", f"상세 텍스트 파일로 저장되었습니다:\n{filename}")
+                messagebox.showinfo("저장 완료", f"상세 텍스트 파일로 저장되었습니다 ({len(results_to_save)}개):\n{filename}")
             except Exception as e:
                 messagebox.showerror("오류", f"저장 실패:\n{str(e)}")
     
@@ -1739,30 +1808,22 @@ class GenreClassifierGUI:
                 self._add_info_row(scrollable_frame, "오류", details['naver_error'])
     
     def edit_genre(self):
-        """선택한 항목의 장르 수정"""
+        """선택한 항목의 장르 수정 (복수 선택 지원)"""
         selection = self.tree.selection()
         if not selection:
             messagebox.showinfo("알림", "장르를 수정할 항목을 선택해주세요.")
             return
         
-        if len(selection) > 1:
-            messagebox.showinfo("알림", "한 번에 하나의 항목만 수정할 수 있습니다.")
-            return
-        
-        item = selection[0]
-        values = self.tree.item(item)['values']
-        filename = values[0]
-        current_genre = values[2]
-        
-        # 결과에서 찾기
-        result = next((r for r in self.results if os.path.basename(r['filename']) == filename), None)
-        if not result:
-            return
+        # 복수 선택 시 첫 번째 항목의 장르를 기본값으로 사용
+        first_item = selection[0]
+        first_values = self.tree.item(first_item)['values']
+        current_genre = first_values[2]
+        is_multi = len(selection) > 1
         
         # 장르 수정 창
         edit_window = tk.Toplevel(self.root)
-        edit_window.title("장르 수정")
-        edit_window.geometry("450x700")  # 세로 크기 증가 (650 -> 700)
+        edit_window.title("장르 수정" + (f" ({len(selection)}개 항목)" if is_multi else ""))
+        edit_window.geometry("450x700")
         edit_window.transient(self.root)
         
         # 메인 창 위치 기준으로 팝업 위치 설정
@@ -1785,11 +1846,16 @@ class GenreClassifierGUI:
                 font=("맑은 고딕", 12, "bold"), 
                 bg=self.colors['light_bg']).pack(pady=5)
         
-        tk.Label(info_frame, text=f"파일명: {filename}", 
-                font=("맑은 고딕", 11), 
-                bg=self.colors['light_bg']).pack(pady=2)
+        if is_multi:
+            tk.Label(info_frame, text=f"선택된 항목: {len(selection)}개", 
+                    font=("맑은 고딕", 11, "bold"), 
+                    bg=self.colors['light_bg'], fg=self.colors['primary']).pack(pady=2)
+        else:
+            tk.Label(info_frame, text=f"파일명: {first_values[0]}", 
+                    font=("맑은 고딕", 11), 
+                    bg=self.colors['light_bg']).pack(pady=2)
         
-        current_label = tk.Label(info_frame, text=f"현재 장르: {current_genre}", 
+        current_label = tk.Label(info_frame, text=f"현재 장르: {current_genre}" + (" (첫 번째 항목)" if is_multi else ""), 
                                 font=("맑은 고딕", 12, "bold"), 
                                 fg='white', bg=self.colors['primary'])
         current_label.pack(pady=5)
@@ -1849,23 +1915,41 @@ class GenreClassifierGUI:
         
         def do_save():
             new_genre = genre_var.get()
-            if new_genre == current_genre:
+            
+            # 선택된 모든 항목에 대해 장르 업데이트
+            changed_count = 0
+            for sel_item in selection:
+                sel_values = self.tree.item(sel_item)['values']
+                sel_filename = sel_values[0]
+                sel_current_genre = sel_values[2]
+                
+                if sel_current_genre == new_genre:
+                    continue
+                
+                # 결과에서 찾기
+                result = next((r for r in self.results if os.path.basename(r['filename']) == sel_filename), None)
+                if not result:
+                    continue
+                
+                # 결과 업데이트
+                result['genre'] = new_genre
+                result['method'] = 'manual_edit'  # 수동 수정 표시
+                
+                # 트리뷰 업데이트
+                self.tree.item(sel_item, values=(
+                    sel_filename,
+                    sel_values[1],  # 제목
+                    new_genre,
+                    sel_values[3],  # 신뢰도
+                    self._simplify_method('manual_edit', result.get('details'))  # 출처
+                ), tags=(new_genre,))
+                
+                changed_count += 1
+            
+            if changed_count == 0:
                 messagebox.showinfo("알림", "장르가 변경되지 않았습니다.")
                 edit_window.destroy()
                 return
-            
-            # 결과 업데이트
-            result['genre'] = new_genre
-            result['method'] = 'manual_edit'  # 수동 수정 표시
-            
-            # 트리뷰 업데이트
-            self.tree.item(item, values=(
-                filename,
-                values[1],  # 제목
-                new_genre,
-                values[3],  # 신뢰도
-                self._simplify_method('manual_edit', result.get('details'))  # 출처
-            ), tags=(new_genre,))
             
             # 통계 업데이트
             self.update_statistics()

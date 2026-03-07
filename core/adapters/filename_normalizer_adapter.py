@@ -278,6 +278,9 @@ class FilenameNormalizerAdapter:
         result = " ".join(parts)
         result = self._normalize_spaces(result)
         
+        # 끝 쉼표 제거 (예: "에필, 후기," -> "에필, 후기")
+        result = re.sub(r',\s*$', '', result)
+        
         return result
     
     def _normalize_spaces(self, text: str) -> str:

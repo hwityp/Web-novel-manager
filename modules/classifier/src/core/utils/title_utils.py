@@ -73,6 +73,52 @@ def add_spacing_to_title(title: str) -> str:
     return result
 
 
+# 중국 소설 제목 어미 패턴 (한글 번역된 형태)
+CHINESE_TITLE_ENDINGS = [
+    '전기', '열전', '비록', '야사', '연의', '지전', '기전',
+    '행기', '유기', '몽기', '환기', '선기', '기담',
+]
+
+CHINESE_TITLE_SHORT_ENDINGS = ['전', '기', '록', '지']
+
+CHINESE_TITLE_EXCEPTIONS = [
+    '역전기', '전기', '일기', '세기', '용기', '인기',
+    '무도', '동기', '표기', '연기', '위기', '계기',
+]
+
+
+def is_chinese_novel_title(title: str) -> bool:
+    """중국 소설 제목 패턴인지 확인
+    
+    한글로 번역된 중국 소설은 제목이 ~전, ~기, ~록, ~지 등으로 끝나는 경우가 많음.
+    예: 범인수선전기, 투파창궁, 무련순행기, 태초검존
+    
+    Args:
+        title: 검사할 제목
+        
+    Returns:
+        중국 소설 제목 패턴이면 True
+    """
+    # 한국어 예외 단어 확인
+    for exception in CHINESE_TITLE_EXCEPTIONS:
+        if exception in title:
+            return False
+    
+    # 긴 어미 패턴 확인 (우선순위 높음)
+    for ending in CHINESE_TITLE_ENDINGS:
+        if title.endswith(ending) and len(title) > len(ending) + 1:
+            return True
+    
+    # 짧은 어미 패턴 확인 (한글로만 이루어진 제목에서)
+    title_no_space = title.replace(' ', '')
+    if re.match(r'^[가-힣]+$', title_no_space) and len(title_no_space) >= 4:
+        for ending in CHINESE_TITLE_SHORT_ENDINGS:
+            if title_no_space.endswith(ending) and len(title_no_space) > len(ending) + 2:
+                return True
+    
+    return False
+
+
 def split_title_variants(title: str) -> List[str]:
     """제목을 여러 변형으로 분리
     
