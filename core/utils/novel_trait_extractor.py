@@ -73,10 +73,13 @@ TRAIT_PATTERNS: List[Tuple[str, List[str]]] = [
     ("원피스", [r"원피스", r"루피", r"조로", r"해적왕"]),
     ("나루토", [r"나루토", r"사스케", r"닌자", r"나뭇잎마을"]),
     ("해리포터", [r"해리포터", r"호그와트", r"볼드모트"]),
+    ("포켓몬스터", [r"포켓몬스터"]),
     ("포켓몬", [r"포켓몬", r"피카츄", r"몬스터볼"]),
     ("명탐정 코난", [r"명탐정\s*코난", r"코난", r"쿠도\s*신이치", r"남도일", r"검은\s*조직"]),
     ("주술회전", [r"주술회전", r"고죠\s*사토루", r"이타도리", r"스쿠나"]),
     ("귀멸의 칼날", [r"귀멸의\s*칼날", r"귀칼", r"탄지로", r"네즈코"]),
+    ("마블", [r"마블", r"어벤[져저]스", r"아이언맨", r"캡틴\s*아메리카", r"marvel"]),
+    ("DC", [r"DC", r"배트맨", r"슈퍼맨"]),
     # 14. 기타 세부 특징
     ("학원", [r"학원", r"아카데미", r"학교", r"学院", r"学园"]),
     ("생존", [r"생존물", r"생존자", r"살아남기", r"아포칼립스\s*생존", r"生存"]),
@@ -102,7 +105,7 @@ GENRE_ALIAS_MAP = {
 # 첨언 노이즈 단어
 ANNOTATION_NOISE_WORDS = {
     "ai번역", "ai 번역", "기계번역", "기계 번역", "손번역", "번역",
-    "txt", "텍본", "소설", "웹소설", "완결", "완", "完", "19금", "15금",
+    "txt", "텍본", "소설", "웹소설", "완결", "완", "完", "19금", "15금", "19n", "19N", "19禁",
     "개정판", "완전판", "합본", "스캔", "단행본", "텍스트", "연재", "련재"
 }
 
@@ -112,12 +115,15 @@ PARODY_FANDOM_MAP = {
     "나루토": "나루토", "사스케": "나루토",
     "원피스": "원피스", "루피": "원피스",
     "드래곤볼": "드래곤볼", "손오공": "드래곤볼",
+    "포켓몬스터": "포켓몬스터",
     "포켓몬": "포켓몬", "피카츄": "포켓몬",
     "명탐정코난": "명탐정 코난", "명탐정 코난": "명탐정 코난", "코난": "명탐정 코난",
     "주술회전": "주술회전", "주술 회전": "주술회전",
     "귀멸의칼날": "귀멸의 칼날", "귀멸의 칼날": "귀멸의 칼날", "귀칼": "귀멸의 칼날",
     "헌터x헌터": "헌터x헌터", "헌터X헌터": "헌터x헌터", "헌터헌터": "헌터x헌터",
-    "블리치": "블리치"
+    "블리치": "블리치",
+    "마블": "마블", "어벤져스": "마블", "어벤저스": "마블", "아이언맨": "마블",
+    "DC": "DC", "dc": "DC", "배트맨": "DC", "슈퍼맨": "DC"
 }
 
 
@@ -176,9 +182,10 @@ class NovelTraitExtractor:
                 cp_strip = cp.strip()
                 if not cp_strip:
                     continue
-                # 복합어(예: "명탐정 코난", "해리 포터")가 매핑에 직접 존재하면 단일 토큰으로 보존
+                # 복합어(예: "명탐정 코난", "해리 포터", "~패러디")가 매핑에 직접 존재하면 단일 토큰으로 보존
                 if (cp_strip in PARODY_FANDOM_MAP or 
                     cp_strip in GENRE_ALIAS_MAP or 
+                    cp_strip.endswith("패러디") or
                     any(cp_strip == trait_name or any(re.fullmatch(pat, cp_strip, re.IGNORECASE) for pat in patterns) for trait_name, patterns in TRAIT_PATTERNS)):
                     tokens.append(cp_strip)
                 else:
@@ -241,12 +248,20 @@ class NovelTraitExtractor:
                 if token in ["연대", "연대물", "칠령", "팔령", "구령"]:
                     add_trait("연대물")
                 elif len(token) >= 2 and not token.isdigit():
-                    # 만약 장르명이 내포되어 있다면
-                    for g_key, g_val in GENRE_ALIAS_MAP.items():
-                        if g_key in token:
-                            if not primary_genre:
-                                primary_genre = g_val
-                            break
+                    is_parody_ctx = (
+                        primary_genre == "패러디" or 
+                        any(t in ["패러디"] or "패러디" in t for t in tokens) or
+                        any(h in ["패러디"] or "패러디" in h for h in hashtags)
+                    )
+                    if is_parody_ctx and token in hashtags:
+                        add_trait(token)
+                    else:
+                        # 만약 장르명이 내포되어 있다면
+                        for g_key, g_val in GENRE_ALIAS_MAP.items():
+                            if g_key in token:
+                                if not primary_genre:
+                                    primary_genre = g_val
+                                break
 
         # 만약 패러디 관련 특성이 있는데 primary_genre가 없다면 패러디로 설정
         if not primary_genre:

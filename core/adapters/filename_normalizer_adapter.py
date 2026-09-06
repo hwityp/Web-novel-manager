@@ -101,6 +101,7 @@ class FilenameNormalizerAdapter:
                 # 원본 한자/가나 제목 보존
                 if parse_result.original_foreign_title:
                     task.metadata['original_foreign_title'] = parse_result.original_foreign_title
+                    task.metadata['has_space_before_foreign'] = parse_result.has_space_before_foreign
                 
                 # [Fix] 원본 장르 보존 (추출된 장르가 없을 경우 파싱 결과의 original_genre 반영)
                 if not task.genre and parse_result.original_genre:
@@ -160,6 +161,7 @@ class FilenameNormalizerAdapter:
                 # 원본 한자/가나 제목 보존
                 if parse_result.original_foreign_title:
                     task.metadata['original_foreign_title'] = parse_result.original_foreign_title
+                    task.metadata['has_space_before_foreign'] = parse_result.has_space_before_foreign
                 
                 # [Fix] 원본 장르 보존 (정규화 시점에서도 적용)
                 if not task.genre and parse_result.original_genre:
@@ -177,7 +179,8 @@ class FilenameNormalizerAdapter:
                 is_completed=task.is_completed,
                 side_story=task.side_story,
                 edition_info=task.edition_info,
-                original_foreign_title=task.metadata.get('original_foreign_title', '')
+                original_foreign_title=task.metadata.get('original_foreign_title', ''),
+                has_space_before_foreign=task.metadata.get('has_space_before_foreign', True)
             )
             
             # 4. 확장자 추가
@@ -225,6 +228,7 @@ class FilenameNormalizerAdapter:
             edition_info = parse_result.edition_info
             original_genre = parse_result.original_genre # [Fix]
             original_foreign_title = parse_result.original_foreign_title
+            has_space_before_foreign = parse_result.has_space_before_foreign
         else:
             title = task.title
             volume_info = task.volume_info
@@ -234,6 +238,7 @@ class FilenameNormalizerAdapter:
             edition_info = task.edition_info
             original_genre = ""
             original_foreign_title = task.metadata.get('original_foreign_title', '')
+            has_space_before_foreign = task.metadata.get('has_space_before_foreign', True)
         
         # 장르 결정 (task.genre 우선, 없으면 원본 장르 사용)
         genre_candidate = task.genre or original_genre
@@ -247,7 +252,8 @@ class FilenameNormalizerAdapter:
             is_completed=is_completed,
             side_story=side_story,
             edition_info=edition_info,
-            original_foreign_title=original_foreign_title
+            original_foreign_title=original_foreign_title,
+            has_space_before_foreign=has_space_before_foreign
         )
         
         extension = task.current_path.suffix if task.current_path else '.txt'
@@ -282,7 +288,8 @@ class FilenameNormalizerAdapter:
         is_completed: bool = False,
         side_story: str = "",
         edition_info: str = "",
-        original_foreign_title: str = ""
+        original_foreign_title: str = "",
+        has_space_before_foreign: bool = True
     ) -> str:
         """
         표준 형식 파일명 생성 (Requirement 5.1, 5.5)
@@ -298,6 +305,7 @@ class FilenameNormalizerAdapter:
             side_story: 외전 정보
             edition_info: 판본 정보 (예: [개정판])
             original_foreign_title: 원문 한자/가나 제목
+            has_space_before_foreign: 원문 제목 앞 공백 여부
             
         Returns:
             정규화된 파일명 (확장자 제외)
@@ -312,7 +320,8 @@ class FilenameNormalizerAdapter:
         # 2. 제목 (공백 정규화 및 원문 한자 제목 추가)
         clean_title = self._normalize_spaces(title)
         if original_foreign_title and original_foreign_title not in clean_title:
-            clean_title = f"{clean_title} ({original_foreign_title})"
+            sep = " " if has_space_before_foreign else ""
+            clean_title = f"{clean_title}{sep}({original_foreign_title})"
         parts.append(clean_title)
 
         # 2.5 판본 정보

@@ -590,7 +590,7 @@ class WNAPMainWindow(ctk.CTk):
         
         self.result_tree.column("original", width=200, minwidth=150)
         self.result_tree.column("normalized", width=500, minwidth=300) # 가용 공간 최대 활용
-        self.result_tree.column("genre", width=120, minwidth=120, stretch=False)
+        self.result_tree.column("genre", width=360, minwidth=360, stretch=False)
         self.result_tree.column("confidence", width=120, minwidth=120, stretch=False)
         self.result_tree.column("source", width=150, minwidth=150, stretch=False)
         

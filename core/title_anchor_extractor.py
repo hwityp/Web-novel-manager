@@ -126,28 +126,38 @@ CJK_CHAR_REGEX = re.compile(r'[\u4e00-\u9fff\u3400-\u4dbf\u3040-\u30ff]')
 def parse_foreign_title_info(text: str) -> dict:
     """
     해외(중/일) 웹소설 제목 분석 및 3가지 유형 구분
-    1) sino_korean: 원문 제목(간체/번체)을 한국식 한자음으로 적은 경우 (예: 아가낭자타강산(我家娘子打江山))
-    2) translation: 원문 제목을 한국어로 번역해서 적은 경우 (예: 말세: 여인이 소모한 물자는 만 배로 돌려받는다 (末世：女人消耗的物资万倍返还))
-    3) parallel: 원문 제목과 번역문(또는 한자음)을 함께 적은 경우 (예: 아가낭자타강산 : 말세: 여인이 소모한 물자는 만 배로 돌려받는다 (我家娘子打江山))
     """
     result = {
-        'clean_title': text,
+        'clean_title': '',
         'original_foreign_title': '',
         'foreign_type': '',  # 'sino_korean', 'translation', 'parallel'
+        'has_space_before_foreign': True,
     }
     
     if not text or not CJK_CHAR_REGEX.search(text):
         return result
 
-    # 1. 괄호 안의 CJK 원문 추출
-    paren_cjk_match = re.search(r'[\(\[\{]\s*([\u4e00-\u9fff\u3400-\u4dbf\u3040-\u30ff\s：:，,！!？?·]+)\s*[\)\]\}]', text)
+    CJK_MARKER_CHARS = set("完外番全卷部編篇結終上下中0123456789一二三四五六七八九十백천만")
+
+    # 1. 괄호 안의 CJK 원문 추출 (숫자, 문장부호 포함 허용)
+    paren_matches = list(re.finditer(r'([\s]?)([\(\[\{])\s*([^()\[\]{}]*?[\u4e00-\u9fff\u3400-\u4dbf\u3040-\u30ff][^()\[\]{}]*?)\s*[\)\]\}]', text))
     cjk_title = ""
     korean_part = text
-    
-    if paren_cjk_match:
-        cjk_title = paren_cjk_match.group(1).strip()
-        korean_part = (text[:paren_cjk_match.start()] + " " + text[paren_cjk_match.end():]).strip()
-    else:
+    has_space_before = True
+    found_paren = False
+
+    for pm in paren_matches:
+        candidate = pm.group(3).strip()
+        if not candidate or all(c in CJK_MARKER_CHARS or c.isspace() or c in "+-~,.:/[]()_·" for c in candidate):
+            continue
+        cjk_title = candidate
+        has_space_before = bool(pm.group(1))
+        prefix_len = pm.start() + (1 if has_space_before else 0)
+        korean_part = (text[:prefix_len].rstrip() + " " + text[pm.end():].lstrip()).strip()
+        found_paren = True
+        break
+
+    if not found_paren:
         # 괄호 없이 한자가 포함된 경우
         cjk_match = re.search(r'([\u4e00-\u9fff\u3400-\u4dbf\u3040-\u30ff]{2,}[\u4e00-\u9fff\u3400-\u4dbf\u3040-\u30ff\s：:，,！!？?·]*)', text)
         if cjk_match:
@@ -155,12 +165,11 @@ def parse_foreign_title_info(text: str) -> dict:
             korean_part = (text[:cjk_match.start()] + " " + text[cjk_match.end():]).strip()
             korean_part = re.sub(r'^\s*[-–—:]\s*|\s*[-–—:]\s*$', '', korean_part).strip()
 
-    CJK_MARKER_CHARS = set("完外番全卷部編篇結終上下中0123456789一二三四五六七八九十백천만")
-
     if not cjk_title or all(c in CJK_MARKER_CHARS or c.isspace() or c in "+-~,.:/[]()_·" for c in cjk_title):
         return result
 
     result['original_foreign_title'] = cjk_title
+    result['has_space_before_foreign'] = has_space_before
     korean_part_clean = re.sub(r'[\s_]+', ' ', korean_part).strip()
     
     # 2. 유형 판단 (sino_korean, translation, parallel)
@@ -196,6 +205,7 @@ class TitleParseResult:
     edition_info: str = ""        # 판본 정보 (예: "[개정판]") - 파일명에 보존
     original_foreign_title: str = ""  # 원문 제목 (예: "我家娘子打江山" 또는 "末世：女人消耗的物资万倍返还")
     foreign_title_type: str = ""      # "sino_korean", "translation", "parallel", ""
+    has_space_before_foreign: bool = True  # 원문 제목 앞 공백 여부
     
     def to_normalized_filename(self, genre: str = "") -> str:
         """
@@ -213,7 +223,8 @@ class TitleParseResult:
         # 제목 및 원문 제목 조합
         title_str = self.title
         if self.original_foreign_title and self.original_foreign_title not in title_str:
-            title_str = f"{title_str} ({self.original_foreign_title})"
+            sep = " " if self.has_space_before_foreign else ""
+            title_str = f"{title_str}{sep}({self.original_foreign_title})"
             
         parts.append(title_str)
 
@@ -300,8 +311,8 @@ class TitleAnchorExtractor:
     # 판본/에디션 태그 (제거하되 장르로 추출하지 않음 - 제목에도 포함하지 않음)
     # 단, [개정판]처럼 TitleParseResult.volume_info에 메모하지 않음 (현재 구조상 단순 제거)
     EDITION_TAG_PATTERNS = [
-        r'\[(?:개정판|완전판|수정판|합본|특별판|무삭제판|개정증보판)\]',
-        r'\((?:개정판|완전판|수정판|합본|특별판|무삭제판|개정증보판)\)',
+        r'\[\s*(?:개정판|완전판|수정판|합본|특별판|무삭제판|개정증보판|19[Nn]|19禁)\s*\]',
+        r'\(\s*(?:개정판|완전판|수정판|합본|특별판|무삭제판|개정증보판|19[Nn]|19禁)\s*\)',
     ]
     
     # 성인 등급 태그 패턴 (제거 대상)
@@ -494,7 +505,8 @@ class TitleAnchorExtractor:
             original_genre=original_genre,
             edition_info=edition_info,
             original_foreign_title=original_foreign_title,
-            foreign_title_type=foreign_title_type
+            foreign_title_type=foreign_title_type,
+            has_space_before_foreign=foreign_info.get('has_space_before_foreign', True)
         )
     
     def _split_extension(self, filename: str) -> Tuple[str, str]:
@@ -541,7 +553,7 @@ class TitleAnchorExtractor:
             'AI번역', '기계번역', '손번역', '번역', '텍본', '소설', '웹소설',
             '패러디', '언정', '선협', '무협', '현판', '로판', '겜판', '판타지', '퓨판', 'SF', '역사', '스포츠', '공포', '미스터리', '밀리터리',
             '시스템', '연대', '사합원', '궁투', '빙의', '책빙의', '공간', '농촌', '말세', '종말',
-            '해리포터', '나루토', '원피스', '드래곤볼', '포켓몬', '코난', '명탐정 코난', '명탐정코난', '주술회전', '귀멸의 칼날'
+            '해리포터', '나루토', '원피스', '드래곤볼', '포켓몬스터', '포켓몬', '코난', '명탐정 코난', '명탐정코난', '주술회전', '귀멸의 칼날', '마블', 'DC'
         ]
         while True:
             prefix_bracket = re.match(r'^\s*\[([^\]]+)\]', name)
@@ -549,7 +561,7 @@ class TitleAnchorExtractor:
                 break
             bracket_content = prefix_bracket.group(1).strip()
             # 판본 태그인 경우 edition_match에서 별도 처리하도록 break
-            if re.match(r'^(?:개정판|완전판|수정판|합본|특별판|무삭제판|개정증보판)$', bracket_content):
+            if re.match(r'^(?:개정판|완전판|수정판|합본|특별판|무삭제판|개정증보판|19[Nn]|19禁)$', bracket_content):
                 break
             is_meta = any(kw in bracket_content for kw in META_TAG_KEYWORDS)
             if is_meta or ',' in bracket_content:

@@ -284,3 +284,53 @@ class TestAnnotationAndNormalization:
             normalized_task = self.normalizer.normalize(classified_task)
             assert normalized_task.metadata.get("normalized_name") == expected_normalized
 
+    def test_user_reported_cases(self):
+        """사용자가 보고한 4가지 오류 케이스 검증"""
+        test_cases = [
+            # Case 1: #패러디 #마블 해시태그 보존
+            (
+                "만위세계적맹왕 1-373 完 (AI번역) #패러디 #마블.txt",
+                "[패러디, 마블] 만위세계적맹왕 1-373 (완).txt",
+                "패러디, 마블"
+            ),
+            # Case 2: CJK 괄호 내 숫자/문장부호(중생54년) 원문 보존 및 공백 유지
+            (
+                "사합원 중생54년, 인거사주(四合院：重生54年，邻居傻柱) 1-668 완.txt",
+                "사합원 중생54년, 인거사주(四合院：重生54年，邻居傻柱) 1-668 (완).txt",
+                ""
+            ),
+            # Case 3: (19N) 에디션/등급 태그 순서 및 CJK 괄호 밀착 보존
+            (
+                "절세신기(绝世神器) (19N) 1-1053 완.txt",
+                "절세신기(绝世神器) (19N) 1-1053 (완).txt",
+                ""
+            ),
+            # Case 4: #패러디 #포켓몬스터 해시태그 보존
+            (
+                "저차부당훈련가료 1-698 完 (AI번역) #패러디 #포켓몬스터.txt",
+                "[패러디, 포켓몬스터] 저차부당훈련가료 1-698 (완).txt",
+                "패러디, 포켓몬스터"
+            ),
+        ]
+
+        for filename, expected_normalized, expected_genre in test_cases:
+            # 1. TitleAnchorExtractor 단독 정규화 검증
+            parse_res = self.title_extractor.extract(filename)
+            assert parse_res.to_normalized_filename() == expected_normalized, f"to_normalized_filename failed for {filename}"
+
+            # 2. FilenameNormalizerAdapter 파이프라인 정규화 검증
+            task = NovelTask(
+                original_path=Path(filename),
+                current_path=Path(filename),
+                raw_name=filename
+            )
+            task = self.normalizer.parse_only(task)
+            if expected_genre:
+                assert task.genre == expected_genre
+            preview = self.normalizer.preview_normalized_name(task)
+            assert preview == expected_normalized, f"preview_normalized_name failed for {filename}"
+
+            task = self.normalizer.normalize(task)
+            assert task.metadata.get("normalized_name") == expected_normalized, f"normalize failed for {filename}"
+
+

@@ -39,10 +39,14 @@ class TestForeignTitleParser:
         """해외 소설 정규화 파일명 생성 검증"""
         extractor = TitleAnchorExtractor()
 
-        # Case 1: Sino-Korean
+        # Case 1: Sino-Korean (공백 없는 원문 유지)
         res1 = extractor.extract("아가낭자타강산(我家娘子打江山) 1-300 (완).txt")
         normalized1 = res1.to_normalized_filename(genre="선협, 여주, 시스템")
-        assert normalized1 == "[선협, 여주, 시스템] 아가낭자타강산 (我家娘子打江山) 1-300 (완).txt"
+        assert normalized1 == "[선협, 여주, 시스템] 아가낭자타강산(我家娘子打江山) 1-300 (완).txt"
+
+        # Case 1-2: Sino-Korean (공백 있는 원문 유지)
+        res1_space = extractor.extract("아가낭자타강산 (我家娘子打江山) 1-300 (완).txt")
+        assert res1_space.to_normalized_filename(genre="선협, 여주, 시스템") == "[선협, 여주, 시스템] 아가낭자타강산 (我家娘子打江山) 1-300 (완).txt"
 
         # Case 2: Translation
         res2 = extractor.extract("말세: 여인이 소모한 물자는 만 배로 돌려받는다 (末世：女人消耗的物资万倍返还) 1-500 (완).txt")
@@ -71,4 +75,4 @@ class TestFilenameNormalizerWithForeignTitles:
         task.genre = "선협, 여주, 시스템"
         task = normalizer.normalize(task)
         result = task.metadata['normalized_name']
-        assert result == "[선협, 여주, 시스템] 아가낭자타강산 (我家娘子打江山) 1-300 (완).txt"
+        assert result == "[선협, 여주, 시스템] 아가낭자타강산(我家娘子打江山) 1-300 (완).txt"

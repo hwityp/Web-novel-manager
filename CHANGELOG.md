@@ -5,6 +5,28 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.35] - 2026-09-07
+
+### Fixed
+
+- **패러디 팬덤 해시태그 보존 개선 (`core/utils/novel_trait_extractor.py`, `core/title_anchor_extractor.py`):**
+  - `PARODY_FANDOM_MAP` 및 `TRAIT_PATTERNS`에 `마블`(어벤져스, 아이언맨, marvel), `포켓몬스터`, `DC`(배트맨, 슈퍼맨) 추가.
+  - 패러디 컨텍스트에서 첨언 해시태그(`hashtags`)의 토큰이 누락되지 않고 특징 키워드로 안전하게 보존되도록 개선.
+  - 결과: `#패러디 #마블` $\rightarrow$ `[패러디, 마블]`, `#패러디 #포켓몬스터` $\rightarrow$ `[패러디, 포켓몬스터]` 정상 정규화.
+- **CJK 원문 괄호 내 숫자/문장부호 허용 및 공백 보존 (`core/title_anchor_extractor.py`, `core/adapters/filename_normalizer_adapter.py`):**
+  - `parse_foreign_title_info`의 괄호 CJK 매칭식을 개선하여 내부에 아라비아 숫자(예: `54年`) 및 문장부호(`：`, `，`)가 포함되어도 원문 전체가 누락 없이 올바르게 추출되도록 수정.
+  - 원본 제목과 CJK 괄호 사이의 공백 여부(`has_space_before_foreign`)를 파싱 및 보존하여, 원본에 공백이 없는 경우 인위적인 공백 추가 없이 자연스럽게 밀착 유지.
+  - 결과: `인거사주(四合院：重生54年，邻居傻柱)` $\rightarrow$ `인거사주(四合院：重生54年，邻居傻柱)` 정상 정규화.
+- **성인 등급/에디션 태그 `(19N)` 보존 및 위치 순서 수정 (`core/title_anchor_extractor.py`):**
+  - `EDITION_TAG_PATTERNS`에 `19[Nn]` 및 `19禁` 추가.
+  - `(19N)`이 제목 내부로 혼입되지 않고 에디션/판본 정보(`edition_info`)로 분리되어 제목과 원문 CJK 제목 뒤, 회차 범위 앞에 올바른 순서로 배치되도록 수정.
+  - 결과: `절세신기(绝世神器) (19N) 1-1053 완.txt` $\rightarrow$ `절세신기(绝世神器) (19N) 1-1053 (완).txt` 정상 정규화.
+
+### Changed
+
+- **GUI 결과 목록(Treeview) 장르 컬럼 너비 확장 (`gui/main_window.py`):**
+  - 메인 결과 테이블의 "장르" 컬럼 기본 및 최소 너비를 기존 대비 3배인 360px로 확대하여(`width=360`, `minwidth=360`), 긴 복합 장르 및 태그 텍스트의 가독성 및 시인성을 개선.
+
 ## [v1.3.34] - 2026-09-07
 
 ### Fixed
