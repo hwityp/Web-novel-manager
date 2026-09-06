@@ -116,12 +116,14 @@ class FolderOrganizerAdapter:
         """파일에서 NovelTask 생성"""
         raw_name = file_path.stem  # 확장자 제외한 파일명
         
-        return NovelTask(
+        task = NovelTask(
             original_path=file_path,
             current_path=file_path,
             raw_name=raw_name,
             status="pending"
         )
+        task.metadata['original_raw_name'] = raw_name
+        return task
     
     def is_protected_folder(self, folder_path: Path) -> bool:
         """보호된 폴더인지 확인"""

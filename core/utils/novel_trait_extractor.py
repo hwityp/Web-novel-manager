@@ -84,9 +84,161 @@ TRAIT_PATTERNS: List[Tuple[str, List[str]]] = [
     ("요리", [r"요리", r"쉐프", r"셰프", r"식당", r"미식", r"美食", r"厨神"]),
 ]
 
+# 장르 별칭 및 정규화 매핑
+GENRE_ALIAS_MAP = {
+    "현대판타지": "현판", "현대 판타지": "현판", "현판": "현판",
+    "퓨전판타지": "퓨판", "퓨전 판타지": "퓨판", "퓨판": "퓨판",
+    "게임판타지": "겜판", "게임 판타지": "겜판", "겜판": "겜판",
+    "로맨스판타지": "로판", "로맨스 판타지": "로판", "로판": "로판",
+    "퓨전무협": "무협", "퓨전 무협": "무협", "신무협": "무협", "무협": "무협",
+    "판타지": "판타지", "선협": "선협", "언정": "언정", "스포츠": "스포츠",
+    "패러디": "패러디", "역사": "역사", "SF": "SF", "공포": "공포",
+    "미스터리": "미스터리", "밀리터리": "밀리터리", "현대": "현대", "소설": "소설"
+}
+
+# 첨언 노이즈 단어
+ANNOTATION_NOISE_WORDS = {
+    "ai번역", "ai 번역", "기계번역", "기계 번역", "손번역", "번역",
+    "txt", "텍본", "소설", "웹소설", "완결", "완", "完", "19금", "15금",
+    "개정판", "완전판", "합본", "스캔", "단행본", "텍스트", "연재", "련재"
+}
+
+# 패러디 대표 작품/소재 매핑
+PARODY_FANDOM_MAP = {
+    "해리포터": "해리포터", "호그와트": "해리포터",
+    "나루토": "나루토", "사스케": "나루토",
+    "원피스": "원피스", "루피": "원피스",
+    "드래곤볼": "드래곤볼", "손오공": "드래곤볼",
+    "포켓몬": "포켓몬", "피카츄": "포켓몬"
+}
+
 
 class NovelTraitExtractor:
     """소설 특징 키워드 추출기"""
+
+    @classmethod
+    def extract_from_annotations(cls, raw_name: str) -> Optional[str]:
+        """
+        파일명의 앞 접두사 태그([...]) 또는 뒤 첨언(#해시태그, (...))에서 장르 및 특성을 추출합니다.
+        웹 검색보다 우선하여 장르 태그(예: '패러디, 해리포터', '언정, 연대물', '패러디, 나루토, 시스템')를 확정합니다.
+        
+        예)
+        - '아도성곽격옥자교수료, 계통재래 1-267 完 (AI번역) #패러디 #해리포터.txt' -> '패러디, 해리포터'
+        - '[언정][AI번역] 중생낭자전 1~1466(완).txt' -> '언정'
+        - '[언정][AI번역][연대] 중생낭자재종전 1~1466(완).txt' -> '언정, 연대물'
+        - '[나루토패러디 시스템 AI번역] 푸른 용 1-633 완결.txt' -> '패러디, 나루토, 시스템'
+        """
+        if not raw_name:
+            return None
+
+        # 확장자 제거
+        name = re.sub(r'\.[a-zA-Z0-9]{1,10}$', '', raw_name).strip()
+
+        # 1. 태그/첨언 후보군 추출
+        # (1) 해시태그
+        hashtags = re.findall(r'#([가-힣a-zA-Z0-9_]+)', name)
+        
+        # (2) 대괄호 태그
+        brackets = re.findall(r'\[([^\]]+)\]', name)
+        
+        # (3) 소괄호 태그 (단순 숫자 범위나 '완' 단독 제외)
+        parens = re.findall(r'\(([^\)]+)\)', name)
+        valid_parens = []
+        for p in parens:
+            p_strip = p.strip()
+            if not re.match(r'^(?:\d+[\s\-~_]+\d+|\d+[화권부편회장]?|완결?|完|외전.*)$', p_strip):
+                valid_parens.append(p_strip)
+
+        candidate_sources = brackets + valid_parens + hashtags
+        if not candidate_sources:
+            return None
+
+        # 2. 토큰 분해 및 정리
+        tokens: List[str] = []
+        for source in candidate_sources:
+            parts = re.split(r'[,/\s]+', source)
+            for part in parts:
+                cleaned = part.strip()
+                if cleaned:
+                    tokens.append(cleaned)
+
+        primary_genre: Optional[str] = None
+        extracted_traits: List[str] = []
+
+        def add_trait(t: str):
+            if t and t not in extracted_traits:
+                extracted_traits.append(t)
+
+        for token in tokens:
+            token_lower = token.lower()
+            # 노이즈 단어 건너뛰기
+            if token_lower in ANNOTATION_NOISE_WORDS:
+                continue
+            if re.match(r'^(?:\d+.*|[Aa][Ii]번역|번역.*)$', token):
+                continue
+
+            # (A) 복합어 확인 1: ~패러디 (예: "나루토패러디" -> 주 장르: 패러디, 특성: 나루토)
+            if "패러디" in token and token != "패러디":
+                primary_genre = "패러디"
+                prefix = token.replace("패러디", "").strip()
+                if prefix:
+                    norm_prefix = PARODY_FANDOM_MAP.get(prefix, prefix)
+                    add_trait(norm_prefix)
+                continue
+
+            # (B) 복합어 확인 2: 주 장르 (예: 현대판타지, 퓨전판타지, 언정 등)
+            if token in GENRE_ALIAS_MAP:
+                if not primary_genre:
+                    primary_genre = GENRE_ALIAS_MAP[token]
+                continue
+
+            # (C) 팬덤 키워드인 경우 (해리포터, 나루토 등) -> 해당 팬덤 특성 추가
+            if token in PARODY_FANDOM_MAP:
+                add_trait(PARODY_FANDOM_MAP[token])
+                continue
+
+            # (D) 특성 패턴 매핑 (TRAIT_PATTERNS 순회)
+            matched_trait = None
+            for trait_name, patterns in TRAIT_PATTERNS:
+                for pat in patterns:
+                    if re.fullmatch(pat, token, re.IGNORECASE) or token == trait_name:
+                        matched_trait = trait_name
+                        break
+                if matched_trait:
+                    break
+
+            if matched_trait:
+                add_trait(matched_trait)
+            else:
+                # 특별 매핑: '연대' -> '연대물'
+                if token in ["연대", "연대물", "칠령", "팔령", "구령"]:
+                    add_trait("연대물")
+                elif len(token) >= 2 and not token.isdigit():
+                    # 만약 장르명이 내포되어 있다면
+                    for g_key, g_val in GENRE_ALIAS_MAP.items():
+                        if g_key in token:
+                            if not primary_genre:
+                                primary_genre = g_val
+                            break
+
+        # 만약 패러디 관련 특성이 있는데 primary_genre가 없다면 패러디로 설정
+        if not primary_genre:
+            for t in extracted_traits:
+                if t in PARODY_FANDOM_MAP.values():
+                    primary_genre = "패러디"
+                    break
+
+        # primary_genre가 식별되지 않았다면 None 반환 (웹 검색 등으로 위임)
+        if not primary_genre:
+            return None
+
+        # primary_genre와 중복되는 특성 제거
+        final_traits = [t for t in extracted_traits if t != primary_genre][:2]
+
+        return cls.format_genre_tag(
+            primary_genre=primary_genre,
+            existing_keywords=final_traits
+        )
 
     @staticmethod
     def parse_existing_tag(tag_str: str) -> Tuple[str, List[str]]:

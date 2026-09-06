@@ -191,37 +191,40 @@ class GenreClassifierAdapter:
                 print(f"  [기존 장르 유지] {task.genre} (API 검색 건너뜀)")
                 return task
             
-        # [최적화] 원본 파일명에 이미 장르 태그가 있는 경우 API 검색 건너뛰기
-        # 예: "[SF, 시스템] 제목..." -> [SF, 시스템] (API 절약)
-        import re
-        tag_match = re.search(r'^\[(.+?)\]', raw_text)
-        if tag_match:
-            potential_tag = tag_match.group(1).strip()
-            primary_genre, existing_kws = NovelTraitExtractor.parse_existing_tag(potential_tag)
+        # [첨언 우선 추출] 파일명의 앞 접두사([태그]) 또는 뒤 첨언(#해시태그 등)에서 장르 추출 (웹 검색보다 최우선)
+        # 예: '아도성곽격옥자교수료... #패러디 #해리포터.txt' -> [패러디, 해리포터]
+        # 예: '[언정][AI번역] 중생낭자전 1~1466(완).txt' -> [언정]
+        # 예: '[언정][AI번역][연대] 중생낭자재종전...' -> [언정, 연대물]
+        # 예: '[나루토패러디 시스템 AI번역] 푸른 용...' -> [패러디, 나루토, 시스템]
+        annotation_source_text = (
+            task.metadata.get('original_raw_name') or 
+            (task.original_path.stem if task.original_path else '') or 
+            task.raw_name or 
+            raw_text
+        )
+        annotation_genre = NovelTraitExtractor.extract_from_annotations(annotation_source_text)
+        if annotation_genre:
+            primary_genre, existing_kws = NovelTraitExtractor.parse_existing_tag(annotation_genre)
             mapped_genre = self.mapping_loader.map_genre(primary_genre)
-            
-            # 화이트리스트에 있는 유효한 장르인 경우만 확정
             if mapped_genre in GENRE_WHITELIST:
                 task.genre = NovelTraitExtractor.format_genre_tag(
                     primary_genre=mapped_genre,
-                    title=raw_text,
+                    title=task.title or raw_text,
                     existing_keywords=existing_kws
                 )
                 task.confidence = 'high'
-                task.source = 'tag' # 기존 태그
+                task.source = 'annotation'
                 task.status = 'processing'
                 
-                self.logger.debug(f"  [태그 감지] 원본 파일명에서 장르 확인: {task.genre}")
-                print(f"  [태그 감지] {task.genre} (API 검색 건너뜀)")
+                self.logger.debug(f"  [첨언 태그 감지] 파일명 첨언에서 장르 확정: {task.genre} (웹 검색 건너뜀)")
+                print(f"  [첨언 태그 감지] {task.genre} (웹 검색 건너뜀)")
                 
                 # 캐시에도 저장
-                if not task.title: # 순수 제목 추출 전일 수 있음
-                    parse_result = self.title_extractor.extract(raw_text)
+                pure_title = task.title
+                if not pure_title:
+                    parse_result = self.title_extractor.extract(annotation_source_text)
                     pure_title = parse_result.title if parse_result.title else raw_text
-                else:
-                    pure_title = task.title
-                    
-                self.cache.set(pure_title, task.genre, 'high', 'tag')
+                self.cache.set(pure_title, task.genre, 'high', 'annotation')
                 return task
         
         self.logger.debug(f"장르 분류 시작: {raw_text}")

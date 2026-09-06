@@ -5,6 +5,40 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.33] - 2026-09-07
+
+### Fixed
+
+- **파일명 정규화 오류 2건 수정 (`core/title_anchor_extractor.py`):**
+  - 후기 마커 완결 판정: `후기`, `에필`, `에필로그`, `후일담` 등 완결성 마커 감지 시 `is_completed = True`로 판정하여 `(완)` 자동 부여 (`나는 엑스트라를 원한다 1-320 + 후기.txt` $\rightarrow$ `나는 엑스트라를 원한다 1-320 (완) + 후기.txt`).
+  - 단일 숫자 + 본편 및 외전 분리: 단위 패턴 및 숫자 lookahead에 `본편`을 추가하고 복합 패턴 처리 개선 (`삼국지 유현덕의 천재아들 165본편 및 외전 (완).txt` $\rightarrow$ `삼국지 유현덕의 천재아들 1-165 (완) + 외전.txt`).
+- **파일명 정규화 선행 시 첨언 우선 장르 추론 보존 (`core/adapters/filename_normalizer_adapter.py`, `core/adapters/folder_organizer_adapter.py`, `core/adapters/genre_classifier_adapter.py`):**
+  - 파일명 정규화(Stage 1.5: `parse_only`) 시점에 `NovelTraitExtractor.extract_from_annotations()`를 선행 실행하여 첨언 장르(`task.genre`)를 즉시 확정 및 캐시에 보존.
+  - 정규화 미리보기(`preview_normalized_name`) 생성 시 확정된 장르 태그(`[장르]`)가 파일명에 바로 포함되도록 보장.
+  - `NovelTask` 생성 시점부터 `metadata['original_raw_name']`을 영구 보존하여 소스 폴더에 정규화된 파일명이 즉시 저장(rename)되더라도 이후 Stage 2 장르 추론에서 원본 첨언을 잃어버리지 않도록 개선.
+
+## [v1.3.32] - 2026-09-07
+
+### Added
+
+- **파일명 첨언(Annotation) 우선 장르/특성 추론 엔진 신설 (`core/utils/novel_trait_extractor.py`, `core/adapters/genre_classifier_adapter.py`):**
+  - 파일명의 접두사 대괄호 태그(`[...]`), 첨언 소괄호(`(...)`), 해시태그(`#...`)로부터 장르 및 세부 특성을 최우선으로 자동 파싱하는 `NovelTraitExtractor.extract_from_annotations()` 신설.
+  - 첨언에서 유효한 장르가 발견되면 외부 웹 검색 API(네이버/구글) 호출을 완전히 건너뛰고 즉시 확정(`confidence='high'`, `source='annotation'`)하여 네트워크 할당량 소진 방지 및 처리 속도 대폭 향상.
+  - 복합 태그 분해 지원: `[나루토패러디 시스템 AI번역]` $\rightarrow$ 주 장르: `패러디`, 특성: `나루토`, `시스템` $\rightarrow$ `[패러디, 나루토, 시스템]` 자동 정규화.
+  - 세부 특성 자동 정규화 매핑: `연대` $\rightarrow$ `연대물`, `해리포터`/`나루토` $\rightarrow$ 팬덤 특성, `시스템`, `사합원`, `궁투` 등.
+  - `AI번역`, `기계번역`, `손번역`, `txt`, `텍본` 등 번역 및 플랫폼 노이즈 자동 필터링.
+- **'패러디' 장르 표준 화이트리스트 및 매핑 규칙 교정 (`config/genre_mapping.json`):**
+  - 기존에 `패러디` 장르가 `판타지`로 잘못 다운그레이드 매핑되던 오류를 바로잡아, 표준 승인 장르인 `패러디`로 온전히 보존 및 화이트리스트 등록.
+
+### Fixed
+
+- **복합 완결+외전(`完外`) 표기 파일명 정규화 누락 오류 수정 (`core/title_anchor_extractor.py`):**
+  - `parse_foreign_title_info`에서 `完外`, `番外`, `全` 등 마커 한자 조합을 외국어 원제(original foreign title)로 오인식하여 제목 정리 시 삭제되던 문제를 `CJK_MARKER_CHARS` 검증 도입으로 원천 차단.
+  - `COMPLETION_PATTERNS` 및 `_parse_residual`에 `(?:完|완)[\s,]*\+?[\s,]*(?:外|외(?:전|포)?)` 복합 정규식을 적용하여 `궁투불여양조구 完外.txt` $\rightarrow$ `궁투불여양조구 (완) + 외전.txt`로 완결과 외전 정보가 동시에 완벽히 정규화되도록 조치.
+  - 해시태그(`#패러디`, `#해리포터` 등) 및 선행 메타 태그 브래킷을 순수 제목에서 깔끔히 제거하여 제목 훼손 방지.
+- **단위 및 회귀 테스트 스위트 확장 (`tests/test_annotation_and_normalization.py`):**
+  - 사용자 요구 5대 대표 예시 및 파이프라인 통합 정규화 검증을 포함한 6개 자동화 테스트 신설 (전체 122개 테스트 100% 통과 유지).
+
 ## [v1.3.31] - 2026-08-02
 
 ### Added

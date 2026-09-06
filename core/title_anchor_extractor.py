@@ -155,7 +155,9 @@ def parse_foreign_title_info(text: str) -> dict:
             korean_part = (text[:cjk_match.start()] + " " + text[cjk_match.end():]).strip()
             korean_part = re.sub(r'^\s*[-–—:]\s*|\s*[-–—:]\s*$', '', korean_part).strip()
 
-    if not cjk_title:
+    CJK_MARKER_CHARS = set("完外番全卷部編篇結終上下中0123456789一二三四五六七八九十백천만")
+
+    if not cjk_title or all(c in CJK_MARKER_CHARS or c.isspace() or c in "+-~,.:/[]()_·" for c in cjk_title):
         return result
 
     result['original_foreign_title'] = cjk_title
@@ -335,6 +337,7 @@ class TitleAnchorExtractor:
     
     # 완결 마커 패턴
     COMPLETION_PATTERNS = [
+        r'(?<!\S)(?:完|완)[\s,]*\+?[\s,]*(?:外|외(?:전|포)?)(?!\S)',  # 完外, 완+외전, 完+外 등 복합 마커
         r'\(\s*완결\s*\)',                  # (완결)
         r'\[\s*완결\s*\]',                  # [완결]
         r'\(\s*完\s*\)',                    # (完)
@@ -431,9 +434,9 @@ class TitleAnchorExtractor:
         )
         
         # [NEW] 단독 외전 패턴 (compile dynamically from SIDE_STORY_PATTERNS)
-        # 예: " 제목 ... 외전 1"
+        # 예: " 제목 ... 외전 1" 또는 "외전"
         self.standalone_side_pattern = re.compile(
-            r'\s+(' + '|'.join(self.SIDE_STORY_PATTERNS) + r')(?:\s*\d*[-~]?\d*)?(?:\s|$)',
+            r'(?:^|\s+)(' + '|'.join(self.SIDE_STORY_PATTERNS) + r')(?:\s*\d*[-~]?\d*)?(?:\s|$)',
             re.IGNORECASE
         )
         
@@ -444,7 +447,7 @@ class TitleAnchorExtractor:
         # [UPDATED] 뒤에 부/권 등의 단위가 오거나 완결 마커, 또는 외전/에필/번외 등, 또는 문자열 끝인 경우 매칭
         # 단, '회차가'처럼 단위 뒤에 다른 문자가 연달아 나오는 경우는 제외
         self.single_number_pattern = re.compile(
-            r'\s+(\d+)(?=\s*(?:完|완|\(완\)|\(完\)|\s*[화권부편회장](?:\s|$|完|완|\(완\)|\(完\))|\s*\d+\s*[화권부편회장](?:\s|$|完|완|\(완\)|\(완\))|\s*(?:에필|에필로그|외전|번외|특별편|番外|번외포함)|\s*$))'
+            r'\s+(\d+)(?=\s*(?:完|완|\(완\)|\(完\)|\s*(?:[화권부편회장]|본편)(?:\s|$|完|완|\(완\)|\(完\)|[,\(\[\+])|\s*\d+\s*(?:[화권부편회장]|본편)(?:\s|$|完|완|\(완\)|\(완\)|[,\(\[\+])|\s*(?:에필|에필로그|외전|번외|특별편|番外|번외포함|본편)|\s*$))'
         )
         
         # 저자 구분자 패턴 (제목 - 저자)
@@ -520,8 +523,43 @@ class TitleAnchorExtractor:
         genre = ""
         edition_info = ""
         
+        # [0] 첨언에서 장르 우선 추출 (해시태그, 대괄호 태그 등)
+        if not genre:
+            from core.utils.novel_trait_extractor import NovelTraitExtractor
+            extracted_g = NovelTraitExtractor.extract_from_annotations(name)
+            if extracted_g:
+                genre = extracted_g
+
+        # [0.1] 해시태그 패턴 제거 (#패러디, #해리포터 등)
+        name = re.sub(r'#[가-힣a-zA-Z0-9_]+', '', name)
+
         # 노이즈 패턴 제거
         name = self.noise_pattern.sub('', name)
+
+        # [0.5] 선행 연속 대괄호 메타데이터 태그 감지 및 제거 ([언정][AI번역][연대], [나루토패러디 시스템 AI번역] 등)
+        META_TAG_KEYWORDS = [
+            'AI번역', '기계번역', '손번역', '번역', '텍본', '소설', '웹소설',
+            '패러디', '언정', '선협', '무협', '현판', '로판', '겜판', '판타지', '퓨판', 'SF', '역사', '스포츠', '공포', '미스터리', '밀리터리',
+            '시스템', '연대', '사합원', '궁투', '빙의', '책빙의', '공간', '농촌', '말세', '종말', '해리포터', '나루토', '원피스', '드래곤볼'
+        ]
+        while True:
+            prefix_bracket = re.match(r'^\s*\[([^\]]+)\]', name)
+            if not prefix_bracket:
+                break
+            bracket_content = prefix_bracket.group(1).strip()
+            # 판본 태그인 경우 edition_match에서 별도 처리하도록 break
+            if re.match(r'^(?:개정판|완전판|수정판|합본|특별판|무삭제판|개정증보판)$', bracket_content):
+                break
+            is_meta = any(kw in bracket_content for kw in META_TAG_KEYWORDS)
+            if is_meta or ',' in bracket_content:
+                if not genre:
+                    from core.utils.novel_trait_extractor import NovelTraitExtractor
+                    extracted_g = NovelTraitExtractor.extract_from_annotations(prefix_bracket.group(0))
+                    if extracted_g:
+                        genre = extracted_g
+                name = name[prefix_bracket.end():].lstrip()
+            else:
+                break
 
         # [1] 장르+번역 복합 태그 처리 (최우선)
         # 예: [현대 판타지 AI번역] → 장르='현판', 태그 제거
@@ -633,8 +671,8 @@ class TitleAnchorExtractor:
         # (패턴 객체, 우선순위 설명)
         candidates = []
         
-        # 1. 단위 패턴 (1화, 50권, 1부 등)
-        unit_match = re.search(r'(?:[\s_]|(?<=[.!?？!！]))\s*\d+\s*[화권부편회장](?:\s|$)', name)
+        # 1. 단위 패턴 (1화, 50권, 1부, 165본편 등)
+        unit_match = re.search(r'(?:[\s_]|(?<=[.!?？!！]))\s*\d+\s*(?:[화권부편회장]|본편)(?:\s|$|[,\(\[\+])', name)
         if unit_match:
             candidates.append(unit_match)
             
@@ -747,22 +785,24 @@ class TitleAnchorExtractor:
         # 0. "1-324본편" 같은 붙어있는 패턴 분리
         residual = re.sub(r'(\d+)(본편)', r'\1 \2', residual)
         
-        # 1. "본편 및 외전 完" 패턴 처리 (완결 패턴보다 먼저!)
-        if re.search(r'본편\s*및\s*외전\s*完', residual):
+        # 1. "본편 및 외전" (+完/(완) 유무 무관) 패턴 처리 (완결 패턴보다 먼저!)
+        match_bon = re.search(r'본편\s*및\s*외전(?:\s*[\(\[]?\s*(?:完|완(?:결)?)\s*[\)\]]?)?', residual)
+        if match_bon:
             is_completed = True
-            side_story_parts.append("외전")
-            residual = re.sub(r'본편\s*및\s*외전\s*完[,\s]*', '', residual)
+            if "외전" not in side_story_parts:
+                side_story_parts.append("외전")
+            residual = residual[:match_bon.start()] + " " + residual[match_bon.end():]
         
-        # 1.5 "완+외" / "完+外" 패턴 처리 [NEW]
+        # 1.5 "완+외" / "完+外" / "完外" 패턴 처리 [NEW]
         elif re.search(r'(?:完|완)[\s,]*\+?[\s,]*(?:外|외(?:전|포)?)', residual):
             is_completed = True
-            residual = re.sub(r'(?:完|완)[\s,]*\+?[\s,]*(?:外|외(?:전|포)?)(?!\S)', '외전 ', residual)
+            residual = re.sub(r'(?:完|완)[\s,]*\+?[\s,]*(?:外|외(?:전|포)?)(?!\S)?', ' 외전 ', residual)
 
-
-        # 2. "본편 및 외전" 패턴 처리 (完 없는 경우)
+        # 2. "본편 및 외전" 패턴 처리 (위에서 안 걸린 변형 대응)
         elif re.search(r'본편\s*및\s*외전', residual):
             is_completed = True
-            side_story_parts.append("외전")
+            if "외전" not in side_story_parts:
+                side_story_parts.append("외전")
             residual = re.sub(r'본편\s*및\s*외전[,\s]*', '', residual)
         
         # 3. 완결 여부 확인 (위에서 처리 안 된 경우)
@@ -782,11 +822,15 @@ class TitleAnchorExtractor:
         
         # 4. "후기 포함" 패턴 처리
         if re.search(r'후기\s*포함', residual):
+            if not is_ongoing:
+                is_completed = True
             side_story_parts.append("후기")
             residual = re.sub(r'[,\s]*후기\s*포함', '', residual)
         
         # 5. 단독 "후기" 패턴 처리 (포함 없이 단독으로 있는 경우)
         elif re.search(r'\s+후기(?:\s|$)', residual):
+            if not is_ongoing:
+                is_completed = True
             if "후기" not in side_story_parts:
                 side_story_parts.append("후기")
             residual = re.sub(r'\s+후기(?:\s|$)', ' ', residual)
@@ -826,6 +870,11 @@ class TitleAnchorExtractor:
             if side_text and side_text not in side_story_parts:
                 side_story_parts.append(side_text)
             residual = residual[:side_match.start()] + " " + residual[side_match.end():]
+        
+        # 7.5 후기/에필 등 완결성 마커가 부가 정보에 포함되어 있으면 완결 확정
+        if not is_completed and not is_ongoing:
+            if any(k in part for part in side_story_parts for k in ['후기', '에필', '후일담']):
+                is_completed = True
         
         # Standard Volume/Range Parsing (Skip if complex pattern was found)
         if not complex_found:

@@ -57,6 +57,36 @@ class FilenameNormalizerAdapter:
             메타데이터(title, author 등)가 채워진 NovelTask
         """
         try:
+            # [Fix] 원본 첨언에서 장르 최우선 추출 및 영구 보존
+            source_for_annotation = (
+                task.metadata.get('original_raw_name') or 
+                (task.original_path.stem if task.original_path else '') or 
+                task.raw_name
+            )
+            if not task.metadata.get('original_raw_name'):
+                task.metadata['original_raw_name'] = source_for_annotation
+
+            from core.utils.novel_trait_extractor import NovelTraitExtractor
+            if not task.genre or task.genre == '미분류':
+                extracted_g = NovelTraitExtractor.extract_from_annotations(source_for_annotation)
+                if extracted_g:
+                    task.genre = extracted_g
+                    task.confidence = 'high'
+                    task.source = 'annotation'
+                    
+                    # 캐시에도 보존
+                    try:
+                        from core.utils.genre_cache import get_genre_cache
+                        cache = get_genre_cache()
+                        pure_title = task.title
+                        if not pure_title:
+                            parse_res = self._extractor.extract(source_for_annotation)
+                            pure_title = parse_res.title
+                        if pure_title:
+                            cache.set(pure_title, task.genre, 'high', 'annotation')
+                    except Exception:
+                        pass
+
             # 제목 앵커 추출 (이미 title이 있으면 건너뜀)
             if not task.title:
                 parse_result = self._extractor.extract(task.raw_name)
@@ -68,9 +98,15 @@ class FilenameNormalizerAdapter:
                 task.side_story = parse_result.side_story or task.side_story
                 task.edition_info = parse_result.edition_info or task.edition_info
                 
-                # [Fix] 원본 장르 보존
+                # 원본 한자/가나 제목 보존
+                if parse_result.original_foreign_title:
+                    task.metadata['original_foreign_title'] = parse_result.original_foreign_title
+                
+                # [Fix] 원본 장르 보존 (추출된 장르가 없을 경우 파싱 결과의 original_genre 반영)
                 if not task.genre and parse_result.original_genre:
                     task.genre = parse_result.original_genre
+                    task.confidence = 'high'
+                    task.source = 'annotation'
                     
                 self.logger.debug(f"메타데이터 추출 완료: {task.raw_name} -> {task.title}")
         except Exception as e:
