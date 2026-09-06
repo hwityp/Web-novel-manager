@@ -1,12 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Tooltip Manager
-
-비차단(Non-blocking) 툴팁 시스템을 제공합니다.
-마우스 호버 시 지연 후 툴팁을 표시하고, 마우스가 떠나면 숨깁니다.
-
-Validates: Requirements 6.2, 6.3, 6.5
+==============================================================================
+파일: gui/utils/tooltip_manager.py
+역할 및 목적:
+    GUI 버튼 및 옵션 위젯에 대한 비차단(Non-blocking) 도움말 툴팁 제공 모듈.
+    마우스 진입/이탈 이벤트에 따라 지연 시간 후 팝업 및 자동 소멸 기능을 구현합니다.
+주요 구성 요소:
+    - TooltipManager: 툴팁 이벤트 바인딩 및 표시 클래스
+    - create_tooltip(): 단일 위젯에 툴팁을 부착하는 편의 함수
+상호 연관 관계 및 의존성:
+    - Caller: gui.main_window.MainWindow
+    - Callee: tkinter
+수정 시 주의사항:
+    - 툴팁 창이 화면 경계를 벗어나지 않도록 위치 계산을 유지해야 합니다.
+==============================================================================
 """
 import tkinter as tk
 from typing import Optional

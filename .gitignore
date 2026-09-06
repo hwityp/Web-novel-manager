@@ -60,4 +60,5 @@ Thumbs.db
 mapping*.csv
 .env
 _cleanup_temp/
+No_use/
 

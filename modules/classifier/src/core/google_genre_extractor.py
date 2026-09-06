@@ -116,8 +116,10 @@ class GoogleGenreExtractor:
                 # [Logic Restoration] 소설넷(ssn.so) 필터링 강화
                 if 'ssn.so' in link:
                     if any(x in link for x in ['/profile/', '/author/', '/notifications/', '/comments/']):
+                        self.logger.debug(f"Skipping NovelNet invalid page (profile/author/etc): {link}")
                         continue
                     if '/novel/' not in link:
+                        self.logger.debug(f"Skipping NovelNet non-novel page: {link}")
                         continue
                 
                 # 1차: 스니펫 분석
@@ -151,10 +153,13 @@ class GoogleGenreExtractor:
             # 점수가 높을수록(많이 발견될수록) 신뢰도 상승
             confidence = 0.6 + (min(score, 5) * 0.07)
             
+            combined_snippets = " ".join([f"{item.get('title', '')} {item.get('snippet', '')}" for item in items])
+            
             return {
                 'genre': best_genre,
                 'confidence': min(confidence, 0.95),
-                'source': 'Google_Scraping'
+                'source': 'Google_Scraping',
+                'snippet': combined_snippets
             }
             
         except Exception as e:

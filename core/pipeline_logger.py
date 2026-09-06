@@ -1,10 +1,21 @@
 """
-PipelineLogger 로깅 모듈
-
-파이프라인 실행 중 발생하는 모든 이벤트를 기록합니다.
-콘솔과 파일 출력을 동시에 지원하며, 로그 파일 로테이션을 제공합니다.
-
-Validates: Requirements 9.1, 9.3, 9.4, 9.5
+==============================================================================
+파일: core/pipeline_logger.py
+역할 및 목적:
+    WNAP 시스템 전역의 통합 로깅 관리 모듈 (`PipelineLogger`).
+    콘솔(stdout) 출력과 파일(`logs/wnap.log`, 일자별 로그) 출력을 동시에 지원하며,
+    UTF-8 인코딩 보장 및 10MB 단위 자동 로테이션(RotatingFileHandler)을 제공합니다.
+주요 구성 요소:
+    - PipelineLogger: 로거 인스턴스 래퍼 클래스
+    - get_logger(): 싱글톤 로거 인스턴스 반환 함수
+    - log_task(): NovelTask 단위의 정형화된 처리 결과 로깅 함수
+상호 연관 관계 및 의존성:
+    - Caller: core.pipeline_orchestrator, core.adapters.*, gui.main_window, main.py
+    - Callee: logging, logging.handlers.RotatingFileHandler
+수정 시 주의사항:
+    - Windows 환경 콘솔 인코딩 깨짐을 방지하기 위해 stdout utf-8 스트림 핸들러를 유지해야 합니다.
+    - GUI에서 로그를 가로채어 UI 텍스트창에 출력할 수 있도록 커스텀 핸들러 연결이 가능해야 합니다.
+==============================================================================
 """
 import logging
 import sys

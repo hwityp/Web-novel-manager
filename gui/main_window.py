@@ -1,21 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-WNAP GUI Main Window - Professional Edition v2
-
-Web Novel Archive Pipeline의 메인 GUI 윈도우입니다.
-customtkinter를 사용하여 프로페셔널한 UI를 제공합니다.
-
-v2 변경사항:
-- 로그 텍스트박스 제거, 파일 로깅으로 전환
-- 고대비 테마 적용 (배경 #2b2b2b, 텍스트 #FFFFFF)
-- Treeview 확장 레이아웃
-- 더블클릭 폴더 열기
-- 동적 프로그레스 바 색상
-- 도움말 툴팁 시스템
-- 윈도우 상태 저장/복원
-
-Validates: Requirements 1, 2, 3, 4, 5, 6, 7
+==============================================================================
+파일: gui/main_window.py
+역할 및 목적:
+    WNAP Manager 애플리케이션의 메인 사용자 인터페이스(GUI).
+    CustomTkinter 기반의 다크 테마 GUI로, 소스 폴더 선택, 옵션 설정(dry-run, 안전모드 등),
+    파이프라인 실행 제어(시작/일시정지/취소), 실시간 진행률(Progress Bar) 표시,
+    처리 결과 목록(Treeview) 시각화 및 수동 장르 확인 대화상자 인터랙션을 제공합니다.
+주요 구성 요소:
+    - MainWindow: 메인 윈도우 클래스
+    - _run_pipeline_thread(): 백그라운드 스레드에서 PipelineOrchestrator 구동
+    - _update_progress(), _update_treeview(): UI 스레드 안전 갱신
+상호 연관 관계 및 의존성:
+    - Caller: main.py
+    - Callee: core.pipeline_orchestrator.PipelineOrchestrator, core.pipeline_logger.PipelineLogger,
+              gui.genre_confirm_dialog.show_genre_confirm_dialog, gui.utils.*, config.pipeline_config
+수정 시 주의사항:
+    - 파이프라인 처리는 긴 I/O 작업이므로 반드시 백그라운드 워커 스레드에서 실행하고, UI 갱신은 큐 또는 `root.after()`를 통해야 스레드 경합(Freeze)이 발생하지 않습니다.
+==============================================================================
 """
 import customtkinter as ctk
 from tkinter import filedialog, messagebox

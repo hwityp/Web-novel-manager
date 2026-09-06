@@ -1,22 +1,32 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-WNAP EXE 빌드 스크립트
-
-PyInstaller를 사용하여 WNAP를 단일 실행 파일로 패키징합니다.
-
-사용법:
-    python build_exe.py
-
-옵션:
-    --debug: 콘솔 창 표시 (디버깅용)
-    --clean: 빌드 전 dist/build 폴더 정리
+==============================================================================
+파일: build_exe.py
+역할 및 목적:
+    PyInstaller를 사용하여 WNAP 애플리케이션을 단일 독립 실행형 Windows 실행 파일(.exe)로 패키징.
+    버전 정보(`core.version`), 필수 리소스(아이콘, 바이너리 7z/unrar, config, selectors 등)를 자동 수집하고 번들링합니다.
+주요 구성 요소:
+    - build_exe(): PyInstaller 명령어 생성 및 빌드 프로세스 실행
+    - clean_build_artifacts(): 이전 build/dist 산출물 정리
+상호 연관 관계 및 의존성:
+    - Caller: 개발자 또는 릴리스 자동화 스크립트
+    - Callee: core.version.__version__, PyInstaller CLI
+수정 시 주의사항:
+    - 새 데이터 파일이나 외부 바이너리가 추가될 경우 add-data 목록에 반드시 추가해야 패키징 후 실행 시 파일 누락이 발생하지 않습니다.
+==============================================================================
 """
 import subprocess
 import sys
 import shutil
 from pathlib import Path
 import argparse
+
+if sys.platform == 'win32':
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    if hasattr(sys.stderr, 'reconfigure'):
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
 # 버전 정보는 core/version.py에서 중앙 관리
 try:
@@ -106,6 +116,7 @@ def build_exe(debug: bool = False):
         '--hidden-import', 'core.utils.genre_mapping',
         '--hidden-import', 'core.utils.genre_cache',
         '--hidden-import', 'core.utils.similarity',
+        '--hidden-import', 'core.utils.novel_trait_extractor',
         '--hidden-import', 'PIL._tkinter_finder',
         '--hidden-import', 'dotenv',
     ]

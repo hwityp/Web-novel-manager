@@ -1,10 +1,19 @@
 """
-Genre Cache
-
-검색 결과를 캐싱하여 동일 제목에 대한 반복 검색을 방지합니다.
-성능 향상을 위해 캐시를 최우선으로 확인합니다.
-
-Validates: Requirements 9.1, 9.2, 9.4
+==============================================================================
+파일: core/utils/genre_cache.py
+역할 및 목적:
+    장르 분류 검색 결과를 로컬 JSON(`config/genre_cache.json`)에 영구 저장/캐싱하는 모듈.
+    동일하거나 유사한 제목에 대한 중복 웹 검색 및 외부 API 호출을 차단(Cache-First 원칙)하여 처리 속도를 극대화합니다.
+주요 구성 요소:
+    - GenreCache: 캐시 조회/저장/디스크 플러시 관리 클래스
+    - get_genre_cache(): 싱글톤 캐시 인스턴스 반환 함수
+    - get(), set(), save(): 캐시 엔트리 CRUD 메서드
+상호 연관 관계 및 의존성:
+    - Caller: core.adapters.genre_classifier_adapter
+    - Callee: config/genre_cache.json
+수정 시 주의사항:
+    - 쓰기 작업 시 파일 손상을 방지하기 위해 임시 파일 기록 후 원자적 교체(atomic replace) 방식을 유지해야 합니다.
+==============================================================================
 """
 import sys
 import json

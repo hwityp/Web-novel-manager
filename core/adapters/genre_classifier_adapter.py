@@ -1,11 +1,29 @@
 """
-Search-First Genre Classifier Adapter
-
-검색 엔진 중심의 장르 분류 어댑터입니다.
-캐시 → 인터넷 검색 → 키워드 폴백 순서로 분류를 수행합니다.
-
-Validates: Requirements 1.1, 2.1, 2.2, 2.3, 3.1, 3.2, 3.3, 4.1, 4.2, 5.1, 5.2, 5.3
-Validates: Requirements 7.1, 7.2, 7.3, 8.1, 8.2, 8.3, 8.4
+==============================================================================
+파일: core/adapters/genre_classifier_adapter.py
+역할 및 목적:
+    파이프라인 Stage 2를 담당하는 Search-First 장르 분류 어댑터 (`GenreClassifierAdapter`).
+    캐시(Cache-First) → 웹 검색(Naver/Google Search-First) → 플랫폼 가중치 및 제목 유사도 검증
+    → 키워드 사전 폴백(Fallback)의 엄격한 4단계 계층 구조를 거쳐 소설의 장르를 판정합니다.
+    소설 특성 추출기(`NovelTraitExtractor`)와 결합하여 세부 태그(예: [언정, 궁투, 빙의])를 합성합니다.
+주요 구성 요소:
+    - GenreClassifierAdapter: 장르 분류 총괄 어댑터 클래스
+    - classify(): 단일 NovelTask에 대한 장르 추론 및 task.genre 필드 확정
+    - _search_and_extract(): NaverGenreExtractorV4 / GoogleGenreExtractor 연동 검색 실행
+    - _classify_by_keywords(): 검색 실패 시 최종 로컬 키워드 폴백
+상호 연관 관계 및 의존성:
+    - Caller: core.pipeline_orchestrator.PipelineOrchestrator, scripts.*
+    - Callee: modules.classifier.src.core.naver_genre_extractor_v4.NaverGenreExtractorV4,
+              modules.classifier.src.core.google_genre_extractor.GoogleGenreExtractor,
+              modules.classifier.src.core.genre_classifier.GenreClassifier,
+              modules.classifier.api_config_manager.APIConfigManager,
+              core.title_anchor_extractor.TitleAnchorExtractor,
+              core.utils.genre_cache.GenreCache, core.utils.genre_mapping.GenreMappingLoader,
+              core.utils.similarity.TitleSimilarityChecker, core.utils.novel_trait_extractor
+수정 시 주의사항:
+    - 웹 검색 전에 반드시 캐시와 화이트리스트 검증을 거쳐 불필요한 네트워크 API 호출 및 할당량 소진을 방지해야 합니다.
+    - 검색 결과 제목과 원본 제목 간 유사도가 임계치(0.6 등) 미만일 경우 오분류를 방지하기 위해 기각해야 합니다.
+==============================================================================
 """
 import sys
 import json
@@ -80,19 +98,22 @@ class GenreClassifierAdapter:
                 if p not in sys.path:
                     sys.path.insert(0, p)
             
-            # NaverGenreExtractorV4 초기화 (실제 웹 검색)
+            # APIConfigManager 초기화
+            from modules.classifier.api_config_manager import APIConfigManager
+            api_manager = APIConfigManager()
+            naver_conf = api_manager.load_config()
+
+            # NaverGenreExtractorV4 초기화 (실제 웹/API 검색)
             from modules.classifier.src.core.naver_genre_extractor_v4 import NaverGenreExtractorV4
-            self._naver_extractor = NaverGenreExtractorV4()
+            self._naver_extractor = NaverGenreExtractorV4(naver_api_config=naver_conf)
             self._naver_extractor.set_logger(self.logger) # 로거 주입 (터미널+파일 로그 동기화)
             self.logger.debug("NaverGenreExtractorV4 초기화 완료")
 
             # GoogleGenreExtractor 초기화 (Fallback)
             try:
                 from modules.classifier.src.core.google_genre_extractor import GoogleGenreExtractor
-                from modules.classifier.api_config_manager import APIConfigManager
                 
                 # APIConfigManager를 통해 키 로드 (Hybrid Security: Env -> Encrypted)
-                api_manager = APIConfigManager()
                 google_conf = api_manager.load_google_config()
                 
                 if google_conf:
@@ -112,7 +133,7 @@ class GenreClassifierAdapter:
                 self._google_extractor = None
             
             # 키워드 분류기 초기화
-            from genre_classifier import GenreClassifier
+            from modules.classifier.src.core.genre_classifier import GenreClassifier
             self._keyword_classifier = GenreClassifier(use_db=False)
             self.logger.debug("GenreClassifier 초기화 완료")
             
@@ -145,14 +166,20 @@ class GenreClassifierAdapter:
             task.status = 'processing'
             return task
             
+        from core.utils.novel_trait_extractor import NovelTraitExtractor
+
         # [Fix] 이미 유효한 장르가 설정되어 있는 경우 (예: 파일명 태그 추출 결과)
         # 검색이나 추가 추론 없이 기존 장르 유지
         if task.genre and task.genre != '미분류':
-            # 매핑 로더를 통해 표준 장르명으로 변환 (안전장치)
-            mapped_genre = self.mapping_loader.map_genre(task.genre)
+            primary_genre, existing_kws = NovelTraitExtractor.parse_existing_tag(task.genre)
+            mapped_genre = self.mapping_loader.map_genre(primary_genre)
             
             if mapped_genre in GENRE_WHITELIST:
-                task.genre = mapped_genre
+                task.genre = NovelTraitExtractor.format_genre_tag(
+                    primary_genre=mapped_genre,
+                    title=task.title or raw_text,
+                    existing_keywords=existing_kws
+                )
                 # confidence가 설정되어 있지 않다면 high로 설정
                 if not task.confidence or task.confidence == 'low':
                     task.confidence = 'high'
@@ -165,22 +192,27 @@ class GenreClassifierAdapter:
                 return task
             
         # [최적화] 원본 파일명에 이미 장르 태그가 있는 경우 API 검색 건너뛰기
-        # 예: "[선협] 제목..." -> 선협 (API 절약)
+        # 예: "[SF, 시스템] 제목..." -> [SF, 시스템] (API 절약)
         import re
         tag_match = re.search(r'^\[(.+?)\]', raw_text)
         if tag_match:
-            potential_genre = tag_match.group(1).strip()
-            # 매핑 로더를 통해 표준 장르명으로 변환
-            mapped_genre = self.mapping_loader.map_genre(potential_genre)
+            potential_tag = tag_match.group(1).strip()
+            primary_genre, existing_kws = NovelTraitExtractor.parse_existing_tag(potential_tag)
+            mapped_genre = self.mapping_loader.map_genre(primary_genre)
+            
             # 화이트리스트에 있는 유효한 장르인 경우만 확정
             if mapped_genre in GENRE_WHITELIST:
-                task.genre = mapped_genre
+                task.genre = NovelTraitExtractor.format_genre_tag(
+                    primary_genre=mapped_genre,
+                    title=raw_text,
+                    existing_keywords=existing_kws
+                )
                 task.confidence = 'high'
                 task.source = 'tag' # 기존 태그
                 task.status = 'processing'
                 
-                self.logger.debug(f"  [태그 감지] 원본 파일명에서 장르 확인: {mapped_genre}")
-                print(f"  [태그 감지] {mapped_genre} (API 검색 건너뜀)")
+                self.logger.debug(f"  [태그 감지] 원본 파일명에서 장르 확인: {task.genre}")
+                print(f"  [태그 감지] {task.genre} (API 검색 건너뜀)")
                 
                 # 캐시에도 저장
                 if not task.title: # 순수 제목 추출 전일 수 있음
@@ -189,7 +221,7 @@ class GenreClassifierAdapter:
                 else:
                     pure_title = task.title
                     
-                self.cache.set(pure_title, mapped_genre, 'high', 'tag')
+                self.cache.set(pure_title, task.genre, 'high', 'tag')
                 return task
         
         self.logger.debug(f"장르 분류 시작: {raw_text}")
@@ -227,31 +259,39 @@ class GenreClassifierAdapter:
             task.genre = cached['genre']
             task.confidence = cached['confidence']
             task.source = self._format_source(cached.get('source', 'cache'))
-            task.source = self._format_source(cached.get('source', 'cache'))
             task.status = 'processing'
             self.logger.debug(f"  [결과] {task.genre} (confidence: {task.confidence}, source: cache)")
             print(f"  [결과] {task.genre} (confidence: {task.confidence}, source: cache)")
             return task
         
         # Step 3: Stage 1 - 인터넷 검색 (Search-First) - NaverGenreExtractorV4 직접 사용
-        search_result = self._search_genre(pure_title, author)
+        search_result = self._search_genre(pure_title, author, parse_result.original_foreign_title)
         
         if search_result and search_result.get('genre') and search_result.get('genre') != '미분류':
             genre = search_result['genre']
             
             # 장르 매핑 적용
-            mapped_genre = self.mapping_loader.map_genre(genre)
+            mapped_genre = self.mapping_loader.map_genre(genre, pure_title, raw_text)
             
             # 화이트리스트 검증
             if mapped_genre in GENRE_WHITELIST:
-                task.genre = mapped_genre
+                web_snippet = search_result.get('snippet', '')
+                web_tags = search_result.get('tags', [])
+                
+                # 메인 장르 + 특징 키워드 조합 (최대 3개 항목)
+                task.genre = NovelTraitExtractor.format_genre_tag(
+                    primary_genre=mapped_genre,
+                    title=raw_text,
+                    web_snippet=web_snippet,
+                    web_tags=web_tags
+                )
                 task.confidence = 'high'  # 검색 성공 = high
                 task.status = 'processing'
                 
                 # 캐시에 저장
                 source = search_result.get('source', 'search')
                 task.source = self._format_source(source)
-                self.cache.set(pure_title, mapped_genre, 'high', source)
+                self.cache.set(pure_title, task.genre, 'high', source)
                 
                 self.logger.debug(f"  [결과] {task.genre} (confidence: {task.confidence}, source: {source})")
                 print(f"  [결과] {task.genre} (confidence: {task.confidence}, source: {source})")
@@ -260,20 +300,29 @@ class GenreClassifierAdapter:
         # Step 4: Stage 3 - 키워드 폴백 (검색 실패 시에만)
         self.logger.debug(f"  [폴백] 검색 실패, 키워드 매칭 시도")
         print(f"  [폴백] 검색 실패, 키워드 매칭 시도")
-        keyword_result = self._keyword_fallback(pure_title)
+        keyword_result = self._keyword_fallback(pure_title, raw_text)
         
         if keyword_result and keyword_result.get('genre') != '미분류':
-            task.genre = keyword_result['genre']
-            task.confidence = 'medium'  # 키워드 매칭 = medium
-            task.source = '키워드'
-            task.status = 'processing'
-            
-            # 캐시에 저장
-            self.cache.set(pure_title, task.genre, 'medium', 'keyword')
-            
-            self.logger.debug(f"  [결과] {task.genre} (confidence: {task.confidence}, source: keyword)")
-            print(f"  [결과] {task.genre} (confidence: {task.confidence}, source: keyword)")
-            return task
+            genre = keyword_result['genre']
+            mapped_genre = self.mapping_loader.map_genre(genre, pure_title, raw_text)
+            if mapped_genre not in GENRE_WHITELIST:
+                mapped_genre = '미분류'
+                
+            if mapped_genre != '미분류':
+                task.genre = NovelTraitExtractor.format_genre_tag(
+                    primary_genre=mapped_genre,
+                    title=raw_text
+                )
+                task.confidence = 'medium'  # 키워드 매칭 = medium
+                task.source = '키워드'
+                task.status = 'processing'
+                
+                # 캐시에 저장
+                self.cache.set(pure_title, task.genre, 'medium', 'keyword')
+                
+                self.logger.debug(f"  [결과] {task.genre} (confidence: {task.confidence}, source: keyword)")
+                print(f"  [결과] {task.genre} (confidence: {task.confidence}, source: keyword)")
+                return task
         
         # Step 5: 모든 방법 실패
         task.genre = '미분류'
@@ -285,7 +334,7 @@ class GenreClassifierAdapter:
         print(f"  [결과] {task.genre} (confidence: {task.confidence}, source: none)")
         return task
     
-    def _search_genre(self, title: str, author: Optional[str] = None) -> Optional[Dict]:
+    def _search_genre(self, title: str, author: Optional[str] = None, original_foreign_title: str = "") -> Optional[Dict]:
         """
         Stage 1: 인터넷 검색으로 장르 추출 (NaverGenreExtractorV4 직접 사용)
         
@@ -296,6 +345,7 @@ class GenreClassifierAdapter:
         Args:
             title: 순수 제목
             author: 저자명 (선택)
+            original_foreign_title: 원문 한자/가나 제목 (선택)
             
         Returns:
             {'genre': str, 'confidence': float, 'source': str} 또는 None
@@ -311,6 +361,13 @@ class GenreClassifierAdapter:
             # NaverGenreExtractorV4로 실제 웹 검색 수행
             result = self._naver_extractor.extract_genre_from_title(search_title)
             
+            # 검색 실패이고 원문 한자 제목이 있으면 원문 제목으로 재검색
+            if (not result or not result.get('genre') or result.get('genre') == '미분류') and original_foreign_title:
+                self.logger.debug(f"한글 제목 검색 실패, 원문 한자 제목으로 검색 시도: {original_foreign_title}")
+                result = self._naver_extractor.extract_genre_from_title(f"{title} {original_foreign_title}")
+                if not result or not result.get('genre') or result.get('genre') == '미분류':
+                    result = self._naver_extractor.extract_genre_from_title(original_foreign_title)
+            
             if result and result.get('genre'):
                 genre = result['genre']
                 confidence = result.get('confidence', 0.9)
@@ -321,13 +378,18 @@ class GenreClassifierAdapter:
                     return {
                         'genre': genre,
                         'confidence': confidence,
-                        'source': source
+                        'source': source,
+                        'snippet': result.get('snippet', ''),
+                        'tags': result.get('tags', [])
                     }
             
             # Naver 실패 시 Google 검색 시도 (Hybrid Sequence)
             if self._google_extractor:
                 self.logger.debug(f"Naver 검색 실패, Google 검색 시도: {search_title}")
                 google_result = self._google_extractor.extract_genre(search_title)
+                
+                if (not google_result or google_result.get('genre') == '미분류') and original_foreign_title:
+                    google_result = self._google_extractor.extract_genre(original_foreign_title)
                 
                 if google_result:
                     return google_result
@@ -340,12 +402,13 @@ class GenreClassifierAdapter:
             self.logger.debug(traceback.format_exc())
             return None
     
-    def _keyword_fallback(self, title: str) -> Optional[Dict]:
+    def _keyword_fallback(self, title: str, raw_text: str = "") -> Optional[Dict]:
         """
         Stage 3: 키워드 기반 폴백 분류
         
         Args:
             title: 순수 제목
+            raw_text: 원본 파일명 (선택)
             
         Returns:
             {'genre': str, 'confidence': float} 또는 None
@@ -355,10 +418,16 @@ class GenreClassifierAdapter:
         
         try:
             result = self._keyword_classifier.classify_with_confidence(title)
-            
             genre = result.get('primary_genre', '미분류')
             confidence = result.get('confidence', 0.0)
             
+            # 순수 제목에서 미분류인 경우 원본 파일명으로 재시도
+            if genre == '미분류' and raw_text and raw_text != title:
+                raw_result = self._keyword_classifier.classify_with_confidence(raw_text)
+                if raw_result.get('primary_genre') != '미분류':
+                    genre = raw_result.get('primary_genre')
+                    confidence = raw_result.get('confidence', 0.0)
+
             # 장르 매핑 적용
             mapped_genre = self.mapping_loader.map_genre(genre)
             

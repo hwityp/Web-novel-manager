@@ -1,12 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Genre Confirmation Dialog - Professional Edition v4
-
-confidence가 "medium"인 태스크에 대해 사용자에게 장르 확인을 요청하는 다이얼로그입니다.
-v4: 버튼 표시 오류 수정, 창 크기 최적화, 폰트 확대
-
-Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.5
+==============================================================================
+파일: gui/genre_confirm_dialog.py
+역할 및 목적:
+    장르 분류 신뢰도(confidence)가 'medium'이거나 불확실하여 수동 검토가 필요한 태스크에 대해
+    사용자에게 시각적 팝업을 띄워 AI 추천 장르 확인, 장르 변경(콤보박스), 또는 건너뛰기를 결정받는 확인 모달 다이얼로그.
+주요 구성 요소:
+    - GenreConfirmDialog: 모달 대화상자 클래스
+    - show_genre_confirm_dialog(): 다이얼로그 호출 및 사용자 입력 장르 반환 헬퍼 함수
+상호 연관 관계 및 의존성:
+    - Caller: gui.main_window.MainWindow (파이프라인 콜백 처리 시)
+    - Callee: customtkinter, core.novel_task.NovelTask, config.pipeline_config.GENRE_WHITELIST
+수정 시 주의사항:
+    - 모달 창이 부모 창의 중앙에 배치되고, 사용자 응답이 있을 때까지 메인 파이프라인 스레드가 올바르게 대기해야 합니다.
+==============================================================================
 """
 import customtkinter as ctk
 from typing import Optional, List

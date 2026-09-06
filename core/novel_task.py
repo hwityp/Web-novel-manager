@@ -1,8 +1,20 @@
 """
-NovelTask 데이터 모델
-
-웹소설 처리 파이프라인의 모든 상태를 담는 핵심 데이터 객체입니다.
-모든 모듈(FolderOrganizer, GenreClassifier, FilenameNormalizer)이 이 객체를 공유합니다.
+==============================================================================
+파일: core/novel_task.py
+역할 및 목적:
+    웹소설 처리 파이프라인 전 단계를 관통하는 핵심 데이터 모델(`NovelTask`).
+    원본 파일 경로, 추출된 순수 제목(Title Anchor), 저자, 권수/범위, 완결/외전 여부,
+    분류된 장르, 신뢰도(confidence), 처리 상태(status) 등을 캡슐화하여 파이프라인 모듈 간 공유합니다.
+주요 구성 요소:
+    - NovelTask: 데이터클래스 기반 작업 단위 구조체
+    - to_dict(), from_dict(): 직렬화/역직렬화 메서드
+상호 연관 관계 및 의존성:
+    - Caller: core.pipeline_orchestrator, core.adapters.*, gui.main_window, scripts.*
+    - Callee: pathlib.Path
+수정 시 주의사항:
+    - 필드 추가 시 to_dict(), from_dict() 및 하위 호환성을 유지해야 합니다.
+    - `original_path`는 절대 변경하지 않고, 단계별 파일 이동 시 `current_path`만 갱신해야 합니다.
+==============================================================================
 """
 from pathlib import Path
 from dataclasses import dataclass, field

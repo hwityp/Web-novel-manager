@@ -1,19 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Web Novel Archive Pipeline (WNAP) - 통합 진입점
-
-사용법:
-    python main.py              # GUI 모드 실행 (인자 없음)
-    python main.py --gui        # GUI 모드 명시
-    python main.py -s <폴더>    # CLI 파이프라인 모드
-
-예시 (CLI):
-    python main.py -s ./novels                    # dry-run 미리보기
-    python main.py -s ./novels --no-dry-run      # 실제 실행
-    python main.py -s ./novels -t ./정리완료 -y   # 확인 없이 실행
-
-Validates: Requirements 8.1, 8.2
+==============================================================================
+파일: main.py
+역할 및 목적:
+    Web Novel Archive Pipeline (WNAP) Manager 애플리케이션의 최상위 진입점(Entrypoint).
+    인자가 주어지지 않거나 --gui 플래그 전달 시 Tkinter 기반 통합 GUI(MainWindow)를 실행하고,
+    -s / --source 인자 전달 시 백그라운드 배치 처리를 위한 CLI 파이프라인 모드를 구동합니다.
+주요 구성 요소:
+    - main(): 커맨드라인 인자 파싱 및 GUI/CLI 실행 분기
+    - run_cli(): PipelineOrchestrator를 통한 터미널 기반 파이프라인 실행
+    - _setup_paths(): PyInstaller 패키징(EXE) 및 개발 환경에 따른 sys.path 및 작업 디렉토리 보정
+상호 연관 관계 및 의존성:
+    - Caller: 사용자가 직접 실행 (python main.py, WNAP_Manager.exe)
+    - Callee: gui.main_window.MainWindow, core.pipeline_orchestrator.PipelineOrchestrator,
+              core.pipeline_logger.PipelineLogger, core.version
+수정 시 주의사항:
+    - PyInstaller 번들링 시 frozen 환경(_MEIPASS)과 스크립트 실행 환경의 경로 호환성을 유지해야 합니다.
+    - 환경 변수(.env) 로드는 모듈 import 이전에 수행되어야 API 키가 정상 주입됩니다.
+==============================================================================
 """
 import sys
 import os

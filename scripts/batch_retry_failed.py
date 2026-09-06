@@ -1,3 +1,18 @@
+"""
+==============================================================================
+파일: scripts/batch_retry_failed.py
+역할 및 목적:
+    1차 배치 분류에서 '미분류'로 남은 작품들을 수집하여 구글 검색 및 향상된 추출 로직으로
+    재시도(Retry)하는 보조 스크립트.
+주요 구성 요소:
+    - main(): 미분류 항목 필터링 및 재분류 실행
+상호 연관 관계 및 의존성:
+    - Caller: 배치 작업 관리자
+    - Callee: core.adapters.genre_classifier_adapter, modules.classifier.api_config_manager
+수정 시 주의사항:
+    - ThreadPoolExecutor 사용 시 API 요청 간격 조절에 유의해야 합니다.
+==============================================================================
+"""
 import sys
 import os
 import csv

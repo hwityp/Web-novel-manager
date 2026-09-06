@@ -1,12 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Window State Manager
-
-윈도우 위치와 크기를 저장하고 복원하는 관리자입니다.
-config/gui_state.json 파일을 사용하여 상태를 유지합니다.
-
-Validates: Requirements 7.1, 7.2, 7.3, 7.4, 7.5
+==============================================================================
+파일: gui/utils/state_manager.py
+역할 및 목적:
+    GUI 윈도우의 이전 위치, 크기, 상태를 로컬 JSON(`config/gui_state.json`)에 저장 및 복원하는 관리자.
+    다중 모니터 분리 시 화면 밖으로 벗어나는 현상을 방지(오프스크린 보정)합니다.
+주요 구성 요소:
+    - WindowStateManager: 윈도우 상태 저장/복원 클래스
+    - load_state(), save_state(): 상태 입출력 메서드
+    - is_valid_position(): 가시 영역 내 위치 유효성 검사
+상호 연관 관계 및 의존성:
+    - Caller: gui.main_window.MainWindow
+    - Callee: config/gui_state.json
+수정 시 주의사항:
+    - 사용자가 듀얼 모니터를 사용하다가 단일 모니터로 변경했을 때 창이 화면 밖에 뜨지 않도록 경계 검사를 유지해야 합니다.
+==============================================================================
 """
 import json
 from pathlib import Path

@@ -263,12 +263,13 @@ class NaverGenreExtractorV4:
             return self._search_with_web(query, title, strategy)
     
     def _search_with_api(self, query: str, title: str, strategy) -> Optional[Dict[str, Any]]:
-        """네이버 검색 API 사용"""
+        """네이버 검색 API 사용 (NAVER API HUB / Legacy 지원)"""
         try:
             client_id = self.naver_api_config['client_id']
             client_secret = self.naver_api_config['client_secret']
             
-            api_url = "https://openapi.naver.com/v1/search/webkr.json"
+            # NAVER API HUB 또는 사용자 지정 엔드포인트 지원
+            api_url = self.naver_api_config.get('api_url') or "https://openapi.naver.com/v1/search/webkr.json"
             
             headers = {
                 "X-Naver-Client-Id": client_id,
@@ -285,8 +286,11 @@ class NaverGenreExtractorV4:
             response = requests.get(api_url, headers=headers, params=params, timeout=10)
             
             if response.status_code != 200:
-                print(f"  [API 오류] 상태 코드: {response.status_code}")
-                return None
+                if response.status_code in (401, 403):
+                    self._log(f"  [API 오류 {response.status_code}] 네이버 API 인증 실패. (NAVER API HUB 이관 계정 키 또는 Client ID/Secret을 확인하세요.) → 웹 크롤링 시도")
+                else:
+                    self._log(f"  [API 오류] 상태 코드: {response.status_code} → 웹 크롤링 시도")
+                return self._search_with_web(query, title, strategy)
             
             data = response.json()
             items = data.get('items', [])
@@ -302,7 +306,23 @@ class NaverGenreExtractorV4:
             platform_links = self._extract_platform_links(items)
             
             # 플랫폼별로 장르 추출 시도
-            return self._extract_from_platforms(platform_links, title, strategy)
+            res = self._extract_from_platforms(platform_links, title, strategy)
+            if res and res.get('genre'):
+                return res
+                
+            # Direct 플랫폼 크롤링 실패 시 API 검색 스니펫 분석
+            api_items = []
+            for item in items:
+                api_items.append({
+                    'title': item.get('title', ''),
+                    'snippet': item.get('description', ''),
+                    'url': item.get('link', '')
+                })
+            snippet_res = self._extract_from_snippets(api_items, title, strategy)
+            if snippet_res:
+                return snippet_res
+                
+            return None
             
         except Exception as e:
             # 인코딩 오류 방지
@@ -331,15 +351,32 @@ class NaverGenreExtractorV4:
             platform_links = self._extract_platform_links_from_soup(all_links)
             
             # 플랫폼별로 장르 추출 시도
-            return self._extract_from_platforms(platform_links, title, strategy)
+            res = self._extract_from_platforms(platform_links, title, strategy)
+            if res and res.get('genre'):
+                return res
+                
+            # Direct 플랫폼 크롤링 실패 시 웹 검색 스니펫 분석
+            web_items = []
+            for container in soup.find_all(['li', 'div', 'section']):
+                text = container.get_text(separator=' ', strip=True)
+                if text and len(text) > 15:
+                    a_tag = container.find('a', href=True)
+                    url_val = a_tag['href'] if a_tag else ''
+                    web_items.append({
+                        'title': text[:100],
+                        'snippet': text,
+                        'url': url_val
+                    })
+            snippet_res = self._extract_from_snippets(web_items, title, strategy)
+            if snippet_res:
+                return snippet_res
+                
+            return None
             
         except Exception as e:
             # 인코딩 오류 방지
             error_msg = str(e)[:100].encode('utf-8', errors='ignore').decode('utf-8')
-            # 인코딩 오류 방지
-            error_msg = str(e)[:100].encode('utf-8', errors='ignore').decode('utf-8')
             self._log(f"  [웹 크롤링 오류] {type(e).__name__}: {error_msg}")
-            return None
             return None
     
     def _extract_platform_links(self, items: List[Dict]) -> Dict[str, List]:
@@ -390,7 +427,9 @@ class NaverGenreExtractorV4:
         return platform_links
     
     def _extract_platform_links_from_soup(self, links: List) -> Dict[str, List]:
-        """BeautifulSoup 링크에서 플랫폼 링크 추출 (URL만 추출, 중복 제거)"""
+        """BeautifulSoup 링크에서 플랫폼 링크 추출 (URL만 추출, 중복 제거, 리다이렉트 URL 대응)"""
+        import urllib.parse
+        
         platform_links = {
             'ridibooks': [],
             'munpia': [],
@@ -424,49 +463,62 @@ class NaverGenreExtractorV4:
         
         for link in links:
             href = link.get('href', '')
+            if not href:
+                continue
+                
+            # URL 디코딩 (cr.naver.com 등 리다이렉트 URL 대응)
+            unquoted_href = urllib.parse.unquote(href)
+            target_url = href
+            if 'u=' in unquoted_href:
+                try:
+                    parts = unquoted_href.split('u=')
+                    if len(parts) > 1:
+                        target_url = parts[1].split('&')[0]
+                except Exception:
+                    target_url = unquoted_href
+            else:
+                target_url = unquoted_href
             
             # URL 정규화 (쿼리 파라미터 기준으로 중복 판단)
-            # 예: https://series.naver.com/novel/detail.nhn?originalProductId=466209
-            normalized_url = href.split('?')[0] if '?' in href else href
+            normalized_url = target_url.split('?')[0] if '?' in target_url else target_url
             
-            # URL만 추출 (BeautifulSoup 객체가 아닌 문자열로 저장, 중복 제거)
-            if 'ridibooks.com/books/' in href and normalized_url not in seen_urls['ridibooks']:
-                platform_links['ridibooks'].append(href)
+            # URL만 추출 (중복 제거)
+            if 'ridibooks.com/books/' in target_url and normalized_url not in seen_urls['ridibooks']:
+                platform_links['ridibooks'].append(target_url)
                 seen_urls['ridibooks'].add(normalized_url)
-            elif ('munpia.com/novel/' in href or 'novel.munpia.com' in href) and normalized_url not in seen_urls['munpia']:
-                platform_links['munpia'].append(href)
+            elif ('munpia.com/novel/' in target_url or 'novel.munpia.com' in target_url) and normalized_url not in seen_urls['munpia']:
+                platform_links['munpia'].append(target_url)
                 seen_urls['munpia'].add(normalized_url)
-            elif 'novelpia.com/novel/' in href and normalized_url not in seen_urls['novelpia']:
-                platform_links['novelpia'].append(href)
+            elif 'novelpia.com/novel/' in target_url and normalized_url not in seen_urls['novelpia']:
+                platform_links['novelpia'].append(target_url)
                 seen_urls['novelpia'].add(normalized_url)
-            elif 'joara.com' in href and '/book/' in href and normalized_url not in seen_urls['joara']:
-                platform_links['joara'].append(href)
+            elif 'joara.com' in target_url and '/book/' in target_url and normalized_url not in seen_urls['joara']:
+                platform_links['joara'].append(target_url)
                 seen_urls['joara'].add(normalized_url)
-            elif 'series.naver.com' in href and normalized_url not in seen_urls['naver_series']:
-                # 검색 페이지는 제외
-                if '/search/' not in href:
-                    platform_links['naver_series'].append(href)
+            elif 'series.naver.com' in target_url and normalized_url not in seen_urls['naver_series']:
+                if '/search/' not in target_url:
+                    platform_links['naver_series'].append(target_url)
                     seen_urls['naver_series'].add(normalized_url)
-            elif 'page.kakao.com/content/' in href and normalized_url not in seen_urls['kakao']:
-                platform_links['kakao'].append(href)
+            elif 'page.kakao.com/content/' in target_url and normalized_url not in seen_urls['kakao']:
+                platform_links['kakao'].append(target_url)
                 seen_urls['kakao'].add(normalized_url)
-            elif ('novelnet.co.kr' in href or 'novel.naver.com' in href or 'ssn.so' in href) and normalized_url not in seen_urls['novelnet']:
-                platform_links['novelnet'].append(href)
+            elif ('novelnet.co.kr' in target_url or 'novel.naver.com' in target_url or 'ssn.so' in target_url) and normalized_url not in seen_urls['novelnet']:
+                platform_links['novelnet'].append(target_url)
                 seen_urls['novelnet'].add(normalized_url)
-            elif 'webtoonguide.com' in href and normalized_url not in seen_urls['webtoonguide']:
-                platform_links['webtoonguide'].append(href)
+            elif 'webtoonguide.com' in target_url and normalized_url not in seen_urls['webtoonguide']:
+                platform_links['webtoonguide'].append(target_url)
                 seen_urls['webtoonguide'].add(normalized_url)
-            elif 'mrblue.com' in href and normalized_url not in seen_urls['mrblue']:
-                platform_links['mrblue'].append(href)
+            elif 'mrblue.com' in target_url and normalized_url not in seen_urls['mrblue']:
+                platform_links['mrblue'].append(target_url)
                 seen_urls['mrblue'].add(normalized_url)
-            elif 'yes24.com/product/goods/' in href and normalized_url not in seen_urls['yes24']:
-                platform_links['yes24'].append(href)
+            elif 'yes24.com/product/goods/' in target_url and normalized_url not in seen_urls['yes24']:
+                platform_links['yes24'].append(target_url)
                 seen_urls['yes24'].add(normalized_url)
-            elif 'kyobobook.co.kr' in href and '/detail/' in href and normalized_url not in seen_urls['kyobo']:
-                platform_links['kyobo'].append(href)
+            elif 'kyobobook.co.kr' in target_url and '/detail/' in target_url and normalized_url not in seen_urls['kyobo']:
+                platform_links['kyobo'].append(target_url)
                 seen_urls['kyobo'].add(normalized_url)
-            elif 'aladin.co.kr' in href and normalized_url not in seen_urls['aladin']:
-                platform_links['aladin'].append(href)
+            elif 'aladin.co.kr' in target_url and normalized_url not in seen_urls['aladin']:
+                platform_links['aladin'].append(target_url)
                 seen_urls['aladin'].add(normalized_url)
         
         return platform_links
@@ -735,6 +787,72 @@ class NaverGenreExtractorV4:
             # 세분화 레벨이 같으면 리디북스 우선
             print(f"  [장르 비교] 리디북스 '{ridi_genre}' vs 문피아 '{munpia_genre}' → 세분화 레벨 동일, 리디북스 선택")
             return ridibooks_result
+
+    def _extract_from_snippets(self, text_items: List[Dict[str, str]], title: str, strategy) -> Optional[Dict[str, Any]]:
+        """
+        검색 결과 제목 및 스니펫 텍스트에서 플랫폼 정보와 장르를 2차 추출하는 폴백 메서드
+        """
+        if not text_items:
+            return None
+
+        # 플랫폼 식별 키워드 (우선순위 순)
+        platform_keywords = [
+            ('ridibooks', ['리디북스', '리디']),
+            ('munpia', ['문피아']),
+            ('naver_series', ['네이버시리즈', '네이버 시리즈', '시리즈']),
+            ('kakao', ['카카오페이지', '카카오 페이지', '카카오']),
+            ('novelpia', ['노벨피아']),
+            ('joara', ['조아라']),
+            ('novelnet', ['소설넷']),
+            ('webtoonguide', ['웹툰가이드']),
+            ('mrblue', ['미스터블루']),
+            ('kyobo', ['교보문고']),
+            ('yes24', ['yes24', '예스24']),
+            ('aladin', ['알라딘'])
+        ]
+
+        # 장르 키워드 매핑 (긴 키워드 우선)
+        genre_keyword_map = [
+            ('현대판타지', '현판'), ('현대 판타지', '현판'), ('현판', '현판'),
+            ('로맨스판타지', '로판'), ('로맨스 판타지', '로판'), ('로판', '로판'),
+            ('퓨전판타지', '퓨판'), ('퓨전 판타지', '퓨판'), ('퓨판', '퓨판'),
+            ('게임판타지', '겜판'), ('게임 판타지', '겜판'), ('겜판', '겜판'),
+            ('대체역사', '역사'), ('대체 역사', '역사'), ('역사물', '역사'), ('역사', '역사'),
+            ('스포츠물', '스포츠'), ('스포츠', '스포츠'),
+            ('전통무협', '무협'), ('무협소설', '무협'), ('무협', '무협'),
+            ('선협소설', '선협'), ('선협', '선협'),
+            ('판타지소설', '판타지'), ('판타지', '판타지'),
+            ('SF소설', 'SF'), ('SF', 'SF'),
+            ('미스터리', '미스터리'), ('밀리터리', '밀리터리'),
+            ('패러디', '패러디')
+        ]
+
+        import re
+        for platform_key, kw_list in platform_keywords:
+            for item in text_items:
+                item_title = item.get('title', '')
+                item_snippet = item.get('snippet', '')
+                item_url = item.get('url', '')
+                full_text = f"{item_title} {item_snippet} {item_url}"
+                
+                clean_text = re.sub(r'<[^>]+>', '', full_text)
+                
+                if any(kw in clean_text for kw in kw_list):
+                    for g_kw, target_g in genre_keyword_map:
+                        if g_kw in clean_text:
+                            mapped_genre = self.genre_mapping.get(target_g, target_g)
+                            remapped = self._remap_genre_by_keywords(mapped_genre, title)
+                            
+                            platform_name = kw_list[0]
+                            self._log(f"  [스니펫 분석 성공] 검색 스니펫에서 '{platform_name}' 플랫폼의 '{remapped}' 장르 추출")
+                            return {
+                                'genre': remapped,
+                                'confidence': 0.85,
+                                'source': f'{platform_name}_snippet',
+                                'snippet': clean_text[:200],
+                                'url': item_url
+                            }
+        return None
     
     def _get_platform_key(self, platform_name: str) -> str:
         """플랫폼 이름 → 키 변환"""

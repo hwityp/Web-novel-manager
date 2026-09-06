@@ -1,3 +1,22 @@
+"""
+==============================================================================
+파일: modules/organizer/folder_organizer.py
+역할 및 목적:
+    압축 파일 해제, 중첩 압축 풀기, 단일 큰 텍스트 파일 추출, 폴더 평탄화(Flatten)를 담당하는 핵심 파일 정리 엔진.
+    ZIP, RAR, 7Z 형식을 지원하며, 한글 파일명 깨짐(CP949/UTF-8)을 감지하여 자동 복구합니다.
+    외부 도구(7z.exe, unrar.exe)를 자동으로 감지하여 고속/대용량 압축 해제를 수행합니다.
+주요 구성 요소:
+    - FolderOrganizer: 핵심 정리 엔진 클래스
+    - organize_folders(), flatten_folders(): 디렉토리 및 압축 정리 실행 메서드
+    - extract_specific_file(), extract_archive(): 압축 해제 메서드
+    - find_unrar_near_executable(), find_7z_executable(): 외부 바이너리 탐색 함수
+상호 연관 관계 및 의존성:
+    - Caller: core.adapters.folder_organizer_adapter.FolderOrganizerAdapter
+    - Callee: zipfile, rarfile, py7zr, 7z.exe, unrar.exe
+수정 시 주의사항:
+    - 사용자 원본 데이터 손실을 방지하기 위해 파일 삭제 시 신중해야 하며, 보호 폴더(Downloads, Temp 등)를 절대 침범하지 않아야 합니다.
+==============================================================================
+"""
 import os
 import shutil
 import zipfile

@@ -1,16 +1,23 @@
 """
-Pipeline Orchestrator
-
-파이프라인 전체를 조율하는 메인 컨트롤러입니다.
-Stage 1(FolderOrganizer) → Stage 2(GenreClassifier) → Stage 3(FilenameNormalizer) 순서로 실행합니다.
-
-핵심 기능:
-- 단계별 실행 순서 보장 (Property 13)
-- 결함 격리: 개별 파일 에러 시 해당 파일만 skip (Property 14)
-- Dry-run 모드: 파일 시스템 변경 없이 미리보기 (Property 15)
-- mapping.csv 생성 및 처리 요약 출력
-
-Validates: Requirements 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.9, 6.10
+==============================================================================
+파일: core/pipeline_orchestrator.py
+역할 및 목적:
+    WNAP 전체 파이프라인의 총괄 오케스트레이터(Controller).
+    Stage 1(FolderOrganizer: 압축해제/단일화) → Stage 2(GenreClassifier: 캐시/검색/키워드 장르 분류)
+    → Stage 3(FilenameNormalizer: [장르] 제목 부정보 (완) + 외전.txt 최종 명명)의 순차 파이프라인을 지휘합니다.
+    개별 파일 결함 격리(Fault Isolation), Dry-run(사전 미리보기), 사용자 수동 확인 인터럽트, mapping.csv 생성을 전담합니다.
+주요 구성 요소:
+    - PipelineOrchestrator: 메인 파이프라인 실행 조율기 클래스
+    - PipelineResult: 파이프라인 처리 결과 통계 데이터클래스
+    - run_pipeline(): 배치/폴더 단위 전체 파이프라인 실행 메서드
+상호 연관 관계 및 의존성:
+    - Caller: gui.main_window.MainWindow, main.py(CLI)
+    - Callee: core.novel_task.NovelTask, core.adapters.*, core.pipeline_logger.PipelineLogger,
+              config.pipeline_config.PipelineConfig
+수정 시 주의사항:
+    - 개별 파일 처리 실패 시 전체 파이프라인이 중단되지 않고 해당 태스크만 failed/skipped 처리되어야 합니다 (결함 격리 불변식).
+    - Dry-run 모드일 때는 파일 이동, 이름 변경 등 파일 시스템 쓰기 작업을 일체 수행하지 않아야 합니다.
+==============================================================================
 """
 import csv
 import shutil

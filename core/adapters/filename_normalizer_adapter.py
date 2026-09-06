@@ -1,13 +1,23 @@
 """
-FilenameNormalizer Adapter
-
-기존 정규화 로직을 파이프라인에 맞게 래핑합니다.
-normalize(task: NovelTask) 메서드로 파일명을 정규화하고 NovelTask를 반환합니다.
-
-표준 파일명 형식:
-    [장르] 제목 부정보 범위 (완) + 외전.확장자
-
-Validates: Requirements 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7
+==============================================================================
+파일: core/adapters/filename_normalizer_adapter.py
+역할 및 목적:
+    파이프라인 Stage 3을 담당하는 파일명 표준화 어댑터 (`FilenameNormalizerAdapter`).
+    `TitleAnchorExtractor`가 파싱한 메타데이터와 `GenreClassifierAdapter`가 확정한 장르를 바탕으로,
+    표준 웹소설 파일명 형식인 `[장르] 제목 부정보 범위 (완) + 외전.확장자`로 최종 파일명을 조립하고 파일 시스템에 안전하게 반영합니다.
+주요 구성 요소:
+    - FilenameNormalizerAdapter: 정규화 실행 및 파일명 조립 어댑터 클래스
+    - normalize(): 개별 NovelTask의 최종 정규화 및 파일 이름 변경 수행
+    - parse_only(): 파일명 메타데이터 선행 추출 (정규화 사전 단계)
+    - build_normalized_filename(): 정형화된 파일명 문자열 생성
+상호 연관 관계 및 의존성:
+    - Caller: core.pipeline_orchestrator.PipelineOrchestrator
+    - Callee: core.title_anchor_extractor.TitleAnchorExtractor, core.novel_task.NovelTask,
+              core.pipeline_logger.PipelineLogger, config.pipeline_config.PipelineConfig
+수정 시 주의사항:
+    - Windows 파일 시스템 금지 문자(`< > : " / \\ | ? *`)를 철저히 제거/치환해야 합니다.
+    - 장르가 없을 경우 장르 태그(`[장르]`)를 생략하거나 `[미분류]` 규칙을 따릅니다.
+==============================================================================
 """
 import re
 from pathlib import Path
@@ -111,6 +121,10 @@ class FilenameNormalizerAdapter:
                 task.side_story = parse_result.side_story or task.side_story
                 task.edition_info = parse_result.edition_info or task.edition_info
                 
+                # 원본 한자/가나 제목 보존
+                if parse_result.original_foreign_title:
+                    task.metadata['original_foreign_title'] = parse_result.original_foreign_title
+                
                 # [Fix] 원본 장르 보존 (정규화 시점에서도 적용)
                 if not task.genre and parse_result.original_genre:
                     task.genre = parse_result.original_genre
@@ -126,7 +140,8 @@ class FilenameNormalizerAdapter:
                 range_info=task.range_info,
                 is_completed=task.is_completed,
                 side_story=task.side_story,
-                edition_info=task.edition_info
+                edition_info=task.edition_info,
+                original_foreign_title=task.metadata.get('original_foreign_title', '')
             )
             
             # 4. 확장자 추가
@@ -173,6 +188,7 @@ class FilenameNormalizerAdapter:
             side_story = parse_result.side_story
             edition_info = parse_result.edition_info
             original_genre = parse_result.original_genre # [Fix]
+            original_foreign_title = parse_result.original_foreign_title
         else:
             title = task.title
             volume_info = task.volume_info
@@ -181,6 +197,7 @@ class FilenameNormalizerAdapter:
             side_story = task.side_story
             edition_info = task.edition_info
             original_genre = ""
+            original_foreign_title = task.metadata.get('original_foreign_title', '')
         
         # 장르 결정 (task.genre 우선, 없으면 원본 장르 사용)
         genre_candidate = task.genre or original_genre
@@ -193,7 +210,8 @@ class FilenameNormalizerAdapter:
             range_info=range_info,
             is_completed=is_completed,
             side_story=side_story,
-            edition_info=edition_info
+            edition_info=edition_info,
+            original_foreign_title=original_foreign_title
         )
         
         extension = task.current_path.suffix if task.current_path else '.txt'
@@ -204,12 +222,18 @@ class FilenameNormalizerAdapter:
         장르 화이트리스트 검증 (Requirement 5.2)
         
         Args:
-            genre: 검증할 장르
+            genre: 검증할 장르 (예: "SF" 또는 "SF, 시스템")
             
         Returns:
             유효한 장르 (화이트리스트에 없으면 '미분류')
         """
-        if not genre or genre not in GENRE_WHITELIST:
+        if not genre or genre == '미분류':
+            return '미분류'
+            
+        from core.utils.novel_trait_extractor import NovelTraitExtractor
+        primary_genre, _ = NovelTraitExtractor.parse_existing_tag(genre)
+        
+        if primary_genre not in GENRE_WHITELIST:
             return '미분류'
         return genre
     
@@ -221,7 +245,8 @@ class FilenameNormalizerAdapter:
         range_info: str = "",
         is_completed: bool = False,
         side_story: str = "",
-        edition_info: str = ""
+        edition_info: str = "",
+        original_foreign_title: str = ""
     ) -> str:
         """
         표준 형식 파일명 생성 (Requirement 5.1, 5.5)
@@ -236,6 +261,7 @@ class FilenameNormalizerAdapter:
             is_completed: 완결 여부
             side_story: 외전 정보
             edition_info: 판본 정보 (예: [개정판])
+            original_foreign_title: 원문 한자/가나 제목
             
         Returns:
             정규화된 파일명 (확장자 제외)
@@ -244,10 +270,13 @@ class FilenameNormalizerAdapter:
         
         # 1. 장르 태그
         if genre and genre != '미분류':
-            parts.append(f"[{genre}]")
+            clean_g = genre.strip(" []()")
+            parts.append(f"[{clean_g}]")
         
-        # 2. 제목 (공백 정규화)
+        # 2. 제목 (공백 정규화 및 원문 한자 제목 추가)
         clean_title = self._normalize_spaces(title)
+        if original_foreign_title and original_foreign_title not in clean_title:
+            clean_title = f"{clean_title} ({original_foreign_title})"
         parts.append(clean_title)
 
         # 2.5 판본 정보

@@ -1,10 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Path Utilities for PyInstaller
-
-PyInstaller로 패키징된 EXE 실행 시 경로 문제를 해결하는 유틸리티입니다.
-sys._MEIPASS를 사용하여 번들된 리소스 경로를 올바르게 찾습니다.
+==============================================================================
+파일: core/path_utils.py
+역할 및 목적:
+    PyInstaller 패키징 환경(EXE 번들)과 일반 개발 환경(스크립트 실행) 간의 리소스/실행 경로 통합 유틸리티.
+    `sys._MEIPASS` 및 실행 바이너리 디렉토리를 안전하게 판별하여 번들 리소스(JSON, 아이콘, 7z/unrar 등)의 절대 경로를 반환합니다.
+주요 구성 요소:
+    - get_base_path(): 실행 환경에 따른 베이스 디렉토리 반환
+    - get_resource_path(): 상대 경로를 환경에 맞게 안전한 절대 Path로 변환
+    - get_application_path(): EXE 파일 또는 파이썬 진입점이 위치한 실제 물리 디렉토리 반환
+상호 연관 관계 및 의존성:
+    - Caller: gui.main_window, core.pipeline_orchestrator, modules.organizer.folder_organizer
+    - Callee: sys, os, pathlib.Path
+수정 시 주의사항:
+    - 리소스 읽기 전용 번들 파일(`_MEIPASS`)과 런타임에 쓰기 작업이 발생하는 사용자 파일(설정, 로그)의 저장 위치를 혼동하지 않도록 주의해야 합니다.
+==============================================================================
 """
 import sys
 import os

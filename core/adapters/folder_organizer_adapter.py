@@ -1,10 +1,23 @@
 """
-FolderOrganizer Adapter
-
-기존 FolderOrganizer를 파이프라인에 맞게 래핑합니다.
-process() 메서드로 폴더를 처리하고 List[NovelTask]를 반환합니다.
-
-Validates: Requirements 2.1, 2.2, 2.3, 2.5
+==============================================================================
+파일: core/adapters/folder_organizer_adapter.py
+역할 및 목적:
+    파이프라인 Stage 1을 담당하는 폴더 정리/압축 해제 어댑터 (`FolderOrganizerAdapter`).
+    하위 엔진 `modules.organizer.folder_organizer.FolderOrganizer`를 래핑하여 소스 디렉토리를 스캔하고,
+    압축 파일(.zip, .rar, .7z) 내 단일 텍스트 파일 추출 및 폴더 평탄화를 수행한 뒤,
+    후속 단계를 위한 `List[NovelTask]` 목록을 생성하여 반환합니다.
+주요 구성 요소:
+    - FolderOrganizerAdapter: 어댑터 클래스
+    - process(): 폴더 정리 및 NovelTask 목록 생성
+    - scan_only(): 변경 없이 대상 파일 목록만 사전 스캔
+상호 연관 관계 및 의존성:
+    - Caller: core.pipeline_orchestrator.PipelineOrchestrator
+    - Callee: modules.organizer.folder_organizer.FolderOrganizer, core.novel_task.NovelTask,
+              core.pipeline_logger.PipelineLogger, config.pipeline_config.PipelineConfig
+수정 시 주의사항:
+    - 보호 폴더(Downloads, Temp 등)가 처리 대상에 포함되어 원본이 손상되지 않도록 검증해야 합니다.
+    - unrar.exe 및 7z.exe 바이너리가 누락되지 않도록 경로 탐색을 보장해야 합니다.
+==============================================================================
 """
 import sys
 from pathlib import Path

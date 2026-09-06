@@ -1,10 +1,20 @@
 """
-PipelineConfig 설정 관리 모듈
-
-파이프라인 실행에 필요한 모든 설정을 관리합니다.
-JSON 파일에서 로드하고, 잘못된 값은 기본값으로 대체합니다.
-
-Validates: Requirements 10.1, 10.2, 10.3, 10.4, 10.5
+==============================================================================
+파일: config/pipeline_config.py
+역할 및 목적:
+    WNAP 파이프라인의 핵심 설정 데이터 모델(`PipelineConfig`) 및 설정 파일(JSON) 입출력 관리.
+    장르 화이트리스트(`GENRE_WHITELIST`), 안전 대상 보호 폴더, 실행 옵션(dry_run, 백업 등)의 기본값을 정의하고,
+    JSON 설정 로드 실패 시 안전한 기본값(Fallback)을 보장합니다.
+주요 구성 요소:
+    - PipelineConfig: 데이터클래스 기반 파이프라인 설정 구조체
+    - GENRE_WHITELIST: 표준 승인 장르 집합 (판타지, 무협, 로맨스, SF, 현대판타지, 미스터리 등)
+    - get_base_path(), get_config_path(): 환경(PyInstaller frozen vs 일반 스크립트)별 경로 안전 반환 함수
+상호 연관 관계 및 의존성:
+    - Caller: core.pipeline_orchestrator, core.adapters.*, gui.main_window, main.py
+    - Callee: config/pipeline_config.json
+수정 시 주의사항:
+    - GENRE_WHITELIST 변경 시 `config/genre_mapping.json` 및 `modules/classifier/genre_keywords.json`과의 일치성을 확인해야 합니다.
+==============================================================================
 """
 import sys
 import os
@@ -63,7 +73,7 @@ def get_resource_path(relative_path: str) -> Path:
 # 표준 장르 화이트리스트
 GENRE_WHITELIST: Set[str] = {
     '소설', '판타지', '현대', '현판', '무협', '선협',
-    '스포츠', '퓨판', '역사', '로판', 'SF', '겜판',
+    '스포츠', '퓨판', '역사', '로판', '겜판',
     '언정', '공포', '패러디', '미분류'
 }
 

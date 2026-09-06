@@ -1,6 +1,20 @@
 """
-API 설정 관리자 (암호화 지원)
-네이버 API 키를 안전하게 저장하고 불러오기
+==============================================================================
+파일: modules/classifier/api_config_manager.py
+역할 및 목적:
+    네이버 및 구글 검색 API 키의 안전한 관리 모듈 (`APIConfigManager`).
+    .env 환경변수 우선 로드, Fernet 대칭키 기반 로컬 파일 암호화/복호화,
+    Base64 인코딩된 인증 정보의 자동 디코딩(Hybrid Security)을 지원합니다.
+주요 구성 요소:
+    - APIConfigManager: API 설정 암호화/복호화 및 로드 관리자 클래스
+    - load_config(): 네이버 검색 API Client ID/Secret 로드
+    - load_google_config(): 구글 Custom Search API Key / CSE ID 로드
+상호 연관 관계 및 의존성:
+    - Caller: core.adapters.genre_classifier_adapter.GenreClassifierAdapter
+    - Callee: dotenv, cryptography.fernet.Fernet, .env
+수정 시 주의사항:
+    - API 키가 로그나 화면에 노출되지 않도록 마스킹 처리(앞/뒤 일부만 표시)를 유지해야 합니다.
+==============================================================================
 """
 import os
 import sys
@@ -8,7 +22,6 @@ import json
 import base64
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
 from dotenv import load_dotenv
@@ -33,6 +46,20 @@ class APIConfigManager:
         # 암호화 키 생성 또는 로드
         self.cipher_key = self._get_or_create_key()
         self.cipher = Fernet(self.cipher_key)
+
+    def _clean_credential(self, val: str) -> str:
+        """Base64 인코딩된 인증 정보일 경우 자동 복호화"""
+        if not val:
+            return val
+        val_str = str(val).strip()
+        if val_str.endswith('='):
+            try:
+                decoded = base64.b64decode(val_str).decode('utf-8')
+                if decoded.isprintable():
+                    return decoded
+            except Exception:
+                pass
+        return val_str
     
     def _get_or_create_key(self):
         """암호화 키 생성 또는 로드"""
@@ -145,13 +172,17 @@ class APIConfigManager:
         # 1. 환경변수 확인 (.env)
         env_client_id = os.getenv("NAVER_CLIENT_ID")
         env_client_secret = os.getenv("NAVER_CLIENT_SECRET")
+        env_api_url = os.getenv("NAVER_API_URL") or os.getenv("NAVER_API_HUB_URL")
         
         if env_client_id and env_client_secret:
             print(f"[API Config] .env 환경변수에서 설정 로드 완료")
-            return {
-                'client_id': env_client_id,
-                'client_secret': env_client_secret
+            res = {
+                'client_id': self._clean_credential(env_client_id),
+                'client_secret': self._clean_credential(env_client_secret)
             }
+            if env_api_url:
+                res['api_url'] = env_api_url
+            return res
 
         try:
             # PyInstaller 환경 고려
@@ -182,10 +213,13 @@ class APIConfigManager:
                 config = data
                 print(f"[API Config] 평문 설정 로드 완료")
             
-            return {
+            res = {
                 'client_id': config.get('client_id'),
                 'client_secret': config.get('client_secret')
             }
+            if config.get('api_url'):
+                res['api_url'] = config.get('api_url')
+            return res
             
         except Exception as e:
             print(f"[API Config] 로드 실패: {e}")

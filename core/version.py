@@ -1,17 +1,25 @@
 """
-WNAP 버전 정보
-
-버전 관리 규칙: Semantic Versioning (https://semver.org/lang/ko/)
-- MAJOR: 호환되지 않는 API 변경
-- MINOR: 하위 호환성 있는 기능 추가
-- PATCH: 하위 호환성 있는 버그 수정
+==============================================================================
+파일: core/version.py
+역할 및 목적:
+    프로젝트의 단일 진실 공급원(Single Source of Truth) 버전 정보 관리 모듈.
+    Semantic Versioning 기반의 버전 문자열, 릴리스 일자, 애플리케이션 공식 명칭을 제공합니다.
+주요 구성 요소:
+    - __version__, RELEASE_DATE, VERSION_INFO
+    - get_version(), get_full_version(): 버전 조회 함수
+상호 연관 관계 및 의존성:
+    - Caller: main.py, build_exe.py, gui.main_window, core.pipeline_logger
+    - Callee: 없음 (독립 모듈)
+수정 시 주의사항:
+    - 빌드 배포 및 변경 사항 릴리스 시 반드시 이 파일의 버전과 RELEASE_DATE를 업데이트해야 합니다.
+==============================================================================
 """
 
-__version__ = "1.3.29"
-RELEASE_DATE = "2026-03-08"
+__version__ = "1.3.31"
+RELEASE_DATE = "2026-08-02"
 
-VERSION_INFO = (1, 3, 29)
-__release_date__ = "2026-03-08"
+VERSION_INFO = (1, 3, 31)
+__release_date__ = "2026-08-02"
 __author__ = "WNAP Team"
 __app_name__ = "WNAP - Web Novel Archive Pipeline"
 

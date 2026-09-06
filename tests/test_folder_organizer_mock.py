@@ -126,8 +126,8 @@ class TestFolderOrganizerMock:
         extracted_txt = target_folder / "나 혼자 메카네크 1-265화 完.txt"
         assert extracted_txt.exists(), "큰 텍스트 파일이 추출되어야 함"
         
-        # 원본 폴더가 정리되었는지 확인
-        assert not subfolder.exists() or not any(subfolder.iterdir()), "원본 폴더가 비어있거나 삭제되어야 함"
+        # 안전 정책: 원본 폴더 및 아카이브가 보존됨
+        assert subfolder.exists(), "안전 정책상 원본 보존되어야 함"
     
     # ========== 캡처 2번 시나리오 테스트 ==========
     def test_capture2_single_txt_from_zip(self, temp_workspace, organizer):
@@ -536,12 +536,10 @@ class TestFolderOrganizerMock:
         print(f"{temp_workspace.name}/")
         print(self.get_tree_structure(temp_workspace))
         
-        # 검증: 원본 폴더가 비어있으면 삭제됨
-        assert not subfolder.exists() or not any(subfolder.iterdir()), "빈 원본 폴더가 삭제되어야 함"
-        
-        # 정리완료 폴더는 유지됨
+        # 검증: 대상 파일이 정리완료 폴더로 정상 처리됨
         target_folder = temp_workspace / "정리완료"
         assert target_folder.exists(), "정리완료 폴더는 유지되어야 함"
+        assert (target_folder / "file.txt").exists(), "파일이 정리완료 폴더로 복사되어야 함"
     
     # ========== 결정 로직 단위 테스트 ==========
     def test_determine_method_single_txt(self, temp_workspace, organizer):

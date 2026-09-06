@@ -1,3 +1,18 @@
+"""
+==============================================================================
+파일: scripts/batch_classify.py
+역할 및 목적:
+    대량의 소설 텍스트 목록(list.txt 등)을 읽어 백그라운드에서 일괄 장르 분류를 수행하고
+    결과를 CSV(`classification_results.csv`)로 누적 저장하는 배치 도구.
+주요 구성 요소:
+    - main(): 배치 분류 루프 및 결과 CSV 출력
+상호 연관 관계 및 의존성:
+    - Caller: 배치 작업 관리자
+    - Callee: core.adapters.genre_classifier_adapter, modules.classifier.api_config_manager
+수정 시 주의사항:
+    - 대량 API 호출 시 검색 엔진 Rate Limit을 고려한 딜레이(time.sleep)를 유지해야 합니다.
+==============================================================================
+"""
 import sys
 import os
 import csv

@@ -1,10 +1,23 @@
 """
-Title Anchor Extractor 모듈
-
-파일명에서 핵심 제목(Title Anchor)을 추출하고, 잔여 문자열에서 메타데이터를 파싱합니다.
-'제목 앵커 전략'의 핵심: 제목을 먼저 추출한 후, 나머지 문자열에서만 권수/범위/완결 정보를 파싱합니다.
-
-Validates: Requirements 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9
+==============================================================================
+파일: core/title_anchor_extractor.py
+역할 및 목적:
+    복잡하고 오염된 원본 파일명에서 웹소설의 순수 핵심 제목(Title Anchor)을 추출하고,
+    잔여 문자열에서 권수, 부/화 범위, 완결 여부, 외전 정보, 저자명을 고도로 정밀하게 분리 파싱.
+    한글 자소 분리 복구(compose_korean_jamo), 외국어/외래어 및 한자 병기 표기([외국어/한자] 한글제목),
+    대괄호/소괄호 메타데이터 정제 및 제목 보호 규칙을 전담합니다.
+주요 구성 요소:
+    - TitleAnchorExtractor: 메인 제목/메타데이터 추출기 클래스
+    - ParsedTitleResult: 파싱 결과 데이터클래스 (title, author, volume_info, range_info, is_completed, side_story 등)
+    - compose_korean_jamo(): 자소 분리 및 시각적 변형 복구 함수
+상호 연관 관계 및 의존성:
+    - Caller: core.adapters.filename_normalizer_adapter, core.adapters.genre_classifier_adapter,
+              core.utils.novel_trait_extractor, scripts.*
+    - Callee: re, unicodedata
+수정 시 주의사항:
+    - 제목 내부의 숫자(예: '100층의 올마스터', '1번가 기적')가 권수/범위 정규식에 의해 잘려나가지 않도록 Title Anchor 선추출 원칙을 엄수해야 합니다.
+    - 외래어/한자 병기(예: "[선협] 구성성인, 선관소아양마(번역제목)") 파싱 시 원제와 번역제목의 맥락을 보존해야 합니다.
+==============================================================================
 """
 import re
 import os
@@ -87,7 +100,7 @@ def compose_korean_jamo(text: str) -> str:
                 c, m, _ = parts1
                 # 종성 결합
                 if c2 in JONGSUNG and c2 != '':
-                    # 뒤에 모음이 오면 종성이 아니라 다음 글자의 초성이어함
+                    # 뒤에 모음이 오면 종성이 아니라 다음 글자의 초성이어야 함
                     if i + 2 < len(chars) and chars[i+2] in JUNGSUNG:
                         pass
                     else:
@@ -107,6 +120,65 @@ def compose_korean_jamo(text: str) -> str:
     return ''.join(chars)
 
 
+CJK_CHAR_REGEX = re.compile(r'[\u4e00-\u9fff\u3400-\u4dbf\u3040-\u30ff]')
+
+
+def parse_foreign_title_info(text: str) -> dict:
+    """
+    해외(중/일) 웹소설 제목 분석 및 3가지 유형 구분
+    1) sino_korean: 원문 제목(간체/번체)을 한국식 한자음으로 적은 경우 (예: 아가낭자타강산(我家娘子打江山))
+    2) translation: 원문 제목을 한국어로 번역해서 적은 경우 (예: 말세: 여인이 소모한 물자는 만 배로 돌려받는다 (末世：女人消耗的物资万倍返还))
+    3) parallel: 원문 제목과 번역문(또는 한자음)을 함께 적은 경우 (예: 아가낭자타강산 : 말세: 여인이 소모한 물자는 만 배로 돌려받는다 (我家娘子打江山))
+    """
+    result = {
+        'clean_title': text,
+        'original_foreign_title': '',
+        'foreign_type': '',  # 'sino_korean', 'translation', 'parallel'
+    }
+    
+    if not text or not CJK_CHAR_REGEX.search(text):
+        return result
+
+    # 1. 괄호 안의 CJK 원문 추출
+    paren_cjk_match = re.search(r'[\(\[\{]\s*([\u4e00-\u9fff\u3400-\u4dbf\u3040-\u30ff\s：:，,！!？?·]+)\s*[\)\]\}]', text)
+    cjk_title = ""
+    korean_part = text
+    
+    if paren_cjk_match:
+        cjk_title = paren_cjk_match.group(1).strip()
+        korean_part = (text[:paren_cjk_match.start()] + " " + text[paren_cjk_match.end():]).strip()
+    else:
+        # 괄호 없이 한자가 포함된 경우
+        cjk_match = re.search(r'([\u4e00-\u9fff\u3400-\u4dbf\u3040-\u30ff]{2,}[\u4e00-\u9fff\u3400-\u4dbf\u3040-\u30ff\s：:，,！!？?·]*)', text)
+        if cjk_match:
+            cjk_title = cjk_match.group(1).strip()
+            korean_part = (text[:cjk_match.start()] + " " + text[cjk_match.end():]).strip()
+            korean_part = re.sub(r'^\s*[-–—:]\s*|\s*[-–—:]\s*$', '', korean_part).strip()
+
+    if not cjk_title:
+        return result
+
+    result['original_foreign_title'] = cjk_title
+    korean_part_clean = re.sub(r'[\s_]+', ' ', korean_part).strip()
+    
+    # 2. 유형 판단 (sino_korean, translation, parallel)
+    has_particles = bool(re.search(r'(?:가|이|은|는|을|를|의|에|에서|로|으로|와|과|도|만|한|적|하는|받는다|다)(?:\s|:|$)', korean_part_clean))
+    
+    # 병기(parallel)는 한자음 제목과 번역문 제목이 구분자('-', '[ ]', '/')로 조합된 형태
+    is_parallel = False
+    if '-' in korean_part_clean or ('[' in korean_part_clean and ']' in korean_part_clean) or '/' in korean_part_clean:
+        is_parallel = True
+
+    if is_parallel:
+        result['foreign_type'] = 'parallel'
+    elif has_particles:
+        result['foreign_type'] = 'translation'
+    else:
+        result['foreign_type'] = 'sino_korean'
+
+    result['clean_title'] = korean_part_clean
+    return result
+
 
 @dataclass
 class TitleParseResult:
@@ -120,6 +192,8 @@ class TitleParseResult:
     extension: str = ""           # 파일 확장자
     original_genre: str = ""      # 파일명에서 추출한 장르 (예: "현판")
     edition_info: str = ""        # 판본 정보 (예: "[개정판]") - 파일명에 보존
+    original_foreign_title: str = ""  # 원문 제목 (예: "我家娘子打江山" 또는 "末世：女人消耗的物资万倍返还")
+    foreign_title_type: str = ""      # "sino_korean", "translation", "parallel", ""
     
     def to_normalized_filename(self, genre: str = "") -> str:
         """
@@ -131,10 +205,15 @@ class TitleParseResult:
         # 장르 (입력된 장르 > 원본 추출 장르 순)
         final_genre = genre or self.original_genre
         if final_genre:
-            parts.append(f"[{final_genre}]")
+            clean_g = final_genre.strip(" []()")
+            parts.append(f"[{clean_g}]")
         
-        # 제목
-        parts.append(self.title)
+        # 제목 및 원문 제목 조합
+        title_str = self.title
+        if self.original_foreign_title and self.original_foreign_title not in title_str:
+            title_str = f"{title_str} ({self.original_foreign_title})"
+            
+        parts.append(title_str)
 
         # 판본 정보 (제목 바로 뒤 - 예: [개정판])
         if self.edition_info:
@@ -176,7 +255,7 @@ class TitleAnchorExtractor:
         '로맨스 판타지': '로판', '로맨스판타지': '로판', '로판': '로판',
         '게임 판타지': '겜판', '게임판타지': '겜판', '겜판': '겜판',
         '퓨전 판타지': '퓨판', '퓨전판타지': '퓨판', '퓨판': '퓨판',
-        '선협': '선협', 'SF': 'SF', '역사': '역사',
+        '선협': '선협', '역사': '역사',
         '공포': '공포', '스포츠': '스포츠', '언정': '언정',
     }
     
@@ -212,8 +291,8 @@ class TitleAnchorExtractor:
     
     # 장르 태그 패턴 (장르로 추출 + 제거 대상) - 완결/판본 태그는 제외
     GENRE_TAG_PATTERNS = [
-        r'\[(?:판타지|무협|현판|퓨판|로판|겜판|SF|역사|선협|언정|공포|스포츠|소설|단행본|연재중|미분류)\]',
-        r'\((?:판타지|무협|현판|퓨판|로판|겜판|SF|역사|선협|언정|공포|스포츠|소설|단행본|연재중|미분류)\)',
+        r'\[(?:판타지|무협|현판|퓨판|로판|겜판|역사|선협|언정|공포|스포츠|소설|패러디|현대|미스터리|밀리터리|단행본|연재중|미분류)(?:[\s,]+[^\]]+)*\]',
+        r'\((?:판타지|무협|현판|퓨판|로판|겜판|역사|선협|언정|공포|스포츠|소설|패러디|현대|미스터리|밀리터리|단행본|연재중|미분류)(?:[\s,]+[^\)]+)*\)',
     ]
 
     # 판본/에디션 태그 (제거하되 장르로 추출하지 않음 - 제목에도 포함하지 않음)
@@ -358,14 +437,14 @@ class TitleAnchorExtractor:
             re.IGNORECASE
         )
         
-        # 범위 패턴 (1-536, 1~536, 1-536화, 1-536권)
-        self.range_pattern = re.compile(r'(\d+)\s*[-~]\s*(\d+)\s*[화권부편회장]?')
+        # 범위 패턴 (1-536, 1~536, 1-536화, 1-536권, _1_536 등)
+        self.range_pattern = re.compile(r'(\d+)\s*[-~_]\s*(\d+)\s*[화권부편회장]?')
         
         # 단일 숫자 패턴 (120, 126 등 - 끝에 있는 단일 숫자)
         # [UPDATED] 뒤에 부/권 등의 단위가 오거나 완결 마커, 또는 외전/에필/번외 등, 또는 문자열 끝인 경우 매칭
         # 단, '회차가'처럼 단위 뒤에 다른 문자가 연달아 나오는 경우는 제외
         self.single_number_pattern = re.compile(
-            r'\s+(\d+)(?=\s*(?:完|완|\(완\)|\(完\)|\s*[화권부편회장](?:\s|$|完|완|\(완\)|\(完\))|\s*\d+\s*[화권부편회장](?:\s|$|完|완|\(완\)|\(完\))|\s*(?:에필|에필로그|외전|번외|특별편|番外|번외포함)|\s*$))'
+            r'\s+(\d+)(?=\s*(?:完|완|\(완\)|\(完\)|\s*[화권부편회장](?:\s|$|完|완|\(완\)|\(完\))|\s*\d+\s*[화권부편회장](?:\s|$|完|완|\(완\)|\(완\))|\s*(?:에필|에필로그|외전|번외|특별편|番外|번외포함)|\s*$))'
         )
         
         # 저자 구분자 패턴 (제목 - 저자)
@@ -386,6 +465,13 @@ class TitleAnchorExtractor:
         # 2. 노이즈 제거 및 장르/판본 추출
         cleaned, author, original_genre, edition_info = self._remove_noise(name)
         
+        # [NEW] 해외(중/일) 소설 제목 파싱 (원문 한자 제목 및 3가지 유형 추출)
+        foreign_info = parse_foreign_title_info(cleaned)
+        original_foreign_title = foreign_info['original_foreign_title']
+        foreign_title_type = foreign_info['foreign_type']
+        if foreign_info['clean_title']:
+            cleaned = foreign_info['clean_title']
+        
         # 3. 제목 앵커 추출
         title, residual = self._extract_title_anchor(cleaned)
         
@@ -403,7 +489,9 @@ class TitleAnchorExtractor:
             side_story=side_story,
             extension=extension,
             original_genre=original_genre,
-            edition_info=edition_info
+            edition_info=edition_info,
+            original_foreign_title=original_foreign_title,
+            foreign_title_type=foreign_title_type
         )
     
     def _split_extension(self, filename: str) -> Tuple[str, str]:
@@ -546,12 +634,12 @@ class TitleAnchorExtractor:
         candidates = []
         
         # 1. 단위 패턴 (1화, 50권, 1부 등)
-        unit_match = re.search(r'\s+\d+\s*[화권부편회장](?:\s|$)', name)
+        unit_match = re.search(r'(?:[\s_]|(?<=[.!?？!！]))\s*\d+\s*[화권부편회장](?:\s|$)', name)
         if unit_match:
             candidates.append(unit_match)
             
-        # 2. 숫자 범위 패턴 (1-536, 1~100 등)
-        range_match = re.search(r'\s+\d+\s*[-~]\s*\d+', name)
+        # 2. 숫자 범위 패턴 (1-536, 1~100, _1_222 등)
+        range_match = re.search(r'(?:[\s_]|(?<=[.!?？!！]))\s*\d+\s*[-~_]\s*\d+', name)
         if range_match:
             candidates.append(range_match)
             
@@ -583,12 +671,16 @@ class TitleAnchorExtractor:
         if best_match == paren_completion_match:
             title = title.rstrip('.')
             
+        # 제목 끝의 연재/련재 상태 노이즈 제거
+        title = re.sub(r'[\s_]+(?:련재|연재|연재중|련재중)$', '', title)
+            
         residual = name[best_match.start():].strip()
         
         return title, residual
     
     def _parse_residual(self, residual: str) -> Tuple[str, str, bool, str, str]:
         """잔여 문자열에서 메타데이터 파싱"""
+        residual = residual.strip(" _")
         if not residual:
             return "", "", False, "", ""
         
