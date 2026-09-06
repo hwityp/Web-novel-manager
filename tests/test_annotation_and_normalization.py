@@ -69,6 +69,43 @@ class TestAnnotationAndNormalization:
         normalized = parse_res.to_normalized_filename(genre=extracted_genre)
         assert normalized == "[패러디, 해리포터] 아도성곽격옥자교수료, 계통재래 1-267 (완).txt"
 
+    def test_hashtag_conan_parody(self):
+        """2.1 다중 단어 해시태그(#패러디 #명탐정 코난) 추출 및 정규화 검증"""
+        raw_name = "가남：개국절호명미，와저주창 1-740 完 (AI번역) #패러디 #명탐정 코난.txt"
+
+        # 장르 및 특성 추출 검증
+        extracted_genre = NovelTraitExtractor.extract_from_annotations(raw_name)
+        assert extracted_genre == "패러디, 명탐정 코난"
+
+        # 제목 및 상태 파싱 검증
+        parse_res = self.title_extractor.extract(raw_name)
+        assert parse_res.title == "가남：개국절호명미，와저주창"
+        assert parse_res.range_info == "1-740"
+        assert parse_res.is_completed is True
+        assert "#" not in parse_res.title
+        assert "코난" not in parse_res.title
+        assert "코난" not in parse_res.side_story
+
+        # 최종 정규화 검증
+        normalized = parse_res.to_normalized_filename(genre=extracted_genre)
+        assert normalized == "[패러디, 명탐정 코난] 가남：개국절호명미，와저주창 1-740 (완).txt"
+
+        # 기본 정규화(인자 미전달 시에도 동일하게 작동)
+        assert parse_res.to_normalized_filename() == "[패러디, 명탐정 코난] 가남：개국절호명미，와저주창 1-740 (완).txt"
+
+    def test_conan_parody_variations(self):
+        """2.2 코난 패러디 변형 표기(#명탐정코난, #코난, [명탐정 코난패러디]) 파싱 검증"""
+        cases = [
+            ("가남：개국절호명미，와저주창 1-740 完 (AI번역) #패러디 #명탐정코난.txt", "패러디, 명탐정 코난"),
+            ("가남：개국절호명미，와저주창 1-740 完 (AI번역) #패러디 #코난.txt", "패러디, 명탐정 코난"),
+            ("[명탐정 코난패러디][AI번역] 가남：개국절호명미，와저주창 1-740 (완).txt", "패러디, 명탐정 코난"),
+            ("[코난패러디] 가남：개국절호명미，와저주창 1-740 (완).txt", "패러디, 명탐정 코난"),
+            ("[패러디, 명탐정 코난] 가남：개국절호명미，와저주창 1-740 (완).txt", "패러디, 명탐정 코난"),
+        ]
+        for raw, expected_genre in cases:
+            genre = NovelTraitExtractor.extract_from_annotations(raw)
+            assert genre == expected_genre, f"Failed for {raw}: got {genre}, expected {expected_genre}"
+
     def test_prefix_brackets_eonjeong(self):
         """3. 다중 브래킷 [언정][AI번역] 추출 및 정규화 검증"""
         raw_name = "[언정][AI번역] 중생낭자전 1~1466(완).txt"
@@ -133,6 +170,11 @@ class TestAnnotationAndNormalization:
                 "패러디, 해리포터"
             ),
             (
+                "가남：개국절호명미，와저주창 1-740 完 (AI번역) #패러디 #명탐정 코난.txt",
+                "[패러디, 명탐정 코난] 가남：개국절호명미，와저주창 1-740 (완).txt",
+                "패러디, 명탐정 코난"
+            ),
+            (
                 "[언정][AI번역] 중생낭자전 1~1466(완).txt",
                 "[언정] 중생낭자전 1-1466 (완).txt",
                 "언정"
@@ -191,6 +233,11 @@ class TestAnnotationAndNormalization:
                 "아도성곽격옥자교수료, 계통재래 1-267 完 (AI번역) #패러디 #해리포터.txt",
                 "[패러디, 해리포터] 아도성곽격옥자교수료, 계통재래 1-267 (완).txt",
                 "패러디, 해리포터"
+            ),
+            (
+                "가남：개국절호명미，와저주창 1-740 完 (AI번역) #패러디 #명탐정 코난.txt",
+                "[패러디, 명탐정 코난] 가남：개국절호명미，와저주창 1-740 (완).txt",
+                "패러디, 명탐정 코난"
             ),
             (
                 "[언정][AI번역] 중생낭자전 1~1466(완).txt",

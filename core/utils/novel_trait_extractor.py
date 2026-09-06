@@ -74,6 +74,9 @@ TRAIT_PATTERNS: List[Tuple[str, List[str]]] = [
     ("나루토", [r"나루토", r"사스케", r"닌자", r"나뭇잎마을"]),
     ("해리포터", [r"해리포터", r"호그와트", r"볼드모트"]),
     ("포켓몬", [r"포켓몬", r"피카츄", r"몬스터볼"]),
+    ("명탐정 코난", [r"명탐정\s*코난", r"코난", r"쿠도\s*신이치", r"남도일", r"검은\s*조직"]),
+    ("주술회전", [r"주술회전", r"고죠\s*사토루", r"이타도리", r"스쿠나"]),
+    ("귀멸의 칼날", [r"귀멸의\s*칼날", r"귀칼", r"탄지로", r"네즈코"]),
     # 14. 기타 세부 특징
     ("학원", [r"학원", r"아카데미", r"학교", r"学院", r"学园"]),
     ("생존", [r"생존물", r"생존자", r"살아남기", r"아포칼립스\s*생존", r"生存"]),
@@ -109,7 +112,12 @@ PARODY_FANDOM_MAP = {
     "나루토": "나루토", "사스케": "나루토",
     "원피스": "원피스", "루피": "원피스",
     "드래곤볼": "드래곤볼", "손오공": "드래곤볼",
-    "포켓몬": "포켓몬", "피카츄": "포켓몬"
+    "포켓몬": "포켓몬", "피카츄": "포켓몬",
+    "명탐정코난": "명탐정 코난", "명탐정 코난": "명탐정 코난", "코난": "명탐정 코난",
+    "주술회전": "주술회전", "주술 회전": "주술회전",
+    "귀멸의칼날": "귀멸의 칼날", "귀멸의 칼날": "귀멸의 칼날", "귀칼": "귀멸의 칼날",
+    "헌터x헌터": "헌터x헌터", "헌터X헌터": "헌터x헌터", "헌터헌터": "헌터x헌터",
+    "블리치": "블리치"
 }
 
 
@@ -124,6 +132,7 @@ class NovelTraitExtractor:
         
         예)
         - '아도성곽격옥자교수료, 계통재래 1-267 完 (AI번역) #패러디 #해리포터.txt' -> '패러디, 해리포터'
+        - '가남：개국절호명미，와저주창 1-740 完 (AI번역) #패러디 #명탐정 코난.txt' -> '패러디, 명탐정 코난'
         - '[언정][AI번역] 중생낭자전 1~1466(완).txt' -> '언정'
         - '[언정][AI번역][연대] 중생낭자재종전 1~1466(완).txt' -> '언정, 연대물'
         - '[나루토패러디 시스템 AI번역] 푸른 용 1-633 완결.txt' -> '패러디, 나루토, 시스템'
@@ -135,8 +144,13 @@ class NovelTraitExtractor:
         name = re.sub(r'\.[a-zA-Z0-9]{1,10}$', '', raw_name).strip()
 
         # 1. 태그/첨언 후보군 추출
-        # (1) 해시태그
-        hashtags = re.findall(r'#([가-힣a-zA-Z0-9_]+)', name)
+        # (1) 해시태그 (다중 단어로 구성된 #명탐정 코난 등 지원, 수치/완결 마커는 제외)
+        hashtags = [
+            m.strip() for m in re.findall(
+                r'#([가-힣a-zA-Z0-9_]+(?:\s+(?!\d+|완결?|完|외전|후기|에필)[가-힣a-zA-Z0-9_]+)*)',
+                name
+            ) if m.strip()
+        ]
         
         # (2) 대괄호 태그
         brackets = re.findall(r'\[([^\]]+)\]', name)
@@ -156,11 +170,24 @@ class NovelTraitExtractor:
         # 2. 토큰 분해 및 정리
         tokens: List[str] = []
         for source in candidate_sources:
-            parts = re.split(r'[,/\s]+', source)
-            for part in parts:
-                cleaned = part.strip()
-                if cleaned:
-                    tokens.append(cleaned)
+            # 먼저 쉼표나 슬래시로 1차 분리
+            comma_parts = re.split(r'[,/]+', source)
+            for cp in comma_parts:
+                cp_strip = cp.strip()
+                if not cp_strip:
+                    continue
+                # 복합어(예: "명탐정 코난", "해리 포터")가 매핑에 직접 존재하면 단일 토큰으로 보존
+                if (cp_strip in PARODY_FANDOM_MAP or 
+                    cp_strip in GENRE_ALIAS_MAP or 
+                    any(cp_strip == trait_name or any(re.fullmatch(pat, cp_strip, re.IGNORECASE) for pat in patterns) for trait_name, patterns in TRAIT_PATTERNS)):
+                    tokens.append(cp_strip)
+                else:
+                    # 공백으로 추가 분해
+                    parts = re.split(r'\s+', cp_strip)
+                    for part in parts:
+                        cleaned = part.strip()
+                        if cleaned:
+                            tokens.append(cleaned)
 
         primary_genre: Optional[str] = None
         extracted_traits: List[str] = []
