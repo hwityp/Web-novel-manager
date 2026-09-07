@@ -187,10 +187,15 @@ def main():
             genre_summary = ", ".join([f"{g}({c})" for g, c in top_genres])
             print(f"   [{orig} 소설 총 {origin_counter[orig]}개] -> 주요 장르: {genre_summary}")
 
+    # 캐시 디스크 영구 저장
+    if hasattr(classifier_adapter, 'cache'):
+        classifier_adapter.cache.save()
+
     # 결과 JSON 저장
     output_log_dir = Path(PROJECT_ROOT) / "logs"
     output_log_dir.mkdir(exist_ok=True)
     report_file = output_log_dir / "mydown_200_verification.json"
+    report_md_file = output_log_dir / "mydown_200_verification_report.md"
     
     summary_data = {
         "sample_size": len(results),
@@ -206,7 +211,30 @@ def main():
     with open(report_file, "w", encoding="utf-8") as f:
         json.dump(summary_data, f, ensure_ascii=False, indent=2)
 
-    print(f"\n📁 상세 검증 결과 JSON 파일 저장 완료: {report_file}")
+    # Markdown 보고서 작성
+    with open(report_md_file, "w", encoding="utf-8") as f:
+        f.write("# MyDown 200개 샘플 종합 검증 보고서\n\n")
+        f.write(f"- **검증 일시:** 2026-09-07\n")
+        f.write(f"- **대상 디렉터리:** `{target_dir}`\n")
+        f.write(f"- **총 샘플 수:** {len(results)}개 (무작위 추출, 시드: 42)\n\n")
+        f.write("## 1. 통계 요약\n\n")
+        f.write("### 국적(원산지) 분포\n")
+        for orig, cnt in origin_counter.most_common():
+            f.write(f"- **{orig}**: {cnt}개 ({(cnt/len(results))*100:.1f}%)\n")
+        f.write(f"- **해외 소설 비율**: {is_foreign_counter[True]}개 ({(is_foreign_counter[True]/len(results))*100:.1f}%)\n\n")
+        
+        f.write("### 장르 분포 (상위 15개)\n")
+        for g, cnt in genre_counter.most_common(15):
+            f.write(f"- **{g}**: {cnt}개 ({(cnt/len(results))*100:.1f}%)\n")
+        f.write("\n### 2. 200개 샘플 전수 검증 결과 표\n\n")
+        f.write("| 번호 | 원산지 | 장르 | 출처/신뢰도 | 최종 정규화 파일명 |\n")
+        f.write("| :---: | :---: | :---: | :---: | :--- |\n")
+        for r in results:
+            src_str = f"{r['genre_source']}({r['genre_confidence']})"
+            f.write(f"| {r['index']:03d} | {r['origin']} | {r['genre']} | {src_str} | `{r['normalized_name']}` |\n")
+
+    print(f"\n📁 상세 검증 결과 JSON 저장 완료: {report_file}")
+    print(f"📄 상세 검증 보고서 MD 저장 완료: {report_md_file}")
 
 if __name__ == "__main__":
     main()

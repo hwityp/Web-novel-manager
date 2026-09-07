@@ -121,7 +121,8 @@ class TestForeignNovelGenreInference:
             title="사합원 중생54년, 인거사주"
         )
         res1 = self.adapter.classify(task1)
-        assert "언정" in res1.genre
+        assert "현판" in res1.genre
+        assert "사합원" in res1.genre
 
         # 2. 중국 선협 CJK 제목
         raw_name_2 = "수선일지(修仙日记：我能看到隐藏机缘) 1-200 완"

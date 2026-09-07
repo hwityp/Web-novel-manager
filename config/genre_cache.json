@@ -1,6 +1,667 @@
 {
   "version": "1.0",
   "description": "장르 검색 결과 캐시",
-  "updated_at": "2024-12-28T00:00:00",
-  "entries": {}
+  "updated_at": "2026-09-07T23:35:10.719807",
+  "entries": {
+    "아포칼립스가 다운로드 됨": {
+      "genre": "퓨판, 종말",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:14:09.486544"
+    },
+    "공략 불가능 히로인의 소꿉친구가 되었다": {
+      "genre": "현판",
+      "confidence": "high",
+      "source": "노벨피아_hashtag",
+      "cached_at": "2026-09-07T23:14:11.072491"
+    },
+    "칠령 - 아성료여주대조조적소가련": {
+      "genre": "언정, 연대물",
+      "confidence": "high",
+      "source": "annotation",
+      "cached_at": "2026-09-07T23:33:25.870273"
+    },
+    "주술회전 탈주닌자 휴우가 유가오": {
+      "genre": "패러디, 나루토, 주술회전",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:14:12.125240"
+    },
+    "당쾌천대료나료녀배극본": {
+      "genre": "언정",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:14:16.383946"
+    },
+    "종말의 뱀이 되었다": {
+      "genre": "겜판, 종말",
+      "confidence": "high",
+      "source": "소설넷_meta",
+      "cached_at": "2026-09-07T23:14:18.653568"
+    },
+    "용사가 여자친구인데도 파티에서 쫓겨났습니다": {
+      "genre": "판타지",
+      "confidence": "high",
+      "source": "소설넷_meta",
+      "cached_at": "2026-09-07T23:14:20.631279"
+    },
+    "회귀해서 천재 pd": {
+      "genre": "퓨판",
+      "confidence": "high",
+      "source": "조아라_selenium",
+      "cached_at": "2026-09-07T23:14:28.708686"
+    },
+    "게임업계 정상화": {
+      "genre": "현판",
+      "confidence": "high",
+      "source": "소설넷_meta",
+      "cached_at": "2026-09-07T23:14:31.550167"
+    },
+    "십전무황": {
+      "genre": "무협",
+      "confidence": "high",
+      "source": "소설넷_meta",
+      "cached_at": "2026-09-07T23:14:32.176471"
+    },
+    "방구석 연습생이 음악천재였다": {
+      "genre": "현판",
+      "confidence": "high",
+      "source": "소설넷_meta",
+      "cached_at": "2026-09-07T23:14:34.164838"
+    },
+    "북송천월지남": {
+      "genre": "역사",
+      "confidence": "high",
+      "source": "annotation",
+      "cached_at": "2026-09-07T23:33:33.031341"
+    },
+    "중생낭자재종전": {
+      "genre": "언정",
+      "confidence": "high",
+      "source": "annotation",
+      "cached_at": "2026-09-07T23:33:33.031907"
+    },
+    "다중 나루토 아르바이트 부터 시작": {
+      "genre": "패러디, 나루토",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:14:45.744344"
+    },
+    "삼국：아불시조예": {
+      "genre": "역사",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:14:47.586893"
+    },
+    "아불가능시검신": {
+      "genre": "무협",
+      "confidence": "high",
+      "source": "네이버시리즈_meta",
+      "cached_at": "2026-09-07T23:14:48.743455"
+    },
+    "설호적용봉태니": {
+      "genre": "언정",
+      "confidence": "high",
+      "source": "annotation",
+      "cached_at": "2026-09-07T23:33:35.070326"
+    },
+    "일족 전멸의 밤부터 최강자까지": {
+      "genre": "퓨판",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:15:14.364546"
+    },
+    "밀수꾼이 조선을 인수함": {
+      "genre": "역사",
+      "confidence": "high",
+      "source": "소설넷_meta",
+      "cached_at": "2026-09-07T23:15:17.709662"
+    },
+    "단총의비타잡속명": {
+      "genre": "언정",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:15:18.573998"
+    },
+    "변신라리검선": {
+      "genre": "역사",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:15:19.657852"
+    },
+    "이번 생은 나 혼자 산다": {
+      "genre": "현판",
+      "confidence": "high",
+      "source": "소설넷_meta",
+      "cached_at": "2026-09-07T23:15:29.899641"
+    },
+    "함어수선，단단기전능": {
+      "genre": "선협",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:15:31.159928"
+    },
+    "마도": {
+      "genre": "무협",
+      "confidence": "high",
+      "source": "리디북스_snippet",
+      "cached_at": "2026-09-07T23:15:36.211523"
+    },
+    "다시 태어났더니 정조역전 세계": {
+      "genre": "역사",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:15:58.628305"
+    },
+    "천도진천금피괴매시": {
+      "genre": "언정",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:15:59.814477"
+    },
+    "환생자는 용사가 아니었습니다": {
+      "genre": "퓨판",
+      "confidence": "high",
+      "source": "미스터블루_meta",
+      "cached_at": "2026-09-07T23:16:10.146790"
+    },
+    "멸망한 세상에서 돌아온 천일검제": {
+      "genre": "무협, 종말",
+      "confidence": "high",
+      "source": "네이버시리즈_meta",
+      "cached_at": "2026-09-07T23:16:14.035984"
+    },
+    "마법사는 당나귀 발굽 깎기부터 시작": {
+      "genre": "판타지",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:16:17.234189"
+    },
+    "만위세계적맹왕": {
+      "genre": "패러디, 마블",
+      "confidence": "high",
+      "source": "annotation",
+      "cached_at": "2026-09-07T23:34:15.548790"
+    },
+    "조선에 우주선이 추락했다": {
+      "genre": "역사",
+      "confidence": "high",
+      "source": "미스터블루_meta",
+      "cached_at": "2026-09-07T23:16:36.656984"
+    },
+    "블랙리스트가 ex급 검신이었다": {
+      "genre": "현판",
+      "confidence": "high",
+      "source": "조아라_selenium",
+      "cached_at": "2026-09-07T23:16:44.622931"
+    },
+    "메이딘 용병단": {
+      "genre": "판타지",
+      "confidence": "high",
+      "source": "네이버시리즈_meta",
+      "cached_at": "2026-09-07T23:16:50.606453"
+    },
+    "검술과 궁술에 미친 자작가 이공자가 돈도 잘 범": {
+      "genre": "퓨판",
+      "confidence": "high",
+      "source": "미스터블루_meta",
+      "cached_at": "2026-09-07T23:17:08.159211"
+    },
+    "수세천재종전일상": {
+      "genre": "언정, 일상",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:09.480079"
+    },
+    "아카데미 괴도는 집에 가고 싶다": {
+      "genre": "퓨판, 학원",
+      "confidence": "high",
+      "source": "미스터블루_meta",
+      "cached_at": "2026-09-07T23:17:20.615050"
+    },
+    "개국과부둔물자천월육령": {
+      "genre": "언정, 빙의",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:24.343758"
+    },
+    "가남：개국절호명미，와저주창": {
+      "genre": "패러디, 명탐정 코난",
+      "confidence": "high",
+      "source": "annotation",
+      "cached_at": "2026-09-07T23:34:24.664353"
+    },
+    "영부인은 간첩": {
+      "genre": "언정",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:24.499193"
+    },
+    "종말이 다가오는 세상에서": {
+      "genre": "퓨판, 종말",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:24.918988"
+    },
+    "천성후낭, 과연대로대재개황료": {
+      "genre": "역사, 연대물",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:25.271244"
+    },
+    "천월：대저로댁재칠령년대흘과": {
+      "genre": "언정, 연대물, 빙의",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:25.354132"
+    },
+    "아포칼립스 부동산 헌터": {
+      "genre": "퓨판, 종말, 헌터",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:25.593742"
+    },
+    "귀환 성녀의 스트리밍": {
+      "genre": "퓨판",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:25.902850"
+    },
+    "만급천금저삽폭회귀": {
+      "genre": "퓨판",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:26.204833"
+    },
+    "요마수선전": {
+      "genre": "선협, 헌터",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:26.519819"
+    },
+    "이세계를 맛으로 평정하는 중입니다": {
+      "genre": "판타지, 이세계",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:27.315585"
+    },
+    "나 혼자 상태창 2개": {
+      "genre": "퓨판, 시스템",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:27.425102"
+    },
+    "소복보피투인생후，성전경성단총": {
+      "genre": "언정, 가족",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:27.591530"
+    },
+    "회귀 헌터가 대장장이 능력을 숨김": {
+      "genre": "퓨판, 헌터",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:27.751391"
+    },
+    "이 구역의 먼치킨 헌터는 나야": {
+      "genre": "현판, 헌터",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:27.901023"
+    },
+    "재벌 3세는 총수가 되고 싶다": {
+      "genre": "현판, 재테크",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:28.185728"
+    },
+    "수양저당npc적！": {
+      "genre": "겜판",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:28.710713"
+    },
+    "핍아중생시파": {
+      "genre": "언정",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:29.516137"
+    },
+    "누가 그에게 수선을 하라 하였는가!!": {
+      "genre": "선협",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:30.273886"
+    },
+    "우마무스메 전설,최강 무패의 길": {
+      "genre": "퓨판",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:30.538476"
+    },
+    "삼국지 여포를 장인으로 착각하다": {
+      "genre": "역사, 착각",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:30.875147"
+    },
+    "무림뱅커": {
+      "genre": "무협",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:31.025753"
+    },
+    "구재녀마두신변투투수련": {
+      "genre": "스포츠",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:31.289866"
+    },
+    "진천금타시전능대료": {
+      "genre": "언정",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:31.388703"
+    },
+    "소사매중생발전，전종문슬슬발두": {
+      "genre": "언정",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:32.002397"
+    },
+    "동시천월：재제천성위전설": {
+      "genre": "언정, 빙의",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:32.152726"
+    },
+    "백리몽": {
+      "genre": "무협",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:32.388800"
+    },
+    "무인도 생존": {
+      "genre": "판타지",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:32.681891"
+    },
+    "중생화홍연대，아적기술령선백연": {
+      "genre": "역사, 연대물",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:32.847952"
+    },
+    "항해：아유일개형제교파뢰특": {
+      "genre": "패러디, 원피스",
+      "confidence": "high",
+      "source": "annotation",
+      "cached_at": "2026-09-07T23:35:05.473211"
+    },
+    "천하제일 곤륜객잔": {
+      "genre": "무협",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:33.955665"
+    },
+    "천재말세둔화망, 린거둔창아둔량": {
+      "genre": "판타지, 말세",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:34.119139"
+    },
+    "강속구로 인생 역전": {
+      "genre": "스포츠",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:34.341423"
+    },
+    "모용전신": {
+      "genre": "무협",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:34.440372"
+    },
+    "세자흔흉": {
+      "genre": "언정",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:34.919978"
+    },
+    "70년대 악독한 새엄마 남편이 나를 하늘처럼 떠받든다": {
+      "genre": "언정, 연대물",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:35.319096"
+    },
+    "중생년대주단총대료": {
+      "genre": "언정",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:35.567882"
+    },
+    "우주급가애": {
+      "genre": "판타지",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:35.712613"
+    },
+    "천재 편집자의 이중생활": {
+      "genre": "언정",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:35.872212"
+    },
+    "칠영악독후마, 경한노공총상천": {
+      "genre": "언정",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:36.498386"
+    },
+    "삼국지 유표 아들 개돼지로 살아남기": {
+      "genre": "판타지, 생존",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:37.220677"
+    },
+    "공간대료적양재총부종전일상": {
+      "genre": "언정, 공간, 일상",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:37.520641"
+    },
+    "사합원：아시유광기": {
+      "genre": "현판, 사합원",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:35:08.652631"
+    },
+    "npc는 모든 사람에게 하얀 달빛이 되었습니다npc": {
+      "genre": "겜판",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:38.988721"
+    },
+    "대애마존，아적녀제자전시병교": {
+      "genre": "선협",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:39.835469"
+    },
+    "재벌집 막내아들": {
+      "genre": "현판, 재테크",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:40.006422"
+    },
+    "사합원 중생54년, 인거사주": {
+      "genre": "현판, 사합원",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:35:09.396865"
+    },
+    "대소저저총시불구상진": {
+      "genre": "언정",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:41.244143"
+    },
+    "빛을 보는 변호사": {
+      "genre": "현판",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:41.334387"
+    },
+    "회귀한 투수가 야구를 과하게 잘한다": {
+      "genre": "스포츠",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:41.439133"
+    },
+    "괘기유희통왕이세계": {
+      "genre": "판타지, 이세계",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:41.739916"
+    },
+    "아재해적조건애로묘조사단": {
+      "genre": "역사",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:41.890304"
+    },
+    "범골 신병의 몬스터 라이프": {
+      "genre": "판타지",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:42.025667"
+    },
+    "아티팩트 먹는 플레이어": {
+      "genre": "겜판",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:42.269693"
+    },
+    "비밀의 흑마경찰": {
+      "genre": "현판",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:42.521183"
+    },
+    "천재배우의 아우라": {
+      "genre": "현판",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:17:42.967661"
+    },
+    "두라：룡왕지자연신왕": {
+      "genre": "패러디",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:33:26.876624"
+    },
+    "대착mc계통도중토": {
+      "genre": "패러디, 시스템",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:33:29.289077"
+    },
+    "구성봉호두라，역습계통재래？": {
+      "genre": "패러디, 시스템",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:33:30.119815"
+    },
+    "두라：무혼빙룡왕，마소도상은료": {
+      "genre": "패러디",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:34:01.727045"
+    },
+    "두라_계통조래만년_아학폭당삼": {
+      "genre": "패러디, 시스템",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:34:15.547970"
+    },
+    "두라：제자당삼，정적발사": {
+      "genre": "패러디",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:34:18.492315"
+    },
+    "두라：재사래극온건변강": {
+      "genre": "패러디",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:34:26.528076"
+    },
+    "퍼펙트 마스터": {
+      "genre": "현판",
+      "confidence": "high",
+      "source": "소설넷_meta",
+      "cached_at": "2026-09-07T23:34:28.601188"
+    },
+    "망나니는 벙어리 공녀의 목소리가 듣고 싶다": {
+      "genre": "판타지",
+      "confidence": "high",
+      "source": "소설넷_meta",
+      "cached_at": "2026-09-07T23:34:33.294637"
+    },
+    "두라이：무혼허원수，왕동상은료": {
+      "genre": "패러디",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:34:36.639708"
+    },
+    "우리 아빠는 천하제일인": {
+      "genre": "무협",
+      "confidence": "high",
+      "source": "네이버시리즈_meta",
+      "cached_at": "2026-09-07T23:34:38.212652"
+    },
+    "야만족을 다시 위대하게": {
+      "genre": "판타지",
+      "confidence": "high",
+      "source": "네이버시리즈_meta",
+      "cached_at": "2026-09-07T23:34:46.964085"
+    },
+    "두라지아적무혼시모의기": {
+      "genre": "패러디, 시스템",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:34:52.649423"
+    },
+    "려포적인생모의기": {
+      "genre": "무협, 시스템",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:35:02.705575"
+    },
+    "두라절세：불후룡족": {
+      "genre": "패러디",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:35:03.512285"
+    },
+    "두라：종람전패왕룡가족개시": {
+      "genre": "패러디, 시스템, 가족",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:35:07.698841"
+    },
+    "대승기재유역습계통": {
+      "genre": "선협, 시스템",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:35:09.201311"
+    },
+    "두라：칠살경절세": {
+      "genre": "패러디",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-07T23:35:10.302120"
+    }
+  }
 }

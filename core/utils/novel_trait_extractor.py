@@ -27,8 +27,14 @@ PRIMARY_GENRES = {
 
 # 특징 키워드 정의 (우선순위 순서대로 배열)
 TRAIT_PATTERNS: List[Tuple[str, List[str]]] = [
-    # 0. 사합원 / 여주 / 하렘 (사용자 명시 핵심 키워드)
+    # 0. 사합원 / 시스템 / 여주 / 하렘 (사용자 명시 핵심 키워드 축)
     ("사합원", [r"사합원", r"4합원", r"四合院"]),
+    ("시스템", [
+        r"시스템", r"계통", r"系統", r"系统", r"치트", r"출석\s*체크", r"상태창", r"퀘스트",
+        r"스킬", r"패널", r"로그인", r"유희모조", r"게임모드",
+        r"모의기", r"模拟器", r"시뮬레이터", r"인생시뮬", r"골드핑거", r"金手指",
+        r"사인", r"签到", r"역습계통", r"개시", r"반파", r"당신탐", r"금리처", r"锦鲤"
+    ]),
     ("여주", [r"여주물", r"여주", r"여성주인공", r"여주인공", r"女主"]),
     ("하렘", [r"하렘", r"역하렘", r"남주", r"男主", r"后宫"]),
     # 1. 연대물 (70년대, 80년대, 칠령, 지청 등)
@@ -49,12 +55,7 @@ TRAIT_PATTERNS: List[Tuple[str, List[str]]] = [
     # 6. 궁투 / 궁정
     ("궁투", [r"궁투극", r"궁투", r"후궁", r"宫斗", r"后宫"]),
     ("궁정", [r"궁정", r"궁궐", r"황궁", r"왕궁", r"조정", r"궤비", r"태의", r"宫廷", r"皇宫"]),
-    # 7. 시스템 / 치트
-    ("시스템", [
-        r"시스템", r"계통", r"系統", r"系统", r"치트", r"출석\s*체크", r"상태창", r"퀘스트",
-        r"스킬", r"패널", r"로그인", r"유희모조", r"게임모드", r"개시", r"반파", r"당신탐", r"금리처", r"锦鲤"
-    ]),
-    # 8. 재테크
+    # 7. 재테크
     ("재테크", [r"재테크", r"주식", r"투자", r"재벌", r"건물주", r"자산", r"창업", r"돈벌기", r"가가1990", r"1990", r"致富", r"炒股"]),
     # 9. 가족
     ("가족", [r"복보유량전", r"단총소내포", r"복보", r"소내포", r"가족물", r"육아물", r"가족", r"육아", r"团宠", r"育儿"]),
@@ -98,7 +99,7 @@ GENRE_ALIAS_MAP = {
     "로맨스판타지": "로판", "로맨스 판타지": "로판", "로판": "로판",
     "퓨전무협": "무협", "퓨전 무협": "무협", "신무협": "무협", "무협": "무협",
     "판타지": "판타지", "선협": "선협", "언정": "언정", "스포츠": "스포츠",
-    "패러디": "패러디", "역사": "역사", "SF": "SF", "공포": "공포",
+    "패러디": "패러디", "역사": "역사", "SF": "퓨판", "SF판타지": "퓨판", "공상과학": "퓨판", "공포": "공포",
     "미스터리": "미스터리", "밀리터리": "밀리터리", "현대": "현대", "소설": "소설"
 }
 
@@ -370,7 +371,24 @@ class NovelTraitExtractor:
                     
             if len(selected_traits) >= 2:
                 break
-                
+
+        # [시스템 키워드 필수 보장] 내용의 핵심 서사 장치가 시스템일 경우 반드시 '시스템' 태그 포함
+        if "시스템" not in selected_traits and "시스템" != primary_genre:
+            system_check_patterns = [
+                r"시스템", r"계통", r"系統", r"系统", r"치트", r"출석\s*체크", r"상태창",
+                r"모의기", r"模拟器", r"시뮬레이터", r"인생시뮬", r"골드핑거", r"金手指",
+                r"사인", r"签到", r"역습계통"
+            ]
+            if any(re.search(pat, combined_text, re.IGNORECASE) for pat in system_check_patterns):
+                if len(selected_traits) >= 2:
+                    # '사합원'이 있으면 사합원은 소재로서 보존하고, 두 번째 자리를 '시스템'으로 교체
+                    if "사합원" in selected_traits:
+                        selected_traits = ["사합원", "시스템"]
+                    else:
+                        selected_traits = [selected_traits[0], "시스템"]
+                else:
+                    selected_traits.append("시스템")
+
         return selected_traits[:2]
 
     @classmethod
@@ -388,8 +406,21 @@ class NovelTraitExtractor:
         if not primary_genre or primary_genre == "미분류":
             return primary_genre or "미분류"
 
-        # 로판/로맨스의 경우 중국 웹소설 판단 시 '언정'으로 전환
-        if primary_genre in ['로판', '로맨스', '로맨스판타지']:
+        # 사합원 소설의 장르 보정: 사합원물은 치뎬(남성향) 연대/도시물이 주류이므로 여성향 클리셰가 없으면 기본 '현판'
+        all_text_ctx = f"{title} {web_snippet} {' '.join(web_tags or [])}"
+        is_sahapwon = any(re.search(pat, all_text_ctx, re.IGNORECASE) for pat in [r"사합원", r"4합원", r"四合院"])
+        if is_sahapwon:
+            female_cliche_patterns = [
+                r"여주", r"교처", r"낭자", r"단총", r"복보", r"천금", r"궁투", r"택투",
+                r"시어머니", r"시집", r"포태", r"소내포", r"아내", r"부군", r"공간물자", r"수신공간"
+            ]
+            has_female_cliche = any(re.search(fk, all_text_ctx, re.IGNORECASE) for fk in female_cliche_patterns)
+            if not has_female_cliche:
+                if primary_genre in ['언정', '로판', '로맨스', '역사', '미분류']:
+                    primary_genre = "현판"
+
+        # 로판/로맨스의 경우 중국 웹소설 판단 시 '언정'으로 전환 (사합원 제외)
+        elif primary_genre in ['로판', '로맨스', '로맨스판타지']:
             from core.utils.genre_mapping import GenreMappingLoader
             text_ctx = f"{web_snippet} {' '.join(web_tags or [])}"
             if GenreMappingLoader.is_chinese_romance(title, text_ctx):

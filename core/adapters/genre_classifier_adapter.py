@@ -279,7 +279,18 @@ class GenreClassifierAdapter:
         # Step 2: 캐시 확인 (Cache-First)
         cached = self.cache.get(pure_title)
         if cached:
-            task.genre = cached['genre']
+            cached_genre = cached['genre']
+            primary_genre, existing_kws = NovelTraitExtractor.parse_existing_tag(cached_genre)
+            corrected_genre = self._apply_origin_specific_rules(primary_genre, task, raw_text)
+            task.genre = NovelTraitExtractor.format_genre_tag(
+                primary_genre=corrected_genre,
+                title=raw_text,
+                existing_keywords=existing_kws if corrected_genre == primary_genre else None
+            )
+            if task.genre != cached_genre:
+                self.cache.set(pure_title, task.genre, cached['confidence'], cached.get('source', 'cache'))
+                self.logger.debug(f"  [캐시 갱신] '{pure_title}': {cached_genre} → {task.genre}")
+
             task.confidence = cached['confidence']
             task.source = self._format_source(cached.get('source', 'cache'))
             task.status = 'processing'
@@ -453,27 +464,37 @@ class GenreClassifierAdapter:
     def _apply_origin_specific_rules(self, mapped_genre: str, task: NovelTask, raw_text: str) -> str:
         """
         국적(원산지) 판별 결과에 따른 장르 보정 규칙 적용
-        - 중국 소설(CN): 로맨스/로판 계열은 무조건 '언정'으로 전환, 사합원/지청 등의 '역사' 오탐 방지 ('언정' 전환)
+        - 중국 소설(CN): 사합원은 기본 '현판' (여성향 클리셰 부재 시), 로맨스/로판은 '언정', 선협 키워드는 '선협'
         - 일본 소설(JP): 악역영애/익애 등은 '로판', 이세계/전생은 '판타지' 보장
         """
         origin = task.metadata.get('country_origin', 'UNKNOWN')
-        if not mapped_genre or mapped_genre == '미분류':
-            return mapped_genre
-            
         foreign_title = task.metadata.get('original_foreign_title', '')
         full_ctx = f"{raw_text} {task.title} {foreign_title}".strip()
         
         # 1. 중국 소설 (CN) 규칙
         if origin == 'CN':
+            # 사합원 규칙 (최우선): 사합원물은 치뎬 남성향 연대/도시물이 주류이므로 여성향 클리셰가 없으면 무조건 '현판'
+            is_sahapwon = any(kw in full_ctx for kw in ['사합원', '四合院', '4합원'])
+            if is_sahapwon:
+                female_keywords = [
+                    '여주', '교처', '낭자', '단총', '복보', '천금', '궁투', '택투',
+                    '시어머니', '시집', '포태', '소내포', '아내', '부군', '공간물자', '수신공간'
+                ]
+                has_female = any(fk in full_ctx for fk in female_keywords)
+                return '언정' if has_female else '현판'
+
             # 로맨스/로판 계열은 언정으로 전환
             if mapped_genre in ['로판', '로맨스']:
                 return '언정'
-            # 사합원/지청/궁투/농가 등이 포함되어 있는데 역사로 잘못 분류된 경우 -> 언정
-            if mapped_genre == '역사' and any(kw in full_ctx for kw in ['사합원', '四合院', '지청', '知青', '궁투', '宫斗', '농가', '농문', '교처', '복보']):
+            # 궁투/농가/교처 등이 포함되어 있는데 역사로 잘못 분류된 경우 -> 언정
+            if mapped_genre == '역사' and any(kw in full_ctx for kw in ['지청', '知青', '궁투', '宫斗', '농가', '농문', '교처', '복보', '천금', '택투']):
                 return '언정'
-            # 수선/선협 키워드가 강한데 판타지/무협으로 분류된 경우 -> 선협
-            if mapped_genre in ['판타지', '무협', '퓨판'] and any(kw in full_ctx for kw in ['수선', '修仙', '수진', '修真', '선협', '仙侠', '축기', '원영', '금단', '비승']):
+            # 수선/선협 키워드가 강한데 판타지/무협/퓨판/현판으로 분류된 경우 -> 선협
+            if mapped_genre in ['판타지', '무협', '퓨판', '현판', '미분류'] and any(kw in full_ctx for kw in ['대승기', '大乘期', '수선', '修仙', '수진', '修真', '선협', '仙侠', '축기', '원영', '금단', '비승']):
                 return '선협'
+            # 투라대륙(두라) 패러디 소설
+            if any(kw in full_ctx for kw in ['두라지', '두라', '斗罗']):
+                return '패러디'
                 
         # 2. 일본 소설 (JP) 규칙
         elif origin == 'JP':
@@ -565,6 +586,26 @@ class GenreClassifierAdapter:
                     if cjk_single.get('primary_genre') != '미분류':
                         genre = cjk_single.get('primary_genre')
                         confidence = cjk_single.get('confidence', 0.0)
+
+            # CJK 번역투 컨텍스트 기반 장르 추론 (기존 키워드로 미분류일 때)
+            if genre == '미분류':
+                full_ctx = f"{raw_text} {title} {foreign_title}".strip()
+                if any(kw in full_ctx for kw in ['사합원', '四合院']):
+                    female_keywords = ['여주', '교처', '낭자', '단총', '복보', '천금', '궁투', '택투']
+                    genre = '언정' if any(fk in full_ctx for fk in female_keywords) else '현판'
+                    confidence = 0.85
+                elif any(kw in full_ctx for kw in ['대승기', '大乘期', '수선', '修仙', '선협', '仙侠', '축기', '금단', '원영']):
+                    genre = '선협'
+                    confidence = 0.85
+                elif any(kw in full_ctx for kw in ['두라지', '두라', '斗罗']):
+                    genre = '패러디'
+                    confidence = 0.85
+                elif any(kw in full_ctx for kw in ['려포', '여포', '삼국']) and any(kw in full_ctx for kw in ['모의기', '시뮬', '계통']):
+                    genre = '무협'
+                    confidence = 0.8
+                elif any(kw in full_ctx for kw in ['MC계통', '마인크래프트', '포켓몬', '나루토', '원피스', '해리포터']):
+                    genre = '패러디'
+                    confidence = 0.85
 
             # 장르 매핑 적용
             mapped_genre = self.mapping_loader.map_genre(genre)
