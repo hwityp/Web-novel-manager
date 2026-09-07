@@ -34,6 +34,9 @@ env/
 *~
 
 # Testing
+tests/
+conftest.py
+pytest.ini
 .pytest_cache/
 .hypothesis/
 .coverage
@@ -41,6 +44,12 @@ htmlcov/
 .tox/
 .nox/
 *.txt/
+
+# Test Data & Verification Scripts
+list.txt
+scripts/verify_mydown_samples.py
+scripts/run_new_100_verification.py
+scripts/batch_retry_failed.py
 
 # Logs
 logs/
@@ -55,10 +64,12 @@ build/
 .DS_Store
 Thumbs.db
 
-
-# Project specific
+# Project specific & Security
 mapping*.csv
 .env
+.api_key
+modules/classifier/.api_key
 _cleanup_temp/
 No_use/
+
 
