@@ -60,10 +60,14 @@ def test_google_search():
     print(f"* 작품명: {target_title}")
     print(f"* Naver 결과: 실패 (Simulated/Confirmed)")
     
-    if result:
+    if result and 'genre' in result:
         print(f"* Google 결과: [{result['genre']}]")
         print(f"* 최종 소스: {result['source']}")
         print(f"* 신뢰도: {result['confidence']}")
+    elif result and result.get('error') == 'quota_exceeded':
+        print(f"* Google 결과: 쿼터 초과 (일일 할당량 100회 초과로 건너뜀)")
+        print(f"* 최종 소스: -")
+        print(f"* 신뢰도: 0.0")
     else:
         print(f"* Google 결과: 검색 실패 또는 키워드 매칭 불가")
         print(f"* 최종 소스: -")
@@ -76,10 +80,10 @@ def test_google_search():
     print(f"▶ 추가 테스트: {target2}")
     result2 = extractor.extract_genre(target2)
     
-    if result2:
+    if result2 and 'genre' in result2:
         print(f"* Google 결과: [{result2['genre']}]")
     else:
-        print(f"* Google 결과: 실패")
+        print(f"* Google 결과: 실패 또는 쿼터 초과")
 
     print("="*60)
 

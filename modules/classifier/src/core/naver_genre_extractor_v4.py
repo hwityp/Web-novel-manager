@@ -66,17 +66,28 @@ class NaverGenreExtractorV4:
     
     def __init__(self, naver_api_config=None):
         self.headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9',
-            'Accept-Language': 'ko-KR,ko;q=0.9',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
             'Referer': 'https://www.naver.com/',
+            'Sec-Ch-Ua': '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+            'Sec-Ch-Ua-Mobile': '?0',
+            'Sec-Ch-Ua-Platform': '"Windows"',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'same-site',
+            'Sec-Fetch-User': '?1',
+            'Upgrade-Insecure-Requests': '1',
         }
+        self.session = requests.Session()
+        self.session.headers.update(self.headers)
         
         # 네이버 API 설정
         self.naver_api_config = naver_api_config
         self.use_api = naver_api_config is not None and \
                        'client_id' in naver_api_config and \
                        'client_secret' in naver_api_config
+        self.api_mode = None  # 'ncp' | 'legacy' | None (자동 감지)
         
         # 검색 결과 캐시
         self.search_cache = {}
@@ -263,18 +274,24 @@ class NaverGenreExtractorV4:
             return self._search_with_web(query, title, strategy)
     
     def _search_with_api(self, query: str, title: str, strategy) -> Optional[Dict[str, Any]]:
-        """네이버 검색 API 사용 (NAVER API HUB / Legacy 지원)"""
+        """네이버 검색 API 사용 (NAVER API HUB 및 Legacy 오픈API 하이브리드 지원)"""
         try:
             client_id = self.naver_api_config['client_id']
             client_secret = self.naver_api_config['client_secret']
             
-            # NAVER API HUB 또는 사용자 지정 엔드포인트 지원
-            api_url = self.naver_api_config.get('api_url') or "https://openapi.naver.com/v1/search/webkr.json"
+            # 사용자 지정 URL 또는 기본 엔드포인트 결정
+            custom_url = self.naver_api_config.get('api_url')
             
-            headers = {
-                "X-Naver-Client-Id": client_id,
-                "X-Naver-Client-Secret": client_secret
-            }
+            # 엔드포인트 및 헤더 모드 결정
+            if custom_url:
+                api_url = custom_url
+                is_ncp = ("ntruss.com" in api_url) or ("naverapihub" in api_url)
+            elif self.api_mode == 'ncp':
+                api_url = "https://naverapihub.apigw.ntruss.com/search/v1/webkr"
+                is_ncp = True
+            else:
+                api_url = "https://openapi.naver.com/v1/search/webkr.json"
+                is_ncp = False
             
             params = {
                 "query": query,
@@ -282,14 +299,75 @@ class NaverGenreExtractorV4:
                 "start": 1,
                 "sort": "sim"
             }
+            if is_ncp:
+                params["format"] = "json"
+                headers = {
+                    "X-NCP-APIGW-API-KEY-ID": client_id,
+                    "X-NCP-APIGW-API-KEY": client_secret
+                }
+            else:
+                headers = {
+                    "X-Naver-Client-Id": client_id,
+                    "X-Naver-Client-Secret": client_secret
+                }
             
             response = requests.get(api_url, headers=headers, params=params, timeout=10)
             
-            if response.status_code != 200:
-                if response.status_code in (401, 403):
-                    self._log(f"  [API 오류 {response.status_code}] 네이버 API 인증 실패. (NAVER API HUB 이관 계정 키 또는 Client ID/Secret을 확인하세요.) → 웹 크롤링 시도")
+            # 401/403 인증 오류 시 지능형 교차 시도 (Auto-Negotiation)
+            if response.status_code in (401, 403) and self.api_mode is None and not custom_url:
+                err_detail = ""
+                try:
+                    err_json = response.json()
+                    err_detail = err_json.get('errorMessage') or err_json.get('message', '')
+                except Exception:
+                    pass
+                
+                # 레거시 실패 시 NCP HUB 엔드포인트로 1회 교차 시도
+                if not is_ncp:
+                    fallback_url = "https://naverapihub.apigw.ntruss.com/search/v1/webkr"
+                    fallback_params = dict(params, format="json")
+                    fallback_headers = {
+                        "X-NCP-APIGW-API-KEY-ID": client_id,
+                        "X-NCP-APIGW-API-KEY": client_secret
+                    }
+                    try:
+                        fb_res = requests.get(fallback_url, headers=fallback_headers, params=fallback_params, timeout=10)
+                        if fb_res.status_code == 200:
+                            self.api_mode = 'ncp'
+                            self._log("  [API 전환] NAVER API HUB (클라우드) 엔드포인트 자동 감지 및 전환 성공")
+                            response = fb_res
+                    except Exception:
+                        pass
                 else:
-                    self._log(f"  [API 오류] 상태 코드: {response.status_code} → 웹 크롤링 시도")
+                    # NCP 실패 시 레거시 오픈API로 1회 교차 시도
+                    fallback_url = "https://openapi.naver.com/v1/search/webkr.json"
+                    fallback_headers = {
+                        "X-Naver-Client-Id": client_id,
+                        "X-Naver-Client-Secret": client_secret
+                    }
+                    try:
+                        fb_res = requests.get(fallback_url, headers=fallback_headers, params=params, timeout=10)
+                        if fb_res.status_code == 200:
+                            self.api_mode = 'legacy'
+                            self._log("  [API 전환] 레거시 네이버 오픈API 엔드포인트 자동 감지 및 전환 성공")
+                            response = fb_res
+                    except Exception:
+                        pass
+
+            if response.status_code == 200:
+                if self.api_mode is None:
+                    self.api_mode = 'ncp' if is_ncp else 'legacy'
+            else:
+                err_msg = ""
+                try:
+                    err_json = response.json()
+                    err_msg = f" - {err_json.get('errorMessage') or err_json.get('message', '')}"
+                except Exception:
+                    pass
+                if response.status_code in (401, 403):
+                    self._log(f"  [API 오류 {response.status_code}] 네이버 API 인증 실패{err_msg} (NAVER API HUB 신규 키 또는 Client ID/Secret 확인 요망) → 웹 크롤링 시도")
+                else:
+                    self._log(f"  [API 오류] 상태 코드: {response.status_code}{err_msg} → 웹 크롤링 시도")
                 return self._search_with_web(query, title, strategy)
             
             data = response.json()
@@ -331,15 +409,18 @@ class NaverGenreExtractorV4:
             return None
     
     def _search_with_web(self, query: str, title: str, strategy) -> Optional[Dict[str, Any]]:
-        """웹 크롤링 사용"""
+        """웹 크롤링 사용 (모던 세션 및 WAF 403 방어)"""
         try:
             encoded_query = quote(query)
             url = f"https://search.naver.com/search.naver?query={encoded_query}"
             
-            response = requests.get(url, headers=self.headers, timeout=10)
+            response = self.session.get(url, timeout=10)
             
             if response.status_code != 200:
-                print(f"  [HTTP 오류] 상태 코드: {response.status_code}")
+                if response.status_code == 403:
+                    print(f"  [HTTP 오류 403] 네이버 웹 방화벽(WAF) 일시 차단 감지 → 다음 폴백으로 전환")
+                else:
+                    print(f"  [HTTP 오류] 상태 코드: {response.status_code}")
                 return None
             
             soup = BeautifulSoup(response.text, 'html.parser')

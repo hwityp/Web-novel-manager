@@ -5,6 +5,20 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.40] - 2026-09-07
+
+### Added
+
+- **NAVER API HUB (네이버 클라우드 플랫폼 NCP 신규 규격) 하이브리드 지원 (`naver_genre_extractor_v4.py`):**
+  - 2026년 네이버 개발자센터 검색 API 이관 정책에 맞추어 네이버 클라우드 플랫폼(NCP)의 **NAVER API HUB (`naverapihub.apigw.ntruss.com/search/v1/webkr`)** 엔드포인트 지원.
+  - NCP 인증 헤더(`X-NCP-APIGW-API-KEY-ID`, `X-NCP-APIGW-API-KEY`) 및 `format=json` 파라미터 규격 지원.
+  - **지능형 교차 협상(Auto-Negotiation):** 키 종류를 수동 지정하지 않아도 401 오류 시 NCP와 레거시 오픈API 간 자동 교차 감지 및 전환 수행.
+- **웹 크롤링 WAF 403 차단 방어 및 세션 유지:**
+  - `requests.Session()` 커넥션 풀링 및 최신 데스크톱 크롬 Client Hints(`Sec-Ch-Ua`, `Sec-Fetch-*`, `Upgrade-Insecure-Requests`) 전송.
+  - WAF 일시 차단(HTTP 403) 감지 시 안전한 Circuit Breaker로 다음 검색기(구글/소설넷/로컬)로 매끄럽게 폴백.
+- **`.env` 설정 파일 가이드 보강:**
+  - NAVER API HUB(일 25,000건 무료) 발급 안내 및 설정 템플릿 추가.
+
 ## [v1.3.39] - 2026-09-07
 
 ### Added
