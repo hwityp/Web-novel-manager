@@ -74,6 +74,8 @@ No_use/
 
 # Local App State
 config/gui_state.json
+*.bak
+scratch/
 
 # AI Agent Working Docs
 docs/implementation_plan.md

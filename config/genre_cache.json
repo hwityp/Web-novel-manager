@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "장르 검색 결과 캐시",
-  "updated_at": "2026-09-07T23:35:10.719807",
+  "updated_at": "2026-09-08T02:51:37.206857",
   "entries": {
     "아포칼립스가 다운로드 됨": {
       "genre": "퓨판, 종말",
@@ -662,6 +662,252 @@
       "confidence": "medium",
       "source": "keyword",
       "cached_at": "2026-09-07T23:35:10.302120"
+    },
+    "회장님의 신입생활": {
+      "genre": "현판",
+      "confidence": "high",
+      "source": "리디북스_jsonld",
+      "cached_at": "2026-09-08T02:48:41.131763"
+    },
+    "무한 복제하는데, 여신 좀 늘면 어때": {
+      "genre": "현판",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:48:52.922609"
+    },
+    "1971 독재자 박통이 되었다": {
+      "genre": "역사",
+      "confidence": "high",
+      "source": "소설넷_meta",
+      "cached_at": "2026-09-08T02:48:54.382558"
+    },
+    "아피박성위생존유희npc후": {
+      "genre": "겜판",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:48:55.794545"
+    },
+    "아척상안정적주개구도중인": {
+      "genre": "선협",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:48:57.463062"
+    },
+    "내겐 마인크래프트 엔더상자가 있다": {
+      "genre": "패러디",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:49:00.457574"
+    },
+    "난세서": {
+      "genre": "무협",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:49:01.401247"
+    },
+    "천강탄막, 포회녀배타각성료": {
+      "genre": "현판",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:49:02.484410"
+    },
+    "회귀당한 야구 천재가 메이저리그를 씹어 먹음": {
+      "genre": "스포츠",
+      "confidence": "high",
+      "source": "소설넷_meta",
+      "cached_at": "2026-09-08T02:49:06.073923"
+    },
+    "s급 피난처 스킬로 인생 역전": {
+      "genre": "퓨판, 시스템",
+      "confidence": "high",
+      "source": "조아라_selenium",
+      "cached_at": "2026-09-08T02:49:18.917501"
+    },
+    "한방이 보이는 한의사": {
+      "genre": "현판",
+      "confidence": "high",
+      "source": "리디북스_jsonld",
+      "cached_at": "2026-09-08T02:49:29.631062"
+    },
+    "회귀를 숨기지 않는 f급 플레이어": {
+      "genre": "퓨판",
+      "confidence": "high",
+      "source": "소설넷_meta",
+      "cached_at": "2026-09-08T02:49:32.676481"
+    },
+    "아태상중생료": {
+      "genre": "현판",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:49:33.493458"
+    },
+    "악자일심리혼，수부문풍광단총저": {
+      "genre": "언정",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:49:34.766616"
+    },
+    "회귀 후 최강 방산 재벌": {
+      "genre": "현판, 재테크",
+      "confidence": "high",
+      "source": "리디북스_jsonld",
+      "cached_at": "2026-09-08T02:49:48.221695"
+    },
+    "천재맹보：신의재미비": {
+      "genre": "언정",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:49:48.951166"
+    },
+    "재종만적일상생활": {
+      "genre": "역사, 일상",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:49:49.783539"
+    },
+    "종애이등법환개시": {
+      "genre": "현판, 시스템",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:49:50.667045"
+    },
+    "아진몰상하위기아！": {
+      "genre": "현판",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:49:52.019520"
+    },
+    "진천금재연대고과연": {
+      "genre": "언정, 연대물",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:49:53.325358"
+    },
+    "혼자 다 해 먹는 천재 암살자": {
+      "genre": "판타지, 첩보",
+      "confidence": "high",
+      "source": "네이버시리즈_meta",
+      "cached_at": "2026-09-08T02:50:01.551534"
+    },
+    "헌터 아카데미 최상위 포식자가 되었다": {
+      "genre": "현판, 학원, 헌터",
+      "confidence": "high",
+      "source": "리디북스_jsonld",
+      "cached_at": "2026-09-08T02:50:03.468976"
+    },
+    "아진몰상중생아": {
+      "genre": "현판",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:50:04.313183"
+    },
+    "아합법수선，빙십마규아마두？": {
+      "genre": "선협",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:50:05.480452"
+    },
+    "종인계개시적유희상인": {
+      "genre": "겜판, 시스템",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:50:06.332449"
+    },
+    "천칠령：아시래교산저개가적": {
+      "genre": "언정, 연대물",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:50:09.889079"
+    },
+    "일기를 쓰는데, 시작부터 아이언맨이 멘붕함": {
+      "genre": "패러디",
+      "confidence": "high",
+      "source": "annotation",
+      "cached_at": "2026-09-08T02:51:37.199087"
+    },
+    "아적완미말세인생": {
+      "genre": "현판, 말세",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:50:10.796654"
+    },
+    "천성육령극품포회, 아절부세백": {
+      "genre": "언정",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:50:11.654492"
+    },
+    "종화영개시제전태현미래": {
+      "genre": "퓨판, 시스템",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:50:12.875500"
+    },
+    "중생만화지신": {
+      "genre": "언정",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:50:14.709176"
+    },
+    "환생마신전": {
+      "genre": "무협",
+      "confidence": "high",
+      "source": "리디북스_jsonld",
+      "cached_at": "2026-09-08T02:50:17.413499"
+    },
+    "아적어수진불시사신": {
+      "genre": "선협",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:50:18.379887"
+    },
+    "에일리언": {
+      "genre": "패러디",
+      "confidence": "high",
+      "source": "annotation",
+      "cached_at": "2026-09-08T02:51:37.205441"
+    },
+    "아적세포감옥": {
+      "genre": "판타지",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:50:19.559842"
+    },
+    "아취시불안투로척패": {
+      "genre": "선협",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:51:30.709906"
+    },
+    "별야나자귀": {
+      "genre": "선협",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:51:31.409732"
+    },
+    "15세기는 제가 먹겠습니다": {
+      "genre": "역사",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:51:33.358456"
+    },
+    "천성반파적포회전처": {
+      "genre": "언정, 시스템",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:51:35.851110"
+    },
+    "천서후아성료오개대노적마": {
+      "genre": "언정, 책빙의",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:51:36.431590"
+    },
+    "전가제전량년준비대도황": {
+      "genre": "언정",
+      "confidence": "medium",
+      "source": "keyword",
+      "cached_at": "2026-09-08T02:51:37.195632"
     }
   }
 }

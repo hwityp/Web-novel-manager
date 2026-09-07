@@ -5,6 +5,36 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.42] - 2026-09-08
+
+### Added
+
+- **중국 웹소설 음독 패턴 정밀 분석기 신설 (`core/utils/chinese_phonetic_analyzer.py`):**
+  - 치뎬/진장 기계번역 직역투 문장형 접두사(`아진몰상`, `이신몰상`, `종~개시`, `아태상`, `아피박`, `아합법`, `아취시`, `천성`, `천서후`, `별야`, `전가` 등) 정밀 감지.
+  - 중국 고유 클리셰 규칙(`선협/수선`, `남성향/여성향 중생 분기`, `단총/교처/궁투/택투 언정`, `포회/전처/책빙의`, `생존유희 겜판`, `말세/아포칼립스 현판`).
+  - `GenreClassifierAdapter._keyword_fallback` 및 `_apply_origin_specific_rules`에 분석기 연동.
+- **통합 키워드 사전 자동 마이닝 및 원자적 동기화 엔진 구축 (`core/utils/genre_cache_miner.py`, `core/utils/keyword_syncer.py`):**
+  - `config/genre_cache.json` 캐시 데이터에서 CJK 원문 괄호 태그(`(乱世书)`, `(我真没想重生啊)`)와 한글 음독 쌍 자동 역추적 및 마이닝.
+  - 한국어 조사 접미사(`의`, `을`, `를`, `은`, `는` 등) 분리 및 단어 원형 정제.
+  - 장르 독점도(Purity Score) 및 안전 가중치(1~8점 상한선) 자동 산출.
+  - 이중 JSON 사전(`modules/classifier/genre_keywords.json`, `src/data/genre_keywords.json`) 원자적 동기화 및 `.bak` 자동 백업/롤백.
+  - 자동 회귀 테스트(pytest) 가드 연동.
+- **GUI 장르 사전 관리 모달 다이얼로그 추가 (`gui/genre_dictionary_dialog.py`, `gui/main_window.py`):**
+  - 메인 윈도우 결과 테이블 상단 헤더에 `[📚 사전 관리]` 버튼 및 툴팁 신규 연동.
+  - 사전 통계(등록 키워드 수, 캐시 건수, 버전) 요약 카드 제공.
+  - 2단계 원클릭 `[🔍 캐시 마이닝]` 및 `[⚡ 사전 최적화 & 동기화]` 기능 제공.
+  - 후보군 Treeview 테이블 및 실시간 작업 콘솔 탑재.
+- **CLI 스크립트 3종 제공 (`scripts/`):**
+  - `mine_genre_candidates.py`: 캐시 기반 후보 키워드 마이닝 도구.
+  - `sync_genre_keywords.py`: 후보군 사전 병합 및 회귀 검증 도구.
+  - `scheduled_keyword_update.py`: 주간/월간 정기 스케줄 배치용 원스톱 실행 스크립트.
+- **실물 검증 및 미분류 0% 달성 (`scripts/verify_mydown_samples.py`):**
+  - `C:\Users\hwity\문서\MyDown` 폴더 내 41개 실물 웹소설 파일 전수 검증.
+  - 중국 소설 24개 전량 정확 식별 및 분류 성공.
+  - **미분류율 0.0% (41개 전량 100% 분류 성공)** 달성.
+- **단위 테스트 추가 (`tests/test_chinese_phonetic_analyzer.py`, `tests/test_genre_cache_miner.py`, `tests/test_keyword_syncer.py`):**
+  - 총 169개 단위 테스트 100% 통과 확인.
+
 ## [v1.3.41] - 2026-09-08
 
 ### Added

@@ -486,6 +486,15 @@ class GenreClassifierAdapter:
             # 로맨스/로판 계열은 언정으로 전환
             if mapped_genre in ['로판', '로맨스']:
                 return '언정'
+            # 중생(重生) 규칙: 여성향 단서가 없는데 언정으로 분류된 경우, 남성향 도시/경영/일상/창업은 '현판'으로 보정
+            if mapped_genre == '언정':
+                female_keywords = [
+                    '여주', '교처', '낭자', '단총', '복보', '천금', '궁투', '택투',
+                    '시어머니', '시집', '포태', '소내포', '부군', '이혼', '리혼'
+                ]
+                has_female = any(fk in full_ctx for fk in female_keywords)
+                if not has_female and any(mk in full_ctx for mk in ['중생', '몰상', '이신', '아진', '아태', '상인', '재벌', '창업', '대학', '도시']):
+                    return '현판'
             # 궁투/농가/교처 등이 포함되어 있는데 역사로 잘못 분류된 경우 -> 언정
             if mapped_genre == '역사' and any(kw in full_ctx for kw in ['지청', '知青', '궁투', '宫斗', '농가', '농문', '교처', '복보', '천금', '택투']):
                 return '언정'
@@ -587,7 +596,19 @@ class GenreClassifierAdapter:
                         genre = cjk_single.get('primary_genre')
                         confidence = cjk_single.get('confidence', 0.0)
 
-            # CJK 번역투 컨텍스트 기반 장르 추론 (기존 키워드로 미분류일 때)
+            # 중국 소설 음독/번역투 분석기(ChinesePhoneticAnalyzer) 적용
+            try:
+                from core.utils.chinese_phonetic_analyzer import ChinesePhoneticAnalyzer
+                phonetic_res = ChinesePhoneticAnalyzer.analyze(raw_text, title)
+                if phonetic_res.is_detected and phonetic_res.genre != '미분류':
+                    if genre == '미분류' or phonetic_res.confidence == 'high':
+                        genre = phonetic_res.genre
+                        confidence = 0.95 if phonetic_res.confidence == 'high' else 0.85
+                        self.logger.debug(f"  [음독 분석기 감지] {raw_text} -> {genre} ({phonetic_res.reason})")
+            except Exception as pe:
+                self.logger.debug(f"음독 분석기 오류: {pe}")
+
+            # CJK 번역투 컨텍스트 기반 장르 추론 (기존 키워드로 미분류일 때 추가 안전망)
             if genre == '미분류':
                 full_ctx = f"{raw_text} {title} {foreign_title}".strip()
                 if any(kw in full_ctx for kw in ['사합원', '四合院']):
@@ -600,6 +621,15 @@ class GenreClassifierAdapter:
                 elif any(kw in full_ctx for kw in ['두라지', '두라', '斗罗']):
                     genre = '패러디'
                     confidence = 0.85
+                elif any(kw in full_ctx for kw in ['난세서', '난세']):
+                    genre = '무협'
+                    confidence = 0.9
+                elif any(kw in full_ctx for kw in ['말세', '末世', '아포칼립스', '좀비', '무한 복제', '복제', '무한류']):
+                    genre = '현판'
+                    confidence = 0.88
+                elif any(kw in full_ctx for kw in ['세모', '恶魔', '감옥', '비아니스', '빌아니시']):
+                    genre = '판타지'
+                    confidence = 0.88
                 elif any(kw in full_ctx for kw in ['려포', '여포', '삼국']) and any(kw in full_ctx for kw in ['모의기', '시뮬', '계통']):
                     genre = '무협'
                     confidence = 0.8

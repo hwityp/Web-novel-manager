@@ -1,0 +1,42 @@
+{
+  "version": "1.0.0",
+  "candidate_count": 4,
+  "candidates": [
+    {
+      "keyword": "두라",
+      "genre": "패러디",
+      "count": 8,
+      "purity": 1.0,
+      "suggested_weight": 8,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아포칼립스",
+      "genre": "퓨판",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 8,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "조선",
+      "genre": "역사",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 8,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "사합원",
+      "genre": "현판",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 8,
+      "source_type": "ngram",
+      "cjk_source": null
+    }
+  ]
+}

@@ -119,6 +119,10 @@ def build_exe(debug: bool = False):
         '--hidden-import', 'core.utils.novel_trait_extractor',
         '--hidden-import', 'core.utils.content_header_extractor',
         '--hidden-import', 'core.utils.novel_origin_detector',
+        '--hidden-import', 'core.utils.chinese_phonetic_analyzer',
+        '--hidden-import', 'core.utils.genre_cache_miner',
+        '--hidden-import', 'core.utils.keyword_syncer',
+        '--hidden-import', 'gui.genre_dictionary_dialog',
         '--hidden-import', 'PIL._tkinter_finder',
         '--hidden-import', 'dotenv',
     ]

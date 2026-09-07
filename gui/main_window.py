@@ -128,6 +128,7 @@ TOOLTIP_TEXTS = {
     "save_settings": "현재 설정을 저장합니다.\n다음 실행 시 자동으로 불러옵니다.",
     "source_folder": "정리할 웹소설 파일들이 있는 폴더를 선택하세요.",
     "target_folder": "정리된 파일들이 저장될 폴더입니다.\n비워두면 소스폴더/정리완료 에 저장됩니다.",
+    "manage_dict": "장르 사전 관리: 중국 웹소설 음독 패턴 및 통합 장르 키워드 사전을 최적화/동기화합니다.",
 }
 
 
@@ -529,7 +530,24 @@ class WNAPMainWindow(ctk.CTk):
         title_label.pack(side="left")
         
         # 버튼들
-        # 버튼들
+        self.manage_dict_btn = ctk.CTkButton(
+            header_frame,
+            text="📚 사전 관리",
+            font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_SMALL, weight="bold"),
+            width=105,
+            height=32,
+            corner_radius=8,
+            fg_color=THEME["accent_blue"],
+            hover_color=THEME["accent_blue_hover"],
+            text_color=THEME["button_text"],
+            text_color_disabled=THEME["button_text_disabled"],
+            state="normal",
+            command=self._open_genre_dictionary_dialog
+        )
+        self.manage_dict_btn.pack(side="right", padx=(PADDING_SMALL, 0))
+        self.tooltips.append(create_tooltip(self.manage_dict_btn, TOOLTIP_TEXTS["manage_dict"]))
+        self.disable_on_run.append(self.manage_dict_btn)
+        
         self.save_csv_btn = ctk.CTkButton(
             header_frame,
             text="💾 CSV 저장", # Renamed
@@ -1102,6 +1120,11 @@ class WNAPMainWindow(ctk.CTk):
                 messagebox.showerror("오류", f"폴더를 열 수 없습니다:\n{e}")
         else:
             messagebox.showwarning("경고", "열 수 있는 폴더를 찾지 못했습니다.\n소스 또는 타겟 폴더를 설정해주세요.")
+    
+    def _open_genre_dictionary_dialog(self):
+        """장르 사전 관리 및 최적화 다이얼로그 오픈"""
+        from gui.genre_dictionary_dialog import show_genre_dictionary_dialog
+        show_genre_dictionary_dialog(self)
     
     def _sort_treeview(self, col: str, reverse: bool):
         """
