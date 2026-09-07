@@ -139,8 +139,15 @@ def parse_foreign_title_info(text: str) -> dict:
 
     CJK_MARKER_CHARS = set("完外番全卷部編篇結終上下中0123456789一二三四五六七八九十백천만")
 
-    # 1. 괄호 안의 CJK 원문 추출 (숫자, 문장부호 포함 허용)
-    paren_matches = list(re.finditer(r'([\s]?)([\(\[\{])\s*([^()\[\]{}]*?[\u4e00-\u9fff\u3400-\u4dbf\u3040-\u30ff][^()\[\]{}]*?)\s*[\)\]\}]', text))
+    OPEN_CJK_BRACKETS = r'\(\[\{（【〔［《〈｛'
+    CLOSE_CJK_BRACKETS = r'\)\]\}）】〕］》〉｝'
+    ALL_CJK_BRACKETS = r'()\[\]{}（）【】〔〕［］《》〈〉｛｝'
+
+    # 1. 괄호 안의 CJK 원문 추출 (숫자, 문장부호 포함 허용, 전각 괄호 지원)
+    paren_matches = list(re.finditer(
+        r'([\s]?)([' + OPEN_CJK_BRACKETS + r'])\s*([^' + ALL_CJK_BRACKETS + r']*?[\u4e00-\u9fff\u3400-\u4dbf\u3040-\u30ff][^' + ALL_CJK_BRACKETS + r']*?)\s*[' + CLOSE_CJK_BRACKETS + r']',
+        text
+    ))
     cjk_title = ""
     korean_part = text
     has_space_before = True
@@ -308,25 +315,19 @@ class TitleAnchorExtractor:
         r'\((?:판타지|무협|현판|퓨판|로판|겜판|역사|선협|언정|공포|스포츠|소설|패러디|현대|미스터리|밀리터리|단행본|연재중|미분류)(?:[\s,]+[^\)]+)*\)',
     ]
 
-    # 판본/에디션 태그 (제거하되 장르로 추출하지 않음 - 제목에도 포함하지 않음)
-    # 단, [개정판]처럼 TitleParseResult.volume_info에 메모하지 않음 (현재 구조상 단순 제거)
+    # 판본/에디션 태그 (제거하되 장르로 추출하지 않음 - 제목에도 포함하지 않음, 전각 괄호 지원)
     EDITION_TAG_PATTERNS = [
-        r'\[\s*(?:개정판|완전판|수정판|합본|특별판|무삭제판|개정증보판|19[Nn]|19禁)\s*\]',
-        r'\(\s*(?:개정판|완전판|수정판|합본|특별판|무삭제판|개정증보판|19[Nn]|19禁)\s*\)',
+        r'[\(\[（【［]\s*(?:개정판|완전판|수정판|합본|특별판|무삭제판|개정증보판|19[Nn]|19禁)\s*[\)\]）】］]',
     ]
     
-    # 성인 등급 태그 패턴 (제거 대상)
+    # 성인 등급 태그 패턴 (제거 대상, 전각 괄호 지원)
     ADULT_TAG_PATTERNS = [
-        r'\(\s*19금\s*\)',                  # (19금)
-        r'\[\s*19금\s*\]',                  # [19금]
-        r'\(\s*15금\s*\)',                  # (15금)
-        r'\[\s*15금\s*\]',                  # [15금]
-        r'\(\s*성인\s*\)',                  # (성인)
-        r'\[\s*성인\s*\]',                  # [성인]
-
+        r'[\(\[（【［]\s*19금\s*[\)\]）】］]',
+        r'[\(\[（【［]\s*15금\s*[\)\]）】］]',
+        r'[\(\[（【［]\s*성인\s*[\)\]）】］]',
     ]
     
-    # 플랫폼/번역자 태그 패턴 (제거 대상)
+    # 플랫폼/번역자 태그 패턴 (제거 대상, 전각 괄호 지원)
     PLATFORM_TAG_PATTERNS = [
         r'\[임아소\]',
         r'\[네이버시리즈\]',
@@ -335,34 +336,26 @@ class TitleAnchorExtractor:
         r'\[조아라\]',
         r'\[리디북스\]',
         r'\[노벨피아\]',
-        r'\(\s*AI번역\s*\)',                 # (AI번역) 단독
-        r'\[\s*AI번역\s*\]',                 # [AI번역] 단독
-        r'\(\s*AI\s*번역\s*\)',
-        r'\[\s*AI\s*번역\s*\]',
-        r'\[\s*(?:소설|웹소설)\s*(?:-\s*텍|텍본|txt)?\s*\]',
-        r'\(\s*(?:소설|웹소설)\s*(?:-\s*텍|텍본|txt)?\s*\)',
-        r'\[\s*텍본\s*\]',
-        r'\(\s*텍본\s*\)',
+        r'[\(\[（【［]\s*AI번역\s*[\)\]）】］]',
+        r'[\(\[（【［]\s*AI\s*번역\s*[\)\]）】］]',
+        r'[\(\[（【［]\s*(?:소설|웹소설)\s*(?:-\s*텍|텍본|txt)?\s*[\)\]）】］]',
+        r'[\(\[（【［]\s*텍본\s*[\)\]）】］]',
     ]
-
     
-    # 완결 마커 패턴
+    # 완결 마커 패턴 (전각 괄호 지원)
     COMPLETION_PATTERNS = [
         r'(?<!\S)(?:完|완)[\s,]*\+?[\s,]*(?:外|외(?:전|포)?)(?!\S)',  # 完外, 완+외전, 完+外 등 복합 마커
-        r'\(\s*완결\s*\)',                  # (완결)
-        r'\[\s*완결\s*\]',                  # [완결]
-        r'\(\s*完\s*\)',                    # (完)
-        r'\[\s*完\s*\]',                    # [完]
-        r'\(\s*완\s*\)',                    # (완)
-        r'\[\s*완\s*\]',                    # [완]
+        r'[\(\[（【［]\s*완결\s*[\)\]）】］]',
+        r'[\(\[（【［]\s*完\s*[\)\]）】］]',
+        r'[\(\[（【［]\s*완\s*[\)\]）】］]',
         r'(?<!\S)完(?!\S)',                 # 完 (독립된 문자)
         r'(?<!\S)완(?!\S)',                 # 완 (독립된 문자)
         r'(?<!\S)완결(?!\S)',               # 완결 (독립된 문자)
         r'(?<!\S)完\s*(?=\+)',              # 完 (뒤에 +가 오는 경우) [NEW]
         r'(?<!\S)완\s*(?=\+)',              # 완 (뒤에 +가 오는 경우) [NEW]
-        r'\(\s*Complete\s*\)',              # (Complete)
-        r'\(\s*END\s*\)',                   # (END)
-        r'\(\s*Fin\s*\)',                   # (Fin)
+        r'[\(\[（【［]\s*Complete\s*[\)\]）】］]',
+        r'[\(\[（【［]\s*END\s*[\)\]）】］]',
+        r'[\(\[（【［]\s*Fin\s*[\)\]）】］]',
         r'본편\s*완결',                      # 본편 완결
         
         # [Fix] 숫자나 단위 뒤에 붙은 완결 마커 지원 (예: 1부完, 5권완)
@@ -556,7 +549,7 @@ class TitleAnchorExtractor:
             '해리포터', '나루토', '원피스', '드래곤볼', '포켓몬스터', '포켓몬', '코난', '명탐정 코난', '명탐정코난', '주술회전', '귀멸의 칼날', '마블', 'DC'
         ]
         while True:
-            prefix_bracket = re.match(r'^\s*\[([^\]]+)\]', name)
+            prefix_bracket = re.match(r'^\s*[\[【［]([^\]】］]+)[\]】］]', name)
             if not prefix_bracket:
                 break
             bracket_content = prefix_bracket.group(1).strip()
@@ -700,8 +693,8 @@ class TitleAnchorExtractor:
         if single_num_match:
             candidates.append(single_num_match)
             
-        # 4. 완결 마커 패턴 (괄호형)
-        paren_completion_match = re.search(r'\.?\s*[\(\[]\s*완(?:결)?\s*[\)\]]\.?\s*$', name)
+        # 4. 완결 마커 패턴 (괄호형, 전각 괄호 지원)
+        paren_completion_match = re.search(r'\.?\s*[\(\[（【［]\s*완(?:결)?\s*[\)\]）】］]\.?\s*$', name)
         if paren_completion_match:
             candidates.append(paren_completion_match)
         # 5. 일반 완결 마커

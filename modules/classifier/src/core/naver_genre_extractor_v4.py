@@ -359,7 +359,8 @@ class NaverGenreExtractorV4:
             web_items = []
             for container in soup.find_all(['li', 'div', 'section']):
                 text = container.get_text(separator=' ', strip=True)
-                if text and len(text) > 15:
+                # 너무 짧거나(15자 이하) 너무 긴 거대 페이지 래퍼(800자 초과)는 검색 스니펫이 아님
+                if text and 15 < len(text) <= 800:
                     a_tag = container.find('a', href=True)
                     url_val = a_tag['href'] if a_tag else ''
                     web_items.append({
@@ -828,16 +829,39 @@ class NaverGenreExtractorV4:
         ]
 
         import re
+        clean_target_title = re.sub(r'[\s_.,!?:;\'"~-]+', '', title).lower()
+
+        # 유효 플랫폼 도메인 키워드
+        platform_url_keywords = [
+            'series.naver.com', 'novel.naver.com', 'ridibooks.com', 'munpia.com',
+            'novelpia.com', 'page.kakao.com', 'joara.com', 'novelnet', 'mrblue.com',
+            'kyobobook.co.kr', 'yes24.com', 'aladin.co.kr'
+        ]
+
         for platform_key, kw_list in platform_keywords:
             for item in text_items:
                 item_title = item.get('title', '')
                 item_snippet = item.get('snippet', '')
                 item_url = item.get('url', '')
-                full_text = f"{item_title} {item_snippet} {item_url}"
+                full_text = f"{item_title} {item_snippet}"
                 
                 clean_text = re.sub(r'<[^>]+>', '', full_text)
+                if len(clean_text) > 800:
+                    continue
+                clean_item_text = re.sub(r'[\s_.,!?:;\'"~-]+', '', clean_text).lower()
+
+                # [Fix] 스니펫 유효성 검증:
+                # 1. 검색 대상 소설의 제목(최소 2글자 이상)이 검색 결과 텍스트에 포함되어 있어야 함
+                if len(clean_target_title) >= 2 and clean_target_title not in clean_item_text:
+                    continue
                 
-                if any(kw in clean_text for kw in kw_list):
+                # 2. 플랫폼 식별 (URL에 플랫폼 도메인이 있거나 텍스트에 플랫폼 키워드가 포함되어야 함)
+                has_platform_url = any(dom in item_url for dom in platform_url_keywords)
+                has_platform_kw = any(kw in clean_text for kw in kw_list)
+                if not (has_platform_url or has_platform_kw):
+                    continue
+                
+                if has_platform_kw or has_platform_url:
                     for g_kw, target_g in genre_keyword_map:
                         if g_kw in clean_text:
                             mapped_genre = self.genre_mapping.get(target_g, target_g)

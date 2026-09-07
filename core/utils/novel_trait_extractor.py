@@ -158,16 +158,20 @@ class NovelTraitExtractor:
             ) if m.strip()
         ]
         
-        # (2) 대괄호 태그
-        brackets = re.findall(r'\[([^\]]+)\]', name)
+        # (2) 대괄호 태그 (전각 대괄호 지원)
+        brackets = re.findall(r'[\[【［]([^\]】］]+)[\]】］]', name)
         
-        # (3) 소괄호 태그 (단순 숫자 범위나 '완' 단독 제외)
-        parens = re.findall(r'\(([^\)]+)\)', name)
+        # (3) 소괄호 태그 (단순 숫자 범위, 완결 마커, 원문 한자 제목 제외, 전각 소괄호 지원)
+        parens = re.findall(r'[\(（]([^\)）]+)[\)）]', name)
         valid_parens = []
         for p in parens:
             p_strip = p.strip()
-            if not re.match(r'^(?:\d+[\s\-~_]+\d+|\d+[화권부편회장]?|완결?|完|외전.*)$', p_strip):
-                valid_parens.append(p_strip)
+            if re.match(r'^(?:\d+[\s\-~_]+\d+|\d+[화권부편회장]?|완결?|完|외전.*)$', p_strip):
+                continue
+            # 원문 한자 제목(2글자 이상의 CJK)이 포함된 괄호는 해외 원문이므로 첨언 장르 태그로 취급하지 않음
+            if re.search(r'[\u4e00-\u9fff\u3400-\u4dbf]{2,}', p_strip):
+                continue
+            valid_parens.append(p_strip)
 
         candidate_sources = brackets + valid_parens + hashtags
         if not candidate_sources:

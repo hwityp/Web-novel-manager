@@ -5,6 +5,22 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.36] - 2026-09-07
+
+### Fixed
+
+- **CJK 전각 괄호(`（`, `）`, `【`, `】`, `［`, `］`) 전면 지원 (`core/title_anchor_extractor.py`, `core/utils/novel_trait_extractor.py`):**
+  - 원문 한자 제목 파싱(`parse_foreign_title_info`), 판본 태그(`EDITION_TAG_PATTERNS`), 완결 마커(`COMPLETION_PATTERNS`, `paren_completion_match`), 접두사 태그(`prefix_bracket`), 첨언 추출(`NovelTraitExtractor.extract_from_annotations`) 전반에 전각 괄호 및 브래킷 지원 추가.
+  - 전각 괄호로 둘러싸인 중국 원문 제목이 반각 괄호 누락으로 인해 정규식 폴백에 의해 잘리거나 분해(예: `( 54年，邻居傻柱) (四合院：重生)`)되는 현상을 원천 차단.
+  - 소괄호 내 2글자 이상의 CJK 원문 제목은 장르/특성 첨언 추출 대상에서 제외하도록 안전장치 마련.
+  - 결과: `사합원 중생54년, 인거사주（四合院：重生54年，邻居傻柱） 1-668 완.txt` $\rightarrow$ `사합원 중생54년, 인거사주(四合院：重生54年，邻居傻柱) 1-668 (완).txt` 및 `절세신기（绝世神器） (19N) 1-1053 완.txt` $\rightarrow$ `절세신기(绝世神器) (19N) 1-1053 (완).txt` 정상 정규화.
+- **장르 키워드 오분류 방지 (`modules/classifier/genre_keywords.json`, `modules/classifier/src/data/genre_keywords.json`):**
+  - 역사 장르 키워드에서 `"사합원": 10` 제거. 시대적 배경 용어가 웹소설 제목에 포함되었다고 해서 검색 미분류 작품이 `[역사, 사합원]`으로 잘못 강제 분류되는 오류 방지.
+- **네이버 검색 스니펫 오탐지 방지 및 제목 검증 강화 (`modules/classifier/src/core/naver_genre_extractor_v4.py`):**
+  - 검색 결과 파싱 시 거대 웹페이지 래퍼(네이버 웨일 다운로드, 외부 광고 등 800자 초과 블록)가 스니펫으로 수집되어 무관한 `현판` 배지가 오인식되는 문제 해결 (컨테이너 길이 `15 < len <= 800` 제한).
+  - 스니펫 텍스트 내 대상 소설 제목(2글자 이상) 존재 여부 검증 및 유효 플랫폼 URL/키워드 검증을 거친 경우에만 장르를 추출하도록 보강.
+  - 결과: `절세신기` 검색 시 불일치 작품으로부터 `[현판]`이 잘못 주입되는 오분류 방지.
+
 ## [v1.3.35] - 2026-09-07
 
 ### Fixed

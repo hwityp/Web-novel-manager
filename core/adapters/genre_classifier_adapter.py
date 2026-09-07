@@ -268,7 +268,8 @@ class GenreClassifierAdapter:
             return task
         
         # Step 3: Stage 1 - 인터넷 검색 (Search-First) - NaverGenreExtractorV4 직접 사용
-        search_result = self._search_genre(pure_title, author, parse_result.original_foreign_title)
+        foreign_title = parse_result.original_foreign_title or task.metadata.get('original_foreign_title', '')
+        search_result = self._search_genre(pure_title, author, foreign_title)
         
         if search_result and search_result.get('genre') and search_result.get('genre') != '미분류':
             genre = search_result['genre']
