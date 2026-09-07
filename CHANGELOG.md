@@ -5,6 +5,20 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.37] - 2026-09-07
+
+### Fixed
+
+- **`KeywordManager.calculate_scores` 메서드 구현 (`modules/classifier/src/core/keyword_manager.py`):**
+  - `AttributeError: 'KeywordManager' object has no attribute 'calculate_scores'` 오류 해결.
+  - 텍스트(제목, 소개글 등)에 대해 장르별 단일 키워드 매칭(가중치 합산), 복합 키워드 패턴 보너스, 특수 케이스 보너스를 종합 반영하여 점수 내림차순 정렬된 딕셔너리(`dict`) 또는 특정 장르의 `float` 점수를 반환하는 메서드 구현.
+  - 빈 문자열 또는 `None` 입력 시에도 예외 없이 안전하게 처리.
+- **Windows 콘솔 한글 깨짐(Mojibake) 방지 (`modules/classifier/src/core/*`):**
+  - `modules/classifier/src/core/keyword_manager.py`, `genre_classifier.py`, `hybrid_classifier_v2.py`, `__init__.py` 최상단에 Windows 콘솔 코드페이지(CP65001) 전환 및 `sys.stdout`/`sys.stderr`의 UTF-8 reconfigure 코드 적용.
+  - `[KeywordManager] 키워드 로드 완료 (버전: 1.5.0)`, `[GenreClassifier] DB 모듈 없음 - KeywordManager만 사용` 등 모든 콘솔 출력 메시지가 한글 깨짐 없이 온전히 출력되도록 보장.
+- **모듈 임포트 이중 로드 방지 (`modules/classifier/src/core/genre_classifier.py`, `__init__.py`):**
+  - `KeywordManager` 임포트 경로를 정규화하여 중복 초기화 및 콘솔 이중 출력 방지.
+
 ## [v1.3.36] - 2026-09-07
 
 ### Fixed

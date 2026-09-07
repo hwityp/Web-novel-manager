@@ -8,12 +8,34 @@
 import sys
 import os
 
+# Windows 콘솔 한글 깨짐 방지 (UTF-8 CP65001 강제 설정)
+if sys.platform == 'win32':
+    try:
+        import ctypes
+        ctypes.windll.kernel32.SetConsoleOutputCP(65001)
+        ctypes.windll.kernel32.SetConsoleCP(65001)
+    except Exception:
+        pass
+    if hasattr(sys.stdout, 'reconfigure'):
+        try:
+            sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        except Exception:
+            pass
+    if hasattr(sys.stderr, 'reconfigure'):
+        try:
+            sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+        except Exception:
+            pass
+
 # 현재 파일 경로 기준으로 모듈 경로 추가
 _current_dir = os.path.dirname(os.path.abspath(__file__))
 if _current_dir not in sys.path:
     sys.path.insert(0, _current_dir)
 
-from keyword_manager import KeywordManager
+try:
+    from modules.classifier.src.core.keyword_manager import KeywordManager
+except ImportError:
+    from keyword_manager import KeywordManager
 from collections import Counter
 
 # DB 관련 import는 레거시 지원용으로 유지 (실제 사용 안 함)

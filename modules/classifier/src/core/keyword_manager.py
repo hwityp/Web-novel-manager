@@ -2,8 +2,28 @@
 통합 키워드 관리자
 모든 분류 모듈이 이 클래스를 통해 키워드에 접근
 """
-import json
+import sys
 import os
+import json
+
+# Windows 콘솔 한글 깨짐 방지 (UTF-8 CP65001 강제 설정)
+if sys.platform == 'win32':
+    try:
+        import ctypes
+        ctypes.windll.kernel32.SetConsoleOutputCP(65001)
+        ctypes.windll.kernel32.SetConsoleCP(65001)
+    except Exception:
+        pass
+    if hasattr(sys.stdout, 'reconfigure'):
+        try:
+            sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        except Exception:
+            pass
+    if hasattr(sys.stderr, 'reconfigure'):
+        try:
+            sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+        except Exception:
+            pass
 
 
 class KeywordManager:
@@ -117,6 +137,99 @@ class KeywordManager:
                 return (kw1, kw2, conf)
         
         return None
+    
+    def calculate_scores(self, text, genre=None, normalize=False):
+        """
+        주어진 텍스트에서 키워드를 매칭하여 각 장르별 점수를 계산
+        
+        Args:
+            text (str): 분석할 소설 제목 또는 텍스트
+            genre (str, optional): 특정 장르만 점수를 계산할 경우 지정 (기본값: None)
+            normalize (bool, optional): 키워드 수 기반 정규화 여부 (기본값: False)
+            
+        Returns:
+            dict or float: genre가 지정되면 해당 장르의 float 점수,
+                          genre가 None이면 점수 내림차순 정렬된 dict {genre: score, ...}
+        """
+        if not text or not isinstance(text, str):
+            if genre:
+                return 0.0
+            single_kw = self._keywords.get('single_keywords', {}) if self._keywords else {}
+            return {g: 0.0 for g in single_kw.keys()}
+        
+        text_lower = text.lower()
+        single_kw_dict = self._keywords.get('single_keywords', {}) if self._keywords else {}
+        all_genres = list(single_kw_dict.keys())
+        
+        genre_scores = {g: 0.0 for g in all_genres}
+        
+        # 1. 복합 패턴 매칭 (높은 가중치 부여)
+        compound_patterns_dict = self.get_all_compound_patterns_dict()
+        for (kw1, kw2), (p_genre, conf) in compound_patterns_dict.items():
+            if kw1.lower() in text_lower and kw2.lower() in text_lower:
+                if p_genre in genre_scores:
+                    genre_scores[p_genre] += conf
+                else:
+                    genre_scores[p_genre] = conf
+        
+        # 2. 특수 케이스 매칭
+        special_cases = self.get_special_cases()
+        for sc_title, sc_genre in special_cases.items():
+            if sc_title.lower() in text_lower:
+                if isinstance(sc_genre, str):
+                    if sc_genre in genre_scores:
+                        genre_scores[sc_genre] += 30.0
+                    else:
+                        genre_scores[sc_genre] = 30.0
+                elif isinstance(sc_genre, dict):
+                    for g, w in sc_genre.items():
+                        genre_scores[g] = genre_scores.get(g, 0.0) + w
+        
+        # 3. 단일 키워드 매칭
+        for g in all_genres:
+            keywords = single_kw_dict.get(g, {})
+            # 긴 키워드부터 매칭 (예: '남궁세가' -> '남궁')
+            sorted_keywords = sorted(keywords.items(), key=lambda x: len(x[0]), reverse=True)
+            matched_keywords_set = set()
+            
+            for keyword, weight in sorted_keywords:
+                if len(keyword) < 2:
+                    continue
+                
+                keyword_lower = keyword.lower()
+                if keyword_lower in text_lower:
+                    # 특수 케이스: '무공'은 '충무공'에 포함되면 무시
+                    if keyword == '무공' and '충무공' in text_lower:
+                        continue
+                    
+                    # 이미 매칭된 더 긴 키워드에 포함되는 부분 문자열이면 스킵
+                    is_sub = False
+                    for m_kw in matched_keywords_set:
+                        if keyword_lower in m_kw and keyword_lower != m_kw:
+                            is_sub = True
+                            break
+                    if is_sub:
+                        continue
+                    
+                    genre_scores[g] += float(weight)
+                    matched_keywords_set.add(keyword_lower)
+        
+        # 4. 정규화 (선택적)
+        if normalize:
+            for g in all_genres:
+                kw_count = len(single_kw_dict.get(g, {}))
+                if kw_count > 0:
+                    genre_scores[g] = genre_scores[g] / (kw_count ** 0.5)
+        
+        # 소수점 둘째자리 반올림
+        for g in genre_scores:
+            genre_scores[g] = round(genre_scores[g], 2)
+            
+        if genre:
+            return genre_scores.get(genre, 0.0)
+            
+        # 점수 내림차순 정렬된 딕셔너리 반환
+        return dict(sorted(genre_scores.items(), key=lambda x: x[1], reverse=True))
     
     def get_version(self):
         """키워드 버전 정보"""

@@ -9,6 +9,27 @@
 7. 제목 유사도 매칭 (v1.3.9)
 8. 저자명 기반 장르 추론 (v1.3.9)
 """
+import sys
+
+# Windows 콘솔 한글 깨짐 방지 (UTF-8 CP65001 강제 설정)
+if sys.platform == 'win32':
+    try:
+        import ctypes
+        ctypes.windll.kernel32.SetConsoleOutputCP(65001)
+        ctypes.windll.kernel32.SetConsoleCP(65001)
+    except Exception:
+        pass
+    if hasattr(sys.stdout, 'reconfigure'):
+        try:
+            sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        except Exception:
+            pass
+    if hasattr(sys.stderr, 'reconfigure'):
+        try:
+            sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+        except Exception:
+            pass
+
 from modules.classifier.src.core.genre_classifier import GenreClassifier
 from modules.classifier.src.core.naver_genre_extractor_v4 import NaverGenreExtractorV4
 from modules.classifier.src.core.keyword_manager import KeywordManager
