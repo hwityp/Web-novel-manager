@@ -117,6 +117,8 @@ def build_exe(debug: bool = False):
         '--hidden-import', 'core.utils.genre_cache',
         '--hidden-import', 'core.utils.similarity',
         '--hidden-import', 'core.utils.novel_trait_extractor',
+        '--hidden-import', 'core.utils.content_header_extractor',
+        '--hidden-import', 'core.utils.novel_origin_detector',
         '--hidden-import', 'PIL._tkinter_finder',
         '--hidden-import', 'dotenv',
     ]

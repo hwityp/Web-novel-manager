@@ -1,6 +1,6 @@
 # WNAP (Web Novel Archive Pipeline) 마스터 참조 가이드
 
-> **문서 버전:** v1.3.38  
+> **문서 버전:** v1.3.39  
 > **최종 갱신일:** 2026-09-07  
 > **목적:** WNAP 시스템의 전체 아키텍처, 디렉토리/파일별 역할, 상호 의존 관계, 코딩 불변 규칙(Invariants), 디버깅 절차를 집대성한 공식 참조 매뉴얼.  
 > ⚠️ **필독 사항:** WNAP 프로젝트의 코드를 수정하거나 디버깅하기 전, **반드시 이 문서를 먼저 정독**하고 명시된 규칙을 준수해야 합니다.
@@ -62,6 +62,8 @@ WebNovelManager/
 │   │   ├── genre_classifier_adapter.py     # Stage 2: Search-First 장르 분류 어댑터
 │   │   └── filename_normalizer_adapter.py  # Stage 3: 파일명 표준화 어댑터
 │   └── utils/                  # 코어 보조 유틸리티
+│       ├── novel_origin_detector.py        # 소설 국적(KR/CN/JP) 자동 판별기
+│       ├── content_header_extractor.py     # 본문 스트리밍 헤더/시놉시스 장르 추출기
 │       ├── novel_trait_extractor.py        # 서브 특징 키워드(사합원, 연대물 등) 추출 및 다중 태그 조합
 │       ├── genre_mapping.py                # 장르 매핑 JSON 로더
 │       ├── genre_cache.py                  # 장르 캐시 I/O 매니저

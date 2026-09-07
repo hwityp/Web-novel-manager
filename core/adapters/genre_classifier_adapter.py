@@ -231,9 +231,10 @@ class GenreClassifierAdapter:
         print(f"\n{'='*80}")
         print(f"[분류 시작] {raw_text}")
         
-        # Step 1: 순수 제목 추출
-        parse_result = self.title_extractor.extract(raw_text)
-        pure_title = parse_result.title if parse_result.title else raw_text
+        # Step 1: 순수 제목 추출 (전체 파일명 원문 기반)
+        parse_source = task.metadata.get('original_raw_name') or task.raw_name or raw_text
+        parse_result = self.title_extractor.extract(parse_source)
+        pure_title = parse_result.title if parse_result.title else (task.title or raw_text)
         author = parse_result.author
         
         # [제목 분석] 로그 추가 (사용자 요청 반영 & 포맷팅 개선)
@@ -256,6 +257,25 @@ class GenreClassifierAdapter:
             self.logger.debug(f"  [저자] {author}")
             print(f"  [저자] {author}")
         
+        foreign_title = parse_result.original_foreign_title or task.metadata.get('original_foreign_title', '')
+
+        # Step 1.5: 소설 국적(원산지) 판별 (KR / CN / JP / UNKNOWN)
+        from core.utils.novel_origin_detector import NovelOriginDetector
+        origin_res = NovelOriginDetector.detect(
+            title=pure_title,
+            raw_name=raw_text,
+            foreign_title=foreign_title,
+            file_path=task.current_path or task.original_path,
+            genre=task.genre
+        )
+        task.metadata['country_origin'] = origin_res.country
+        task.metadata['origin_reasons'] = origin_res.reasons
+        task.metadata['is_foreign'] = origin_res.is_foreign
+        
+        if origin_res.country != "UNKNOWN":
+            self.logger.debug(f"  [국적 판별] {origin_res.country} (confidence: {origin_res.confidence}, reasons: {origin_res.reasons})")
+            print(f"  [국적 판별] {origin_res.country} ({'해외작' if origin_res.is_foreign else '국내작'}, {origin_res.reasons[0] if origin_res.reasons else ''})")
+        
         # Step 2: 캐시 확인 (Cache-First)
         cached = self.cache.get(pure_title)
         if cached:
@@ -266,13 +286,12 @@ class GenreClassifierAdapter:
             self.logger.debug(f"  [결과] {task.genre} (confidence: {task.confidence}, source: cache)")
             print(f"  [결과] {task.genre} (confidence: {task.confidence}, source: cache)")
             return task
-        
-        foreign_title = parse_result.original_foreign_title or task.metadata.get('original_foreign_title', '')
 
         # Step 2.5: 파일 도입부(헤더/시놉시스) 메타데이터 확인 (Header-First)
         header_result = self._extract_from_content_header(task)
         if header_result:
             mapped_genre = header_result['genre']
+            mapped_genre = self._apply_origin_specific_rules(mapped_genre, task, raw_text)
             web_snippet = header_result.get('snippet', '')
             web_tags = header_result.get('tags', [])
             
@@ -301,6 +320,7 @@ class GenreClassifierAdapter:
             
             # 장르 매핑 적용
             mapped_genre = self.mapping_loader.map_genre(genre, pure_title, raw_text)
+            mapped_genre = self._apply_origin_specific_rules(mapped_genre, task, raw_text)
             
             # 화이트리스트 검증
             if mapped_genre in GENRE_WHITELIST:
@@ -334,6 +354,7 @@ class GenreClassifierAdapter:
         if keyword_result and keyword_result.get('genre') != '미분류':
             genre = keyword_result['genre']
             mapped_genre = self.mapping_loader.map_genre(genre, pure_title, raw_text)
+            mapped_genre = self._apply_origin_specific_rules(mapped_genre, task, raw_text)
             if mapped_genre not in GENRE_WHITELIST:
                 mapped_genre = '미분류'
                 
@@ -429,8 +450,42 @@ class GenreClassifierAdapter:
             self.logger.warning(f"검색 중 오류: {e}")
             import traceback
             self.logger.debug(traceback.format_exc())
-            return None
-    
+    def _apply_origin_specific_rules(self, mapped_genre: str, task: NovelTask, raw_text: str) -> str:
+        """
+        국적(원산지) 판별 결과에 따른 장르 보정 규칙 적용
+        - 중국 소설(CN): 로맨스/로판 계열은 무조건 '언정'으로 전환, 사합원/지청 등의 '역사' 오탐 방지 ('언정' 전환)
+        - 일본 소설(JP): 악역영애/익애 등은 '로판', 이세계/전생은 '판타지' 보장
+        """
+        origin = task.metadata.get('country_origin', 'UNKNOWN')
+        if not mapped_genre or mapped_genre == '미분류':
+            return mapped_genre
+            
+        foreign_title = task.metadata.get('original_foreign_title', '')
+        full_ctx = f"{raw_text} {task.title} {foreign_title}".strip()
+        
+        # 1. 중국 소설 (CN) 규칙
+        if origin == 'CN':
+            # 로맨스/로판 계열은 언정으로 전환
+            if mapped_genre in ['로판', '로맨스']:
+                return '언정'
+            # 사합원/지청/궁투/농가 등이 포함되어 있는데 역사로 잘못 분류된 경우 -> 언정
+            if mapped_genre == '역사' and any(kw in full_ctx for kw in ['사합원', '四合院', '지청', '知青', '궁투', '宫斗', '농가', '농문', '교처', '복보']):
+                return '언정'
+            # 수선/선협 키워드가 강한데 판타지/무협으로 분류된 경우 -> 선협
+            if mapped_genre in ['판타지', '무협', '퓨판'] and any(kw in full_ctx for kw in ['수선', '修仙', '수진', '修真', '선협', '仙侠', '축기', '원영', '금단', '비승']):
+                return '선협'
+                
+        # 2. 일본 소설 (JP) 규칙
+        elif origin == 'JP':
+            # 악역영애/약혼파기/익애 등 여성향 클리셰는 로판 보장
+            if any(kw in full_ctx for kw in ['악역영애', '悪役令嬢', '약혼파기', '婚約破棄', '익애', '溺愛', '영애']):
+                return '로판'
+            # 이세계/전생/치트/추방 등은 판타지
+            if mapped_genre in ['현판', '퓨판'] and any(kw in full_ctx for kw in ['이세계', '異世界', '슬로우라이프', 'スローライフ', '추방', '追放']):
+                return '판타지'
+                
+        return mapped_genre
+
     def _extract_from_content_header(self, task: NovelTask) -> Optional[Dict]:
         """
         소설 텍스트 파일(.txt)의 앞부분(2~4KB) 헤더에서 장르/태그/시놉시스 메타데이터 추출
