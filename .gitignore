@@ -72,4 +72,13 @@ modules/classifier/.api_key
 _cleanup_temp/
 No_use/
 
+# Local App State
+config/gui_state.json
+
+# AI Agent Working Docs
+docs/implementation_plan.md
+docs/task.md
+docs/walkthrough.md
+
+
 
