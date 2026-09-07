@@ -43,12 +43,14 @@ class TestAnnotationAndNormalization:
         
         normalized = res.to_normalized_filename()
         assert normalized == "궁투불여양조구 (완) + 외전.txt"
+        print(f"\n[完外 복합 완결 검증] {raw_name} -> {normalized} [OK]")
 
         # 변형 패턴 테스트: 完+外
         res_plus = self.title_extractor.extract("궁투불여양조구 完+外.txt")
         assert res_plus.is_completed is True
         assert "외전" in res_plus.side_story
         assert res_plus.to_normalized_filename() == "궁투불여양조구 (완) + 외전.txt"
+        print(f"[完+外 변형 검증] 궁투불여양조구 完+外.txt -> {res_plus.to_normalized_filename()} [OK]")
 
     def test_hashtag_parody_harry_potter(self):
         """2. 해시태그 첨언(#패러디 #해리포터) 추출 및 정규화 검증"""
@@ -68,6 +70,7 @@ class TestAnnotationAndNormalization:
         # 최종 정규화 검증
         normalized = parse_res.to_normalized_filename(genre=extracted_genre)
         assert normalized == "[패러디, 해리포터] 아도성곽격옥자교수료, 계통재래 1-267 (완).txt"
+        print(f"\n[해시태그 패러디 검증] {raw_name}\n  └─ 결과: {normalized} [OK]")
 
     def test_hashtag_conan_parody(self):
         """2.1 다중 단어 해시태그(#패러디 #명탐정 코난) 추출 및 정규화 검증"""
@@ -92,6 +95,7 @@ class TestAnnotationAndNormalization:
 
         # 기본 정규화(인자 미전달 시에도 동일하게 작동)
         assert parse_res.to_normalized_filename() == "[패러디, 명탐정 코난] 가남：개국절호명미，와저주창 1-740 (완).txt"
+        print(f"\n[다중 단어 해시태그 검증] {raw_name}\n  └─ 결과: {normalized} [OK]")
 
     def test_conan_parody_variations(self):
         """2.2 코난 패러디 변형 표기(#명탐정코난, #코난, [명탐정 코난패러디]) 파싱 검증"""
@@ -105,6 +109,7 @@ class TestAnnotationAndNormalization:
         for raw, expected_genre in cases:
             genre = NovelTraitExtractor.extract_from_annotations(raw)
             assert genre == expected_genre, f"Failed for {raw}: got {genre}, expected {expected_genre}"
+            print(f"  ├─ 코난 변형 파싱: {raw} -> [{genre}] [OK]")
 
     def test_prefix_brackets_eonjeong(self):
         """3. 다중 브래킷 [언정][AI번역] 추출 및 정규화 검증"""
@@ -341,6 +346,16 @@ class TestAnnotationAndNormalization:
             assert preview == expected_normalized, f"preview_normalized_name failed for {filename}"
 
             task = self.normalizer.normalize(task)
-            assert task.metadata.get("normalized_name") == expected_normalized, f"normalize failed for {filename}"
+            actual_name = task.metadata.get("normalized_name")
+            assert actual_name == expected_normalized, f"normalize failed for {filename}"
+
+            print(f"\n[정규화 검증 성공] 원본: {filename}")
+            print(f"  ├─ 추출 순수 제목: {task.title}")
+            if task.metadata.get("original_foreign_title"):
+                print(f"  ├─ 원문 한자/가나: {task.metadata.get('original_foreign_title')}")
+            if task.genre:
+                print(f"  ├─ 첨언 추출 장르: [{task.genre}]")
+            print(f"  ├─ 미리보기 결과: {preview}")
+            print(f"  └─ 최종 정규화 명: {actual_name} -> [OK]")
 
 
