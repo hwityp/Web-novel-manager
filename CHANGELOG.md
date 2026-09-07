@@ -5,6 +5,21 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.38] - 2026-09-07
+
+### Added
+
+- **본문 도입부(헤더/시놉시스) 장르 추출기 신설 (`core/utils/content_header_extractor.py`):**
+  - 소설 텍스트 파일(.txt)의 앞부분 4KB(약 50~100줄)를 스트리밍으로 고속 분석하는 `ContentHeaderGenreExtractor` 구현.
+  - 한국어 번역본 헤더(`장르:`, `카테고리:`, `태그:`), 중국어 원문 헤더(`【作品类型】`, `【分类】`, `【标签】`, `类型:`), 일본어 원문 헤더(`【ジャンル】`, `【タグ】`)를 정규식으로 안전하게 파싱.
+  - UTF-8, UTF-8-sig, CP949, EUC-KR, GB18030, Shift-JIS 등 다중 인코딩을 자동 지원하여 대용량 파일도 1~2ms 이내에 즉시 판정.
+- **해외(중국/일본) 웹소설 전용 CJK 원문 장르 매핑 및 키워드 사전 대폭 확장:**
+  - `config/genre_mapping.json`, `core/utils/genre_mapping.py`에 중국/일본 플랫폼 주요 장르명(`仙侠`, `修仙`, `言情`, `古代言情`, `现代言情`, `玄幻`, `都市`, `ハイファンタジー`, `異世界`, `恋愛`, `悪役令嬢` 등) 매핑 추가.
+  - `modules/classifier/src/data/genre_keywords.json`에 `언정` 장르를 신설하고 `선협`, `언정`, `로판`, `판타지`, `퓨판`에 핵심 CJK 클리셰 한자/가나 키워드 대거 추가.
+- **장르 분류 파이프라인 연동 강화 (`core/adapters/genre_classifier_adapter.py`):**
+  - **Header-First 단계 신설:** 디스크에 텍스트 파일이 존재하는 경우 웹 검색 전에 본문 헤더 메타데이터를 우선 검사하여 고신뢰도(`high`, source: `본문헤더`)로 즉시 판정.
+  - **CJK 원문 제목 키워드 폴백 결합:** 검색 실패 시 파일명에서 분리 추출된 원문 제목(`original_foreign_title`)을 키워드 분석기에 결합하여 CJK 키워드 점수를 반영.
+
 ## [v1.3.37] - 2026-09-07
 
 ### Fixed

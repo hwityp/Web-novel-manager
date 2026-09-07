@@ -267,8 +267,33 @@ class GenreClassifierAdapter:
             print(f"  [결과] {task.genre} (confidence: {task.confidence}, source: cache)")
             return task
         
-        # Step 3: Stage 1 - 인터넷 검색 (Search-First) - NaverGenreExtractorV4 직접 사용
         foreign_title = parse_result.original_foreign_title or task.metadata.get('original_foreign_title', '')
+
+        # Step 2.5: 파일 도입부(헤더/시놉시스) 메타데이터 확인 (Header-First)
+        header_result = self._extract_from_content_header(task)
+        if header_result:
+            mapped_genre = header_result['genre']
+            web_snippet = header_result.get('snippet', '')
+            web_tags = header_result.get('tags', [])
+            
+            task.genre = NovelTraitExtractor.format_genre_tag(
+                primary_genre=mapped_genre,
+                title=raw_text,
+                web_snippet=web_snippet,
+                web_tags=web_tags
+            )
+            task.confidence = 'high'
+            task.source = '본문헤더'
+            task.status = 'processing'
+            
+            # 캐시에 저장
+            self.cache.set(pure_title, task.genre, 'high', '본문헤더')
+            
+            self.logger.debug(f"  [결과] {task.genre} (confidence: {task.confidence}, source: 본문헤더)")
+            print(f"  [결과] {task.genre} (confidence: {task.confidence}, source: 본문헤더)")
+            return task
+        
+        # Step 3: Stage 1 - 인터넷 검색 (Search-First) - NaverGenreExtractorV4 직접 사용
         search_result = self._search_genre(pure_title, author, foreign_title)
         
         if search_result and search_result.get('genre') and search_result.get('genre') != '미분류':
@@ -304,7 +329,7 @@ class GenreClassifierAdapter:
         # Step 4: Stage 3 - 키워드 폴백 (검색 실패 시에만)
         self.logger.debug(f"  [폴백] 검색 실패, 키워드 매칭 시도")
         print(f"  [폴백] 검색 실패, 키워드 매칭 시도")
-        keyword_result = self._keyword_fallback(pure_title, raw_text)
+        keyword_result = self._keyword_fallback(pure_title, raw_text, foreign_title)
         
         if keyword_result and keyword_result.get('genre') != '미분류':
             genre = keyword_result['genre']
@@ -406,13 +431,53 @@ class GenreClassifierAdapter:
             self.logger.debug(traceback.format_exc())
             return None
     
-    def _keyword_fallback(self, title: str, raw_text: str = "") -> Optional[Dict]:
+    def _extract_from_content_header(self, task: NovelTask) -> Optional[Dict]:
         """
-        Stage 3: 키워드 기반 폴백 분류
+        소설 텍스트 파일(.txt)의 앞부분(2~4KB) 헤더에서 장르/태그/시놉시스 메타데이터 추출
+        
+        Args:
+            task: 분류할 NovelTask
+            
+        Returns:
+            {'genre': str, 'confidence': str, 'snippet': str, 'tags': list} 또는 None
+        """
+        file_path = task.current_path or task.original_path
+        if not file_path:
+            return None
+            
+        try:
+            from core.utils.content_header_extractor import ContentHeaderGenreExtractor
+            header_res = ContentHeaderGenreExtractor.extract_from_file(file_path)
+            if not header_res or not header_res.raw_genre:
+                return None
+                
+            raw_genre = header_res.raw_genre
+            pure_title = task.title or task.raw_name
+            mapped_genre = self.mapping_loader.map_genre(raw_genre, pure_title, task.raw_name)
+            
+            if mapped_genre in GENRE_WHITELIST and mapped_genre != '미분류':
+                self.logger.debug(f"  [본문 헤더 감지] 원시 장르: '{raw_genre}' → 표준 장르: '{mapped_genre}', 태그: {header_res.tags}")
+                return {
+                    'genre': mapped_genre,
+                    'raw_genre': raw_genre,
+                    'confidence': 'high',
+                    'snippet': header_res.snippet,
+                    'tags': header_res.tags,
+                    'source': '본문헤더'
+                }
+        except Exception as e:
+            self.logger.debug(f"본문 헤더 추출 실패: {e}")
+            
+        return None
+
+    def _keyword_fallback(self, title: str, raw_text: str = "", foreign_title: str = "") -> Optional[Dict]:
+        """
+        Stage 3: 키워드 기반 폴백 분류 (CJK 원문 제목 결합 지원)
         
         Args:
             title: 순수 제목
             raw_text: 원본 파일명 (선택)
+            foreign_title: CJK 원문 제목 (선택)
             
         Returns:
             {'genre': str, 'confidence': float} 또는 None
@@ -431,6 +496,20 @@ class GenreClassifierAdapter:
                 if raw_result.get('primary_genre') != '미분류':
                     genre = raw_result.get('primary_genre')
                     confidence = raw_result.get('confidence', 0.0)
+
+            # CJK 원문 제목이 있는 경우 원문 결합 텍스트로 재시도
+            if genre == '미분류' and foreign_title:
+                cjk_combo = f"{title} {foreign_title}".strip()
+                cjk_result = self._keyword_classifier.classify_with_confidence(cjk_combo)
+                if cjk_result.get('primary_genre') != '미분류':
+                    genre = cjk_result.get('primary_genre')
+                    confidence = cjk_result.get('confidence', 0.0)
+                else:
+                    # CJK 원문 단독 재시도
+                    cjk_single = self._keyword_classifier.classify_with_confidence(foreign_title)
+                    if cjk_single.get('primary_genre') != '미분류':
+                        genre = cjk_single.get('primary_genre')
+                        confidence = cjk_single.get('confidence', 0.0)
 
             # 장르 매핑 적용
             mapped_genre = self.mapping_loader.map_genre(genre)
@@ -491,6 +570,7 @@ class GenreClassifierAdapter:
             'keyword': '키워드',
             'cache': '캐시',
             'user': '사용자',
+            '본문헤더': '본문헤더',
         }
         
         # 플랫폼 이름 추출 (naver_문피아_meta_path → 문피아)
