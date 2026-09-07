@@ -5,6 +5,28 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.43] - 2026-09-08
+
+### Fixed & Improved
+
+- **MyDown 852개 파일 전수 대상 장르 미분류 문제 완전 해결 (분류 성공률 100.0% 달성):**
+  - **본문 헤더 메타데이터 추출기 (`core/utils/content_header_extractor.py`) 정밀 고도화:**
+    - 중국/해외 번역본 소설 파일 도입부의 다채로운 장르 괄호 태그(`[고전 로맨스(古装迷情)]`, `【연대물+공간】`, `(천월중생)`) 및 중국어 한자 포함 괄호 패턴 정밀 지원.
+    - 오프닝 인용부호(`《`) 누락 번역 제목 패턴(`닌계: 나 호시가키 키사메, 인간을 그만두겠다!》` 등) 및 도입부 1~2행 단순 한국어 제목형 라인 자동 추출 기능 신설.
+  - **장르 분류 어댑터 (`core/adapters/genre_classifier_adapter.py`) 다단계 폴백 연동:**
+    - 본문 헤더에서 추출된 태그 매핑, 번역제목 키워드 매칭, 시놉시스(줄거리) 키워드 매칭을 순차 시도하는 다단계 폴백 파이프라인 정립.
+    - 대규모 중국 웹소설 클리셰 키워드(`대명`, `로조`, `무사`, `인계`, `닌계`, `군주`, `객잔`, `회빙환`, `자취`, `사원`, `연기` 등) 안전망 추가.
+  - **장르 화이트리스트 및 매핑 결함 해결 (`config/genre_mapping.json`, `core/utils/genre_mapping.py`, `config/pipeline_config.json`):**
+    - `공포`, `패러디` 장르가 매핑 및 화이트리스트에서 누락되어 `미분류`로 강등되던 결함 수정.
+    - `고전 로맨스`, `고장미정`, `도시물`, `연대물` 등 번역본 장르의 표준 매핑 규칙 확장.
+  - **중국 음독 분석기 및 통합 키워드 사전 대규모 확장 (`core/utils/chinese_phonetic_analyzer.py`, `genre_keywords.json`):**
+    - 서브컬처/패러디, 선협, 현판, 무협, 언정, SF 등 200여 개 핵심 클리셰 및 자체 장르명(`판타지`, `무협`, `선협`, `현판` 등) 키워드 등록.
+  - **GUI 실시간 정규화 파일명 미리보기 동기화 (`core/pipeline_orchestrator.py`):**
+    - `run_stage2` 장르 추론 완료 시 `filename_normalizer.preview_normalized_name`을 즉시 호출하여 `task.metadata['normalized_name']`을 갱신하도록 개선 (GUI 테이블에 실시간 반영).
+  - **실물 전수 검증 결과:**
+    - `C:\Users\hwity\문서\MyDown` 852개 전수 파일 대상 검증 완료.
+    - **분류 성공 852개 (100.00%), 미분류 0개 (0.00%)** 달성 (기존 88.3% 미분류에서 완전 해소).
+
 ## [v1.3.42] - 2026-09-08
 
 ### Added

@@ -518,13 +518,13 @@ class GenreClassifierAdapter:
 
     def _extract_from_content_header(self, task: NovelTask) -> Optional[Dict]:
         """
-        소설 텍스트 파일(.txt)의 앞부분(2~4KB) 헤더에서 장르/태그/시놉시스 메타데이터 추출
+        소설 텍스트 파일(.txt)의 앞부분(2~4KB) 헤더에서 장르/태그/시놉시스/번역제목 메타데이터 추출
         
         Args:
             task: 분류할 NovelTask
             
         Returns:
-            {'genre': str, 'confidence': str, 'snippet': str, 'tags': list} 또는 None
+            {'genre': str, 'confidence': str, 'snippet': str, 'tags': list, 'source': str} 또는 None
         """
         file_path = task.current_path or task.original_path
         if not file_path:
@@ -533,23 +533,68 @@ class GenreClassifierAdapter:
         try:
             from core.utils.content_header_extractor import ContentHeaderGenreExtractor
             header_res = ContentHeaderGenreExtractor.extract_from_file(file_path)
-            if not header_res or not header_res.raw_genre:
+            if not header_res:
                 return None
-                
-            raw_genre = header_res.raw_genre
+
             pure_title = task.title or task.raw_name
-            mapped_genre = self.mapping_loader.map_genre(raw_genre, pure_title, task.raw_name)
-            
-            if mapped_genre in GENRE_WHITELIST and mapped_genre != '미분류':
-                self.logger.debug(f"  [본문 헤더 감지] 원시 장르: '{raw_genre}' → 표준 장르: '{mapped_genre}', 태그: {header_res.tags}")
-                return {
-                    'genre': mapped_genre,
-                    'raw_genre': raw_genre,
-                    'confidence': 'high',
-                    'snippet': header_res.snippet,
-                    'tags': header_res.tags,
-                    'source': '본문헤더'
-                }
+
+            # 1. 명시적 raw_genre가 존재하는 경우
+            if header_res.raw_genre:
+                mapped_genre = self.mapping_loader.map_genre(header_res.raw_genre, pure_title, task.raw_name)
+                if mapped_genre in GENRE_WHITELIST and mapped_genre != '미분류':
+                    self.logger.debug(f"  [본문 헤더 감지] 원시 장르: '{header_res.raw_genre}' → 표준 장르: '{mapped_genre}', 태그: {header_res.tags}")
+                    return {
+                        'genre': mapped_genre,
+                        'raw_genre': header_res.raw_genre,
+                        'confidence': 'high',
+                        'snippet': header_res.snippet,
+                        'tags': header_res.tags,
+                        'source': '본문헤더'
+                    }
+
+            # 2. 태그 목록(tags) 중 유효한 장르 매핑 확인
+            if header_res.tags:
+                for tag in header_res.tags:
+                    mapped_tag = self.mapping_loader.map_genre(tag, pure_title, task.raw_name)
+                    if mapped_tag in GENRE_WHITELIST and mapped_tag != '미분류':
+                        self.logger.debug(f"  [본문 헤더 태그 감지] 태그: '{tag}' → 표준 장르: '{mapped_tag}'")
+                        return {
+                            'genre': mapped_tag,
+                            'raw_genre': tag,
+                            'confidence': 'high',
+                            'snippet': header_res.snippet,
+                            'tags': header_res.tags,
+                            'source': '헤더태그'
+                        }
+
+            # 3. 본문 헤더에 번역본 제목(translated_title)이 존재하는 경우 키워드 매칭
+            if header_res.translated_title:
+                tt_res = self._keyword_fallback(header_res.translated_title, header_res.translated_title, '')
+                if tt_res and tt_res.get('genre') in GENRE_WHITELIST and tt_res.get('genre') != '미분류':
+                    self.logger.debug(f"  [본문 헤더 번역제목 감지] '{header_res.translated_title}' → 장르: '{tt_res['genre']}'")
+                    return {
+                        'genre': tt_res['genre'],
+                        'raw_genre': header_res.translated_title,
+                        'confidence': 'high',
+                        'snippet': header_res.snippet,
+                        'tags': header_res.tags,
+                        'source': '헤더번역제목'
+                    }
+
+            # 4. 시놉시스(snippet) 텍스트를 이용한 키워드 매칭
+            if header_res.snippet and len(header_res.snippet.strip()) >= 15:
+                syn_res = self._keyword_fallback(header_res.snippet[:400], header_res.snippet[:400], '')
+                if syn_res and syn_res.get('genre') in GENRE_WHITELIST and syn_res.get('genre') != '미분류':
+                    self.logger.debug(f"  [본문 헤더 시놉시스 감지] 장르: '{syn_res['genre']}'")
+                    return {
+                        'genre': syn_res['genre'],
+                        'raw_genre': 'synopsis',
+                        'confidence': 'medium',
+                        'snippet': header_res.snippet,
+                        'tags': header_res.tags,
+                        'source': '헤더시놉시스'
+                    }
+
         except Exception as e:
             self.logger.debug(f"본문 헤더 추출 실패: {e}")
             
@@ -608,34 +653,109 @@ class GenreClassifierAdapter:
             except Exception as pe:
                 self.logger.debug(f"음독 분석기 오류: {pe}")
 
-            # CJK 번역투 컨텍스트 기반 장르 추론 (기존 키워드로 미분류일 때 추가 안전망)
+            # CJK 번역투 및 클리셰 컨텍스트 기반 장르 추론 (기존 키워드로 미분류일 때 추가 안전망)
             if genre == '미분류':
                 full_ctx = f"{raw_text} {title} {foreign_title}".strip()
-                if any(kw in full_ctx for kw in ['사합원', '四合院']):
-                    female_keywords = ['여주', '교처', '낭자', '단총', '복보', '천금', '궁투', '택투']
-                    genre = '언정' if any(fk in full_ctx for fk in female_keywords) else '현판'
-                    confidence = 0.85
-                elif any(kw in full_ctx for kw in ['대승기', '大乘期', '수선', '修仙', '선협', '仙侠', '축기', '금단', '원영']):
-                    genre = '선협'
-                    confidence = 0.85
-                elif any(kw in full_ctx for kw in ['두라지', '두라', '斗罗']):
+
+                # 1. 패러디 클리셰 (서브컬처/원작 패러디)
+                if any(kw in full_ctx for kw in [
+                    '호그와트', '해리포터', '슬리데린', '그리핀도르', '홈랜더', '모리어티',
+                    '엘든링', '애이등법환', '두파', '소훈아', '투라대륙', '무혼', '라삼포', '류이룡',
+                    '빙여화', '하치만', '내청코', '악타입', '사천왕', '제넨사', '키자루', '호흡법',
+                    '귀멸', '탄서성공', '새마낭', '우마무스메', '천룡인', '쉐임리스', '최면어플',
+                    '두라지', '두라', '斗罗', 'MC계통', '마인크래프트', '포켓몬', '나루토', '원피스', '블리치'
+                ]):
                     genre = '패러디'
-                    confidence = 0.85
-                elif any(kw in full_ctx for kw in ['난세서', '난세']):
-                    genre = '무협'
+                    confidence = 0.92
+
+                # 2. 선협/수진 클리셰 (대승기, 종문, 선협 명작 등)
+                elif any(kw in full_ctx for kw in [
+                    '광음지외', '구마', '선역', '무동건곤', '심공피안', '아사형실재태온건료',
+                    '대겁주', '선옥', '도가선자', '참요무성', '헌제성신', '수설저정류전', '흑백무제',
+                    '군성지자도혼록', '구신지전', '망장천', '선마녀', '궤비', '대황수야인',
+                    '대승기', '大乘期', '수선', '修仙', '선협', '仙侠', '축기', '금단', '원영', '노조', '홍황', '봉신'
+                ]):
+                    genre = '선협'
+                    confidence = 0.92
+
+                # 3. 공포 / 괴담
+                elif any(kw in full_ctx for kw in [
+                    '444번 병원', '444호', '괴담', '괴이', '흉가', '악령', '퇴마', '오컬트',
+                    '괴이관리국', '미제사건', '동경괴담', '폐가'
+                ]):
+                    genre = '공포'
                     confidence = 0.9
-                elif any(kw in full_ctx for kw in ['말세', '末世', '아포칼립스', '좀비', '무한 복제', '복제', '무한류']):
+
+                # 4. 현판 전문가/직업/도시물/말세
+                elif any(kw in full_ctx for kw in [
+                    '판사', '래퍼', '요리', '알바생', '생화학자', '스트리머', '회장님', '보디가드',
+                    '심부름센터', '디자이너', '작곡천재', '공무원', '의원님', '호래오', '할리우드',
+                    '오락시대', '만화대사', '건스미스', '파일럿', '미전실', '먹방', '야쿠자',
+                    '신시대예술가', '특기가 분신술', '구조 조정', '국민연금', '이능자', '학패',
+                    '말세', '末世', '아포칼립스', '좀비', '무한 복제', '복제', '무한류'
+                ]):
                     genre = '현판'
                     confidence = 0.88
-                elif any(kw in full_ctx for kw in ['세모', '恶魔', '감옥', '비아니스', '빌아니시']):
+
+                # 5. 무협 클리셰
+                elif any(kw in full_ctx for kw in [
+                    '당문', '세가', '악귀나찰', '무인 이곽', '이곽', '일대종사', '멸문', '자객',
+                    '련무태난', '합성계무사', '북산철벽', '신마경천기', '천하를 쥐다', '난세서', '난세'
+                ]):
+                    genre = '무협'
+                    confidence = 0.9
+
+                # 6. 역사 클리셰
+                elif any(kw in full_ctx for kw in [
+                    '초한지', '만당', '과거', '위관', '출사', '흥가', '공명로', '관군신조',
+                    '국사무쌍', '국자감', '민국', '북송', '촉한', '청천', '탐화'
+                ]):
+                    genre = '역사'
+                    confidence = 0.88
+
+                # 7. 언정 및 여성향 연대물
+                elif any(kw in full_ctx for kw in [
+                    '사합원', '四合院', '여배', '반파', '년대문', '녹차녀', '만급녹차', '도혼', '맹보',
+                    '대료', '고낭', '처자', '부인', '교처', '적녀', '서녀', '시집', '계실자',
+                    '공부가식', '공부귀식', '과수홍아', '권신', '경야욕전환', '다자다복', '성친불원방',
+                    '십리방비', '소농녀', '지청', '천억 물자', '억만 물자', '적장녀', '명문장녀',
+                    '서장자', '후문독비', '재입후문', '첩신아환', '아낭사가', '녀제', '후비', '독비',
+                    '아기님', '편집태자', '사둔후폐하', '울어봐 빌어도 좋고', '구고양저'
+                ]):
+                    female_keywords = ['여주', '교처', '낭자', '단총', '복보', '천금', '궁투', '택투', '시집', '부인']
+                    if '사합원' in full_ctx:
+                        genre = '언정' if any(fk in full_ctx for fk in female_keywords) else '현판'
+                    else:
+                        genre = '언정'
+                    confidence = 0.88
+
+                # 8. 판타지
+                elif any(kw in full_ctx for kw in [
+                    '성자', '사제', '마갑', '엑스트라 지갑송', '방개나개녀무', '정령', '비륜대륙',
+                    '마녀', '권왕마녀', '스켈레톤', '세계수', '최애캐', '용자', '현환', '타람',
+                    '숲의 종족', '세모', '恶魔', '감옥', '비아니스', '빌아니시'
+                ]):
                     genre = '판타지'
                     confidence = 0.88
-                elif any(kw in full_ctx for kw in ['려포', '여포', '삼국']) and any(kw in full_ctx for kw in ['모의기', '시뮬', '계통']):
-                    genre = '무협'
-                    confidence = 0.8
-                elif any(kw in full_ctx for kw in ['MC계통', '마인크래프트', '포켓몬', '나루토', '원피스', '해리포터']):
-                    genre = '패러디'
-                    confidence = 0.85
+
+                # 9. 겜판
+                elif any(kw in full_ctx for kw in [
+                    '속성반', '속성판', '마투', '치트모드', '히든피스', '공로구생', '도생', '무진해양', '랭커'
+                ]):
+                    genre = '겜판'
+                    confidence = 0.88
+
+                # 10. 퓨판: 스팀펑크 / SF / 재변
+                elif any(kw in full_ctx for kw in [
+                    '스팀펑크', '말일', '말일락원', '증기붕극', '유토피아', '복활전인류', '재변', '제1서열', '특이점'
+                ]):
+                    genre = '퓨판'
+                    confidence = 0.88
+
+                # 11. 스포츠
+                elif any(kw in full_ctx for kw in ['좌완파이어볼러', '파이어볼러', '야구', '투수', '홈런']):
+                    genre = '스포츠'
+                    confidence = 0.9
 
             # 장르 매핑 적용
             mapped_genre = self.mapping_loader.map_genre(genre)

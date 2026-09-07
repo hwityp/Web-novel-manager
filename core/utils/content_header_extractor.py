@@ -26,9 +26,10 @@ import re
 @dataclass
 class ContentHeaderResult:
     """본문 헤더 메타데이터 추출 결과"""
-    raw_genre: str = ""                # 감지된 원시 장르명 (예: "선협", "仙侠", "하이판타지")
+    raw_genre: str = ""                # 감지된 원시 장르명 (예: "선협", "仙侠", "고전 로맨스")
     tags: List[str] = field(default_factory=list)  # 추출된 태그 목록 (예: ["수진", "시스템"])
     snippet: str = ""                  # 시놉시스/작품소개 텍스트
+    translated_title: str = ""         # 본문 도입부에서 발견된 번역본/원문 책 제목
     is_foreign: bool = False           # CJK(중/일) 메타데이터 여부
 
 
@@ -48,6 +49,29 @@ class ContentHeaderGenreExtractor:
         "shift_jis", # 일본어
     ]
 
+    # 명시적 번역본/원문 책 제목 패턴 (헤더 도입부 1~3줄)
+    TRANSLATED_TITLE_PATTERNS = [
+        re.compile(r'《([^》\r\n]{2,80})》'),
+        re.compile(r'〈([^〉\r\n]{2,80})〉'),
+        re.compile(r'『([^』\r\n]{2,80})』'),
+        re.compile(r'^[#＃]\s*([^\r\n]{2,80})', re.MULTILINE),
+        re.compile(r'^(?:서명|책\s*제목|원제|제목)\s*[:：\-]\s*([^\r\n]{2,80})', re.MULTILINE),
+        re.compile(r'^([가-힣\w\s:,\!\?]{2,80})》', re.MULTILINE),
+    ]
+
+    # 괄호형 장르/카테고리 태그 패턴 (예: [고전 로맨스], [고장미정], 【연대물+공간+빙의】, (천월중생))
+    BRACKET_GENRE_PATTERNS = [
+        re.compile(r'\[([가-힣\s]{2,15})(?:\([^\)]*\))?\]'),
+        re.compile(r'【([가-힣\s\+]{2,30})(?:\([^\)]*\))?】'),
+        re.compile(r'\(([가-힣\s]{2,15})\)'),
+    ]
+
+    # 제외할 비장르 단어 목록
+    NON_GENRE_WORDS = {
+        '제1장', '완결', '단독', '텍본', '외전', '공지', '19금', '19N', '성인',
+        '미완', '번역', 'AI번역', '수정', '개정판', '합본', '단편', '스포', '후기'
+    }
+
     # 명시적 장르/카테고리 라인 패턴
     GENRE_LINE_PATTERNS = [
         # 한국어 패턴: 장르: 선협, [장르] 판타지, 【장르】 언정, 카테고리: 무협
@@ -65,7 +89,7 @@ class ContentHeaderGenreExtractor:
 
     # 작품 소개 블록 헤더 패턴
     SYNOPSIS_HEADER_PATTERNS = [
-        re.compile(r'(?:【작품\s*소개】|【내용\s*소개】|【줄거리】|【시놉시스】|【内容简介】|【作品简介】|【简介】|【あらすじ】)(.*?)(?:(?=【|\n\s*\n\s*\n)|$)', re.DOTALL),
+        re.compile(r'(?:【작품\s*소개】|【내용\s*소개】|【줄거리】|【시놉시스】|【문안】|【内容简介】|【作品简介】|【简介】|【あらすじ】|책\s*소개\s*[:：]?|작품\s*소개\s*[:：]?|줄거리\s*[:：]?|문안\s*[:：]?|소개\s*[:：]?)(.*?)(?:(?=【|\n\s*\n\s*\n)|$)', re.DOTALL),
     ]
 
     @classmethod
@@ -105,19 +129,40 @@ class ContentHeaderGenreExtractor:
     @classmethod
     def extract_from_text(cls, header_text: str) -> Optional[ContentHeaderResult]:
         """
-        도입부 텍스트에서 장르 및 태그 메타데이터 분석
+        도입부 텍스트에서 번역 제목, 장르, 태그 및 시놉시스 메타데이터 분석
         """
         if not header_text or not header_text.strip():
             return None
 
         result = ContentHeaderResult()
+        header_head = header_text[:800]
 
-        # 1. 명시적 장르 라인 탐색
+        # 0. 번역본/원문 책 제목 탐색 (도입부 800자)
+        for t_pat in cls.TRANSLATED_TITLE_PATTERNS:
+            t_match = t_pat.search(header_head)
+            if t_match:
+                cand_title = t_match.group(1).strip()
+                # 괄호나 잡음 제거
+                cand_title = re.sub(r'[\r\n]+', ' ', cand_title).strip()
+                if len(cand_title) >= 2 and not any(nw in cand_title for nw in ['제1장', '완결', '다운로드']):
+                    result.translated_title = cand_title
+                    break
+
+        # 0-1. 명시적 패턴으로 번역제목이 없으면, 도입부 첫 번째 유효 라인 확인 (단순 제목형 라인)
+        if not result.translated_title:
+            cand_lines = [l.strip() for l in header_head.splitlines() if l.strip()]
+            if cand_lines:
+                first_l = cand_lines[0]
+                # 제목 느낌의 3~40자 라인 (특수태그/안내문/제1장 등 제외)
+                if 2 <= len(first_l) <= 40 and not any(nw in first_l for nw in ['제1장', '1장', '프롤로그', 'prologue', 'http', '다운로드', 'Episode', 'EP.', '==', '작가의 말', '공지']):
+                    if not first_l.startswith(('【', '[', '(', '#', '!', '?', '*')):
+                        result.translated_title = first_l
+
+        # 1. 명시적 장르 라인 탐색 (예: 장르: 선협)
         for pattern in cls.GENRE_LINE_PATTERNS:
             match = pattern.search(header_text)
             if match:
                 raw_genre = match.group(1).strip()
-                # 콤마, 슬래시, 공백 구분자 처리 (예: "선협 / 수진" -> "선협")
                 parts = [p.strip() for p in re.split(r'[,/|·\s]+', raw_genre) if p.strip()]
                 if parts:
                     result.raw_genre = parts[0]
@@ -125,37 +170,55 @@ class ContentHeaderGenreExtractor:
                         result.tags.extend(parts[1:])
                 break
 
-        # 2. 태그 라인 탐색
+        # 2. 괄호형 장르/카테고리 탐색 (예: [고전 로맨스], [고장미정], (천월중생))
+        if not result.raw_genre:
+            for b_pat in cls.BRACKET_GENRE_PATTERNS:
+                for match in b_pat.finditer(header_head):
+                    cand = match.group(1).strip()
+                    if cand and cand not in cls.NON_GENRE_WORDS:
+                        # 복합 태그인 경우 '+' 구분 처리
+                        if '+' in cand:
+                            sub_parts = [sp.strip() for sp in cand.split('+') if sp.strip()]
+                            if sub_parts:
+                                result.raw_genre = sub_parts[0]
+                                result.tags.extend(sub_parts[1:])
+                                break
+                        else:
+                            result.raw_genre = cand
+                            break
+                if result.raw_genre:
+                    break
+
+        # 3. 태그 라인 탐색
         for tag_pattern in cls.TAG_LINE_PATTERNS:
             tag_match = tag_pattern.search(header_text)
             if tag_match:
                 tag_content = tag_match.group(1).strip()
-                # 해시태그(#태그) 또는 콤마/슬래시 분리
                 raw_tags = re.findall(r'#?([^\s,#|/]+)', tag_content)
                 for t in raw_tags:
                     t_clean = t.strip()
-                    if t_clean and t_clean not in result.tags:
+                    if t_clean and t_clean not in result.tags and t_clean not in cls.NON_GENRE_WORDS:
                         result.tags.append(t_clean)
 
-        # 3. 작품 소개(시놉시스) 블록 추출
+        # 4. 작품 소개(시놉시스) 블록 추출
         for syn_pattern in cls.SYNOPSIS_HEADER_PATTERNS:
             syn_match = syn_pattern.search(header_text)
             if syn_match:
-                result.snippet = syn_match.group(1).strip()[:500]
+                result.snippet = syn_match.group(1).strip()[:600]
                 break
 
-        # 4. 시놉시스가 아직 없고 헤더 전체가 짧다면 앞 300자를 스니펫으로 설정
+        # 5. 시놉시스가 아직 없고 헤더 전체가 짧다면 앞 400자를 스니펫으로 설정
         if not result.snippet:
             clean_lines = [l.strip() for l in header_text.splitlines() if l.strip()]
-            result.snippet = " ".join(clean_lines[:10])[:300]
+            result.snippet = " ".join(clean_lines[:12])[:400]
 
-        # 5. CJK 문자 포함 여부 확인
-        all_text = f"{result.raw_genre} {' '.join(result.tags)}"
+        # 6. CJK 문자 포함 여부 확인
+        all_text = f"{result.raw_genre} {' '.join(result.tags)} {result.translated_title}"
         if re.search(r'[\u4e00-\u9fff\u3040-\u30ff]', all_text):
             result.is_foreign = True
 
-        # 장르나 태그가 하나라도 추출되었으면 결과 반환
-        if result.raw_genre or result.tags:
+        # 장르, 태그, 번역제목, 시놉시스 중 하나라도 존재하면 유의미한 결과 반환
+        if result.raw_genre or result.tags or result.translated_title or result.snippet:
             return result
 
         return None

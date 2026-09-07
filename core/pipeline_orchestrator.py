@@ -297,6 +297,13 @@ class PipelineOrchestrator:
                 # Run Genre Classifier
                 task = self._run_stage2(task)
                 
+                # 정규화 파일명 미리보기 갱신 (추론된 장르 태그 반영)
+                try:
+                    preview_name = self.filename_normalizer.preview_normalized_name(task)
+                    task.metadata['normalized_name'] = preview_name
+                except Exception as ne:
+                    self.logger.debug(f"Stage 2 미리보기 갱신 실패: {ne}")
+                
                 # Callback AFTER update
                 if self.progress_callback:
                     # 확장된 콜백 지원: (current, total, filename, task_object)
