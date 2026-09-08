@@ -32,7 +32,7 @@ flowchart TD
 
 ## 2. 디렉토리 및 파일 역할 맵 (Directory & File Map)
 
-```
+```text
 WebNovelManager/
 ├── main.py                     # [Entrypoint] 애플리케이션 최상위 진입점 (GUI 및 CLI 지원)
 ├── build_exe.py                # [Build] PyInstaller 단일 실행 파일(.exe) 패키징 스크립트
@@ -118,6 +118,7 @@ WebNovelManager/
 `NovelTask`(`core/novel_task.py`)는 파이프라인의 모든 단계에서 상태를 추적하는 유일한 표준 데이터 객체입니다.
 
 ### 3.1 주요 필드 정의
+
 | 필드명 | 타입 | 설명 |
 | :--- | :--- | :--- |
 | `original_path` | `Path` | 사용자가 지정한 원본 파일의 최초 경로 (**절대 변경 금지**) |
@@ -135,6 +136,7 @@ WebNovelManager/
 | `source` | `str` | 장르 결정 출처 (`cache`, `naver_series`, `kakao`, `keyword`, `user` 등) |
 
 ### 3.2 단계별 상태 전이 불변 규칙
+
 1. **Stage 1 완료 후:** `current_path`는 정리완료 디렉토리의 추출된 텍스트 파일 경로로 갱신됩니다.
 2. **Stage 2 진입 전:** `title`이 비어있는 경우 `TitleAnchorExtractor.extract(raw_name)`를 통해 선제 추출합니다.
 3. **Stage 2 완료 후:** `task.genre`, `task.confidence`, `task.source`가 결정됩니다. `confidence == 'medium'`인 경우 사용자 확인 대화상자로 분기합니다.
@@ -145,7 +147,9 @@ WebNovelManager/
 ## 4. 코딩 및 개발 절대 불변 규칙 (Crucial Coding Rules)
 
 ### 규칙 1: Annotation-First & Search-First 장르 분류 계층 순서 엄수
+
 장르 분류 시 반드시 아래 순서를 엄격히 준수해야 합니다:
+
 1. **파일명 첨언 우선 추출 (Annotation-First):** 파일명 앞 접두사 태그(`[장르]`, `[특성]`) 또는 뒤 첨언(`(AI번역)`, `#해시태그`)에 명시된 장르/특성이 있는 경우 웹 검색보다 최우선으로 확정합니다. (예: `... #패러디 #해리포터.txt` → `[패러디, 해리포터]`, `[언정][AI번역][연대]` → `[언정, 연대물]`)
 2. **Cache 확인 (Cache-First):** `GenreCache`에 이미 승인된 장르가 있는지 먼저 조회합니다.
 3. **웹 검색 (Search-First):** 네이버 검색 API(NaverGenreExtractorV4) → 실패 시 구글 CSE 검색(GoogleGenreExtractor).
@@ -153,21 +157,26 @@ WebNovelManager/
 5. **로컬 키워드 폴백 (Keyword Fallback):** 웹 검색에서 유효한 장르를 얻지 못한 경우에만 로컬 키워드 사전(`genre_keywords.json`)으로 분류합니다.
 
 ### 규칙 2: Title Anchor 선추출 및 복합 완결/외전(完外) 처리 원칙
+
 * 제목 중간에 숫자가 포함된 작품(예: `100층의 올마스터`, `1번가 기적`, `7번째 기사`)이 권수/범위 정규식에 의해 훼손되지 않도록, **반드시 핵심 제목을 먼저 추출(Anchor)한 후 나머지 잔여 문자열에서만 권수/범위를 파싱**해야 합니다.
 * `完外`, `完+外`, `완+외전` 등 완결과 외전이 동시에 표기된 복합 마커는 `is_completed=True` 및 `side_story="외전"`을 동시에 파싱하여 `제목 (완) + 외전.확장자` 형태로 정규화해야 합니다. (원문 외국어 제목으로 오인식되어 소실되지 않도록 마커 문자 검증 적용)
 
 ### 규칙 3: 파일 시스템 안전 복사(Safe Copy) 원칙
+
 * 원본 파일 손실을 방지하기 위해 파일 이동(`move`) 대신 **안전 복사(`shutil.copy2`) 및 격리(Temp 보존)** 방식을 우선합니다.
 * 사용자의 `Downloads`, `Temp` 및 지정된 보호 폴더(`protected_folders`)는 절대 삭제하거나 침범하지 않습니다.
 
 ### 규칙 4: Windows 한글 인코딩 및 파일명 제약 처리
+
 * 콘솔 출력 및 파일 I/O는 기본적으로 `utf-8`을 사용하되, 기존 압축 파일 메타데이터 디코딩 시 한글 깨짐이 감지되면 `cp949` 폴백을 적용합니다.
 * 파일명 조립 시 Windows 파일 시스템 금지 문자(`< > : " / \ | ? *`)는 공백 또는 안전 문자로 자동 치환되어야 합니다.
 
 ### 규칙 5: 결함 격리 (Fault Isolation)
+
 * 1000개의 파일 중 1개의 파일에서 파싱 또는 I/O 오류가 발생하더라도, **해당 태스크만 `failed` 처리하고 로그를 남긴 후 다음 파일 처리를 계속 진행**해야 합니다. 파이프라인 전체가 크래시되어서는 안 됩니다.
 
 ### 규칙 6: No_use 폴더 보호
+
 * `No_use/` 폴더는 과거 버전 및 분석 산출물을 보존하기 위한 아카이브입니다. **활성 코드(`core/`, `gui/`, `main.py` 등)에서 `No_use/` 내부의 모듈이나 파일을 import하거나 참조해서는 절대 안 됩니다.**
 
 ---
@@ -175,18 +184,21 @@ WebNovelManager/
 ## 5. 디버깅 및 문제 해결 가이드 (Debugging & FAQ)
 
 ### Q1. IDE/린터에서 `Cannot find module 'core....' Pyrefly(missing-import)` 경고가 뜰 때
+
 * **원인:** 실행 스크립트가 프로젝트 루트 외부에 있거나, 언어 서버(Pyrefly/Pyright)의 `extraPaths`에 프로젝트 루트가 등록되지 않았기 때문입니다.
 * **해결법:**
   1. 프로젝트 루트의 `pyrightconfig.json`과 `.vscode/settings.json`에 `.` 및 `${workspaceFolder}`가 등록되어 있는지 확인합니다.
   2. 외부 스크립트인 경우 임포트 문 뒤에 `# type: ignore`를 붙여 정적 분석기 오탐지를 방지합니다.
 
 ### Q2. 테스트 실행 시 `UnicodeDecodeError`가 발생할 때
+
 * **원인:** 과거 임시 폴더(`_cleanup_temp` 등)에 인코딩이 손상된 텍스트 파일이 포함되어 있어 pytest가 수집하려 할 때 발생합니다.
 * **해결법:**
   1. 프로젝트 루트의 `pytest.ini`에 `norecursedirs = No_use build dist _cleanup_temp`가 설정되어 있는지 확인합니다.
   2. `pytest` 명령어를 단독 실행하여 116개 테스트가 모두 통과하는지 검증합니다.
 
 ### Q3. 장르가 '미분류'로 떨어지거나 엉뚱한 장르로 분류될 때
+
 * **원인:**
   1. `TitleAnchorExtractor`가 제목 외의 불필요한 태그를 제목으로 잘못 인식한 경우.
   2. 네이버/구글 검색 결과 제목과 원본 제목 간 유사도가 85% 미만이어서 기각된 경우.
