@@ -25,7 +25,7 @@ import os
 import sys
 from pathlib import Path
 from dataclasses import dataclass, field
-from typing import List, Optional, Callable
+from typing import List, Optional, Callable, Any
 from datetime import datetime
 
 from core.novel_task import NovelTask
@@ -69,8 +69,8 @@ class PipelineOrchestrator:
     STAGE_GENRE_CLASSIFIER = 2
     STAGE_FILENAME_NORMALIZER = 3
     
-    # Progress callback 타입: (current_index, total_files, filename) -> None
-    ProgressCallback = Optional[Callable[[int, int, str], None]]
+    # Progress callback 타입: (current_index, total_files, filename, [task]) -> None
+    ProgressCallback = Optional[Callable[..., Any]]
     
     # Genre confirm callback 타입: (filename, suggested_genre, confidence) -> Optional[str]
     # 반환값: 사용자가 선택한 장르 (None이면 건너뛰기)
@@ -566,7 +566,7 @@ class PipelineOrchestrator:
         tasks: List[NovelTask], 
         source_folder: Path,
         preview: bool = False
-    ) -> Path:
+    ) -> Optional[Path]:
         """
         mapping.csv 생성
         
@@ -654,7 +654,7 @@ class PipelineOrchestrator:
         
         print(f"{'='*50}\n")
     
-    def process_with_retry(self, task: NovelTask, max_retries: int = None) -> NovelTask:
+    def process_with_retry(self, task: NovelTask, max_retries: Optional[int] = None) -> NovelTask:
         """
         재시도 메커니즘이 포함된 태스크 처리
         

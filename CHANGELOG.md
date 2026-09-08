@@ -5,6 +5,23 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.44] - 2026-09-09
+
+### Fixed & Improved
+
+- **MyDown 폴더 및 CP949 인코딩 파일 전수 대상 장르 미분류 문제 완전 해결:**
+  - **멀티바이트 문자 절단 방지 및 인코딩 복원 (`core/utils/content_header_extractor.py`):**
+    - `read_header_text`가 4096바이트를 읽을 때 2바이트 한글/한자 문자가 중간에 잘려 `UnicodeDecodeError`가 발생하던 결함을 0~4바이트 동적 트리밍 디코딩 루프로 완전 해결.
+    - CP949/EUC-KR/GB18030 파일의 본문이 깨진 문자(`\ufffd`)로 변환되어 도입부 메타데이터가 유실되던 현상 방지.
+    - 명시적 시놉시스 블록(`【작품소개】` 등) 탐지 플래그(`has_explicit_synopsis`)를 도입하여 일반 본문 서두가 시놉시스로 오인되어 장르를 왜곡하지 않도록 개선.
+  - **중국 웹소설 핵심 서브장르 키워드 및 패러디 팬덤 확장 (`genre_keywords.json`, `core/utils/novel_trait_extractor.py`):**
+    - 판타지: `어수`(御兽, 10), `어수사`(10), `배육대사`(10), `역병지상`(10), `역병`(8), `온역`(8) 신규 등록.
+    - 선협: `옹유등가천평적아불시요마`(10), `등가천평`(9), `만어선종`(9), `요마`(8) 신규 등록.
+    - 패러디: `완미세계`(10), `완미세계지`(10), `증도륜회`(9) 등록 및 `PARODY_FANDOM_MAP`/`TRAIT_PATTERNS` 연동으로 `[패러디, 완미세계]` 자동 태깅 지원.
+    - 이중 키워드 사전 파일(`modules/classifier/genre_keywords.json`, `modules/classifier/src/data/genre_keywords.json`) 원자적 동기화 완료 (v1.6.5).
+- **파이프라인 오케스트레이터 타입 힌트 및 린터 오류 해결 (`core/pipeline_orchestrator.py`):**
+  - Pyrefly 린터의 콜백 함수 인자 개수 불일치(4개 인자 전달 지원 `Callable[..., Any]`), `_generate_mapping_csv` 반환 타입(`Optional[Path]`), `process_with_retry` 기본값(`Optional[int]`) 타입 힌트 정합성 완비.
+
 ## [v1.3.43] - 2026-09-08
 
 ### Fixed & Improved

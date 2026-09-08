@@ -581,8 +581,8 @@ class GenreClassifierAdapter:
                         'source': '헤더번역제목'
                     }
 
-            # 4. 시놉시스(snippet) 텍스트를 이용한 키워드 매칭
-            if header_res.snippet and len(header_res.snippet.strip()) >= 15:
+            # 4. 시놉시스(snippet) 텍스트를 이용한 키워드 매칭 (명시적 작품소개 블록이 존재하는 경우에만 장르 추론)
+            if getattr(header_res, 'has_explicit_synopsis', False) and header_res.snippet and len(header_res.snippet.strip()) >= 15:
                 syn_res = self._keyword_fallback(header_res.snippet[:400], header_res.snippet[:400], '')
                 if syn_res and syn_res.get('genre') in GENRE_WHITELIST and syn_res.get('genre') != '미분류':
                     self.logger.debug(f"  [본문 헤더 시놉시스 감지] 장르: '{syn_res['genre']}'")

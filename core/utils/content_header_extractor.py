@@ -31,6 +31,7 @@ class ContentHeaderResult:
     snippet: str = ""                  # 시놉시스/작품소개 텍스트
     translated_title: str = ""         # 본문 도입부에서 발견된 번역본/원문 책 제목
     is_foreign: bool = False           # CJK(중/일) 메타데이터 여부
+    has_explicit_synopsis: bool = False # 명시적 작품소개 블록 존재 여부
 
 
 class ContentHeaderGenreExtractor:
@@ -114,11 +115,14 @@ class ContentHeaderGenreExtractor:
             return None
 
         for encoding in cls.CANDIDATE_ENCODINGS:
-            try:
-                text = raw_bytes.decode(encoding)
-                return text
-            except (UnicodeDecodeError, LookupError):
-                continue
+            # 멀티바이트 문자 중간에서 MAX_READ_BYTES가 잘렸을 수 있으므로 0~4바이트를 잘라내며 디코딩 시도
+            for trim in range(0, 5):
+                chunk = raw_bytes if trim == 0 else raw_bytes[:-trim]
+                try:
+                    text = chunk.decode(encoding)
+                    return text
+                except (UnicodeDecodeError, LookupError):
+                    continue
 
         # 모든 표준 디코딩 실패 시 utf-8 replace 모드로 디코딩
         try:
@@ -205,12 +209,14 @@ class ContentHeaderGenreExtractor:
             syn_match = syn_pattern.search(header_text)
             if syn_match:
                 result.snippet = syn_match.group(1).strip()[:600]
+                result.has_explicit_synopsis = True
                 break
 
         # 5. 시놉시스가 아직 없고 헤더 전체가 짧다면 앞 400자를 스니펫으로 설정
         if not result.snippet:
             clean_lines = [l.strip() for l in header_text.splitlines() if l.strip()]
             result.snippet = " ".join(clean_lines[:12])[:400]
+            result.has_explicit_synopsis = False
 
         # 6. CJK 문자 포함 여부 확인
         all_text = f"{result.raw_genre} {' '.join(result.tags)} {result.translated_title}"
