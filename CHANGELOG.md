@@ -5,6 +5,19 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.46] - 2026-09-17
+
+### Fixed & Improved
+
+- **선행 메타 태그(`[여주]`, `[남주]`) 중복 잔존 및 다중 특성 태깅 개선 (`title_anchor_extractor.py`, `novel_trait_extractor.py`):**
+  - **제목 앞단 태그 중복 제거 (`core/title_anchor_extractor.py`):**
+    - 선행 대괄호 메타 태그 제거 목록(`META_TAG_KEYWORDS`)에 `여주`, `남주`, `하렘`, `역하렘`, `女主`, `男主`, `后宫` 및 주요 서브 장르 키워드를 대폭 확충.
+    - `[선협][AI번역][여주] 제목` 처리 시 제목 앞단에 `[여주]`가 중복 잔존하던 결함 완벽 해결.
+  - **`[남주]` 태그 시 `[하렘, 남주]` 다중 특성 자동 합성 (`core/utils/novel_trait_extractor.py`):**
+    - `TRAIT_PATTERNS`에 독립 특성 `남주`를 등록하고, 첨언 추출기(`extract_from_annotations`)에서 `남주` 토큰 감지 시 `하렘`과 `남주` 특성을 모두 부여하여 `[언정, 하렘, 남주]` 형식으로 완전 조합되도록 개선.
+  - **회귀 방지 단위 테스트 추가 (`tests/test_annotation_and_normalization.py`):**
+    - `[선협][AI번역][여주]` 및 `[언정][AI번역][남주]` 파일명 정규화 파이프라인 검증 테스트 완비.
+
 ## [v1.3.45] - 2026-09-17
 
 ### Added & Improved

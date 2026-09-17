@@ -38,6 +38,7 @@ TRAIT_PATTERNS: List[Tuple[str, List[str]]] = [
     ]),
     ("여주", [r"여주물", r"여주", r"여성주인공", r"여주인공", r"女主"]),
     ("하렘", [r"하렘", r"역하렘", r"남주", r"男主", r"后宫"]),
+    ("남주", [r"남주물", r"남주", r"남성주인공", r"남주인공", r"男主"]),
     # 1. 연대물 (70년대, 80년대, 칠령, 지청 등)
     ("연대물", [
         r"연대물", r"연대", r"70년대", r"80년대", r"90년대", r"칠령", r"팔령", r"구령",
@@ -252,6 +253,12 @@ class NovelTraitExtractor:
             # (C) 팬덤 키워드인 경우 (해리포터, 나루토 등) -> 해당 팬덤 특성 추가
             if token in PARODY_FANDOM_MAP:
                 add_trait(PARODY_FANDOM_MAP[token])
+                continue
+
+            # (C.5) 남주 토큰인 경우: 하렘과 남주 동시 특성 부여
+            if re.fullmatch(r"남주물|남주|남성주인공|남주인공|男主", token, re.IGNORECASE) or token == "남주":
+                add_trait("하렘")
+                add_trait("남주")
                 continue
 
             # (D) 특성 패턴 매핑 (TRAIT_PATTERNS 순회)
