@@ -225,6 +225,17 @@ class TitleParseResult:
         final_genre = genre or self.original_genre
         if final_genre:
             clean_g = final_genre.strip(" []()")
+            # 다중 브래킷 ([A][B] 또는 [A] [B]) 정규화: [A, B]
+            bracket_tokens = re.findall(r'[\[【［]([^\]】］]+)[\]】］]', final_genre)
+            if bracket_tokens:
+                sub_tokens = []
+                for bt in bracket_tokens:
+                    for t in re.split(r'[,/]+', bt):
+                        t_strip = t.strip()
+                        if t_strip and t_strip not in sub_tokens:
+                            sub_tokens.append(t_strip)
+                if sub_tokens:
+                    clean_g = ", ".join(sub_tokens)
             parts.append(f"[{clean_g}]")
         
         # 제목 및 원문 제목 조합
@@ -550,7 +561,8 @@ class TitleAnchorExtractor:
             '재테크', '가족', '육아', '이세계', '군사', '첩보', '로맨스', '코미디', '힐링', '일상',
             '학원', '생존', '착각', '방송', '헌터', '던전', '요리', '단총', '복보',
             '해리포터', '나루토', '원피스', '드래곤볼', '포켓몬스터', '포켓몬', '코난', '명탐정 코난', '명탐정코난',
-            '주술회전', '귀멸의 칼날', '마블', 'DC', '투라대륙', '블리치', '신비의 제왕', '완미세계', '삼국지', '미드'
+            '주술회전', '귀멸의 칼날', '마블', 'DC', '투라대륙', '블리치', '신비의 제왕', '완미세계', '삼국지', '미드',
+            '종합', '쭝허', '다중', '다중패러디'
         ]
         while True:
             prefix_bracket = re.match(r'^\s*[\[【［]([^\]】］]+)[\]】］]', name)
@@ -564,10 +576,12 @@ class TitleAnchorExtractor:
             rest_after = name[prefix_bracket.end():].strip()
             if not rest_after:
                 break
-            is_meta = any(kw in bracket_content for kw in META_TAG_KEYWORDS)
+            from core.utils.novel_trait_extractor import NovelTraitExtractor
+            is_meta = any(kw in bracket_content for kw in META_TAG_KEYWORDS) or (
+                NovelTraitExtractor.extract_from_annotations(prefix_bracket.group(0)) is not None
+            )
             if is_meta or ',' in bracket_content:
                 if not genre:
-                    from core.utils.novel_trait_extractor import NovelTraitExtractor
                     extracted_g = NovelTraitExtractor.extract_from_annotations(prefix_bracket.group(0))
                     if extracted_g:
                         genre = extracted_g

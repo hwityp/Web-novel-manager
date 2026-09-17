@@ -97,6 +97,16 @@ TRAIT_PATTERNS: List[Tuple[str, List[str]]] = [
     ("미드", [
         r"미드", r"미국\s*드라마", r"쉐임리스", r"shameless", r"브레이킹\s*배드", r"왕좌의\s*게임", r"워킹데드"
     ]),
+    ("종합", [
+        r"(?<![가-힣])종합(?![가-힣])", r"종합물", r"종합\s*패러디",
+        r"크로스\s*오버", r"crossover", r"쭝허",
+        r"综漫", r"综影视", r"综武侠", r"综合", r"综"
+    ]),
+    ("다중", [
+        r"(?<![가-힣])다중(?![가-힣])", r"다중물", r"다중\s*패러디",
+        r"다중\s*크로스\s*오버", r"다중\s*차원",
+        r"多重", r"多重穿越", r"多世界", r"多重同人"
+    ]),
     # 14. 기타 세부 특징
     ("학원", [r"학원", r"아카데미", r"학교", r"学院", r"学园"]),
     ("생존", [r"생존물", r"생존자", r"살아남기", r"아포칼립스\s*생존", r"生存"]),
@@ -283,7 +293,7 @@ class NovelTraitExtractor:
                         any(t in ["패러디"] or "패러디" in t for t in tokens) or
                         any(h in ["패러디"] or "패러디" in h for h in hashtags)
                     )
-                    if is_parody_ctx and token in hashtags:
+                    if is_parody_ctx and (token in hashtags or token in [t.strip() for b in brackets for t in re.split(r'[,/]+', b)]):
                         add_trait(token)
                     else:
                         # 만약 장르명이 내포되어 있다면
@@ -296,9 +306,26 @@ class NovelTraitExtractor:
         # 만약 패러디 관련 특성이 있는데 primary_genre가 없다면 패러디로 설정
         if not primary_genre:
             for t in extracted_traits:
-                if t in PARODY_FANDOM_MAP.values():
+                if t in PARODY_FANDOM_MAP.values() or t in ["종합", "다중"]:
                     primary_genre = "패러디"
                     break
+
+        # 만약 말세/종말 관련 특성이 있는데 primary_genre가 없다면 퓨판으로 설정
+        if not primary_genre:
+            for t in extracted_traits:
+                if t in ["말세", "종말"]:
+                    primary_genre = "퓨판"
+                    break
+
+        # 만약 사합원 특성이 있는데 primary_genre가 없다면 현판으로 설정
+        if not primary_genre:
+            if "사합원" in extracted_traits:
+                primary_genre = "현판"
+
+        # 만약 궁투/궁정 특성이 있는데 primary_genre가 없다면 언정으로 설정
+        if not primary_genre:
+            if "궁투" in extracted_traits or "궁정" in extracted_traits:
+                primary_genre = "언정"
 
         # primary_genre가 식별되지 않았다면 None 반환 (웹 검색 등으로 위임)
         if not primary_genre:
@@ -383,6 +410,8 @@ class NovelTraitExtractor:
             if trait_name == "종말" and "말세" in selected_set:
                 continue
             if trait_name == "궁정" and "궁투" in selected_set:
+                continue
+            if trait_name in ["종합", "다중"] and primary_genre != "패러디":
                 continue
                 
             for pattern in patterns:

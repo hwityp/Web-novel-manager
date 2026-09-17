@@ -315,6 +315,17 @@ class FilenameNormalizerAdapter:
         # 1. 장르 태그
         if genre and genre != '미분류':
             clean_g = genre.strip(" []()")
+            # 다중 브래킷 ([A][B] 또는 [A] [B]) 정규화: [A, B]
+            bracket_tokens = re.findall(r'[\[【［]([^\]】］]+)[\]】］]', genre)
+            if bracket_tokens:
+                sub_tokens = []
+                for bt in bracket_tokens:
+                    for t in re.split(r'[,/]+', bt):
+                        t_strip = t.strip()
+                        if t_strip and t_strip not in sub_tokens:
+                            sub_tokens.append(t_strip)
+                if sub_tokens:
+                    clean_g = ", ".join(sub_tokens)
             parts.append(f"[{clean_g}]")
         
         # 2. 제목 (공백 정규화 및 원문 한자 제목 추가)

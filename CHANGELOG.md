@@ -5,6 +5,27 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.47] - 2026-09-17
+
+### Fixed & Improved
+
+- **패러디 서브 장르(`종합`, `다중`) 인식 및 다중 브래킷 태그 정규화 (`novel_trait_extractor.py`, `title_anchor_extractor.py`, `filename_normalizer_adapter.py`):**
+  - **패러디 서브 특성 지원 확충 (`core/utils/novel_trait_extractor.py`):**
+    - `TRAIT_PATTERNS`에 `종합`(`종합`, `쭝허`) 및 `다중`(`다중`, `다중패러디`, `다중 패러디`) 특성 패턴 등록.
+    - 패러디 장르 한정 안전 가드를 통해 일반 텍스트 내 오인식을 방지하고, 첨언 감지 시 1차 장르를 `패러디`로 확정하여 `[패러디, 종합]`, `[패러디, 다중]` 표준 태그 생성.
+  - **선행 메타 태그 누출 방지 및 다중 브래킷 통합 (`core/title_anchor_extractor.py`):**
+    - `META_TAG_KEYWORDS`에 `종합`, `쭝허`, `다중`, `다중패러디`를 추가하여 순수 소설 제목에 태그가 중복 잔존하던 현상 제거.
+    - `TitleParseResult.to_normalized_filename()`에서 `[A][B]` 또는 `[A] [B]` 형태의 다중 브래킷을 `[A, B]`로 일괄 통합 정규화.
+  - **정규화 어댑터 다중 브래킷 단일화 (`core/adapters/filename_normalizer_adapter.py`):**
+    - `_build_normalized_name()`에서 분리되어 생성될 수 있는 복수 대괄호 태그를 `[장르, 특성1, 특성2]` 형태의 단일 대괄호 표준 형식으로 재조합.
+
+- **특성 태그 기반 1차 장르 자동 추론 및 `(미분류)` 방지 (`core/utils/novel_trait_extractor.py`):**
+  - 파일명에 1차 장르 없이 `[말세, 여주]`처럼 서브 특성만 명시된 경우, 특성 기반 1차 장르 자동 폴백 매핑 구축:
+    - `말세`, `종말` -> `퓨판` (퓨전판타지) 자동 추론 및 `[퓨판, 말세, 여주]` 형태로 태그 및 특성 완벽 보존.
+    - `종합`, `다중`, 유명 팬덤 -> `패러디` 자동 추론.
+    - `사합원` -> `현판`, `궁투`/`궁정` -> `언정` 자동 추론.
+  - 웹 검색 분류 시 누락되던 첨언 특성이 파일명 정규화 단계까지 일관되게 전달되도록 개선.
+
 ## [v1.3.46] - 2026-09-17
 
 ### Fixed & Improved
