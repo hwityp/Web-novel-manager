@@ -47,6 +47,7 @@ htmlcov/
 
 # Test Data & Verification Scripts
 list.txt
+수정요함.txt
 scripts/verify_mydown_samples.py
 scripts/run_new_100_verification.py
 scripts/batch_retry_failed.py

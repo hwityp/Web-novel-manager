@@ -29,6 +29,11 @@ from modules.classifier.src.core.platform_extractors import (
     KakaoExtractor,
     NovelnetExtractor,
     MrblueExtractor,
+    QidianExtractor,
+    JJWXCExtractor,
+    BaiduBaikeExtractor,
+    SyosetuExtractor,
+    KakuyomuExtractor,
 )
 from modules.classifier.src.core.platform_extractors.simple_extractors import (
     JoaraExtractor,
@@ -64,7 +69,7 @@ class NaverGenreExtractorV4:
         '스포츠': 4,  # 스포츠는 현판보다 더 구체적
     }
     
-    def __init__(self, naver_api_config=None):
+    def __init__(self, naver_api_config: Optional[Dict[str, Any]] = None):
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
@@ -83,7 +88,7 @@ class NaverGenreExtractorV4:
         self.session.headers.update(self.headers)
         
         # 네이버 API 설정
-        self.naver_api_config = naver_api_config
+        self.naver_api_config: Optional[Dict[str, Any]] = naver_api_config
         self.use_api = naver_api_config is not None and \
                        'client_id' in naver_api_config and \
                        'client_secret' in naver_api_config
@@ -168,7 +173,7 @@ class NaverGenreExtractorV4:
     
     def _init_extractors(self) -> List[Any]:
         """플랫폼 추출기 초기화 (우선순위 순)"""
-        # 우선순위: 리디북스 > 문피아 > 네이버시리즈 > 카카오페이지 > 소설넷 > 노벨피아 > 조아라 > 웹툰가이드 > 미스터블루 > 교보문고 > YES24 > 알라딘
+        # 우선순위: 리디북스 > 문피아 > 네이버시리즈 > 카카오페이지 > 소설넷 > 노벨피아 > 조아라 > 치뎬 > 진장 > 바이두백과 > 나로우 > 카쿠요무 > 웹툰가이드 > 미스터블루 > 교보문고 > YES24 > 알라딘
         extractors = [
             RidibooksExtractor(self.genre_mapping, self.headers),
             MunpiaExtractor(self.genre_mapping, self.headers),
@@ -177,6 +182,11 @@ class NaverGenreExtractorV4:
             NovelnetExtractor(self.genre_mapping, self.headers),
             NovelpiaExtractor(self.genre_mapping, self.headers),
             JoaraExtractor(self.genre_mapping, self.headers),
+            QidianExtractor(self.genre_mapping, self.headers),
+            JJWXCExtractor(self.genre_mapping, self.headers),
+            BaiduBaikeExtractor(self.genre_mapping, self.headers),
+            SyosetuExtractor(self.genre_mapping, self.headers),
+            KakuyomuExtractor(self.genre_mapping, self.headers),
             WebtoonguideExtractor(self.genre_mapping, self.headers),
             MrblueExtractor(self.genre_mapping, self.headers),
             KyoboExtractor(self.genre_mapping, self.headers),
@@ -191,10 +201,13 @@ class NaverGenreExtractorV4:
         """재매핑 키워드 초기화 (엄격한 조건)"""
         return {
             '스포츠': {
-                'keywords': ['축구', '야구', '농구', '배구', '테니스', '골프', '선수', '코치', '감독', '호타', '준족'],
+                'keywords': [
+                    '축구', '야구', '농구', '배구', '테니스', '골프', '선수', '코치', '감독', '호타', '준족',
+                    '스트라이커', '발롱도르', '골키퍼', '미드필더', '공격수', '득점왕', '투수', '타자', '홈런'
+                ],
                 'exclude': ['영화', '드라마', '연극', '공연', '마왕', '용사', '마법'],
-                'from_genres': ['현판', '판타지'],
-                'min_keywords': 2  # 최소 2개 키워드 필요
+                'from_genres': ['현판', '판타지', '겜판', '언정'],
+                'min_keywords': 1  # 발롱도르, 스트라이커 등 고유 스포츠 키워드는 1개만 있어도 재매핑
             },
             '역사': {
                 'keywords': ['조선', '고려', '삼국시대', '삼국지', '왕조', '황제', '제국', '전쟁', '임진왜란', '병자호란', '외교관', '봉건', '이성계', '인조반정'],
@@ -209,17 +222,23 @@ class NaverGenreExtractorV4:
                 'min_keywords': 2  # 최소 2개 키워드 필요
             },
             '퓨판': {
-                'keywords': ['회귀', '환생', '빙의', '차원', '이계', '전이', '귀환'],
+                'keywords': ['회귀', '환생', '빙의', '차원', '이계', '전이', '귀환', '돌아왔다', '가문의 서자', '서자가 돌아왔다'],
                 'exclude': [],
-                'from_genres': ['판타지'],
+                'from_genres': ['판타지', '역사'],
                 'min_keywords': 1  # 1개만 있어도 OK
+            },
+            '현판': {
+                'keywords': ['대치동', '파견 회사', '파견회사'],
+                'exclude': [],
+                'from_genres': ['겜판', '판타지'],
+                'min_keywords': 1
             },
         }
     
-    def extract_genre_from_title(self, title: str) -> Dict[str, Any]:
+    def extract_genre_from_title(self, title: str, country: str = "UNKNOWN") -> Dict[str, Any]:
         """제목으로 장르 추출 (메인 진입점)"""
         # 검색 전략 생성
-        strategy = SearchStrategy(title)
+        strategy = SearchStrategy(title, country=country)
         strategy.log_info()
         
         # 캐시 확인
@@ -275,12 +294,15 @@ class NaverGenreExtractorV4:
     
     def _search_with_api(self, query: str, title: str, strategy) -> Optional[Dict[str, Any]]:
         """네이버 검색 API 사용 (NAVER API HUB 및 Legacy 오픈API 하이브리드 지원)"""
+        if not self.naver_api_config:
+            return None
+        config = self.naver_api_config
         try:
-            client_id = self.naver_api_config['client_id']
-            client_secret = self.naver_api_config['client_secret']
+            client_id = config['client_id']
+            client_secret = config['client_secret']
             
             # 사용자 지정 URL 또는 기본 엔드포인트 결정
-            custom_url = self.naver_api_config.get('api_url')
+            custom_url = config.get('api_url')
             
             # 엔드포인트 및 헤더 모드 결정
             if custom_url:
@@ -366,6 +388,7 @@ class NaverGenreExtractorV4:
                     pass
                 if response.status_code in (401, 403):
                     self._log(f"  [API 오류 {response.status_code}] 네이버 API 인증 실패{err_msg} (NAVER API HUB 신규 키 또는 Client ID/Secret 확인 요망) → 웹 크롤링 시도")
+                    self.use_api = False  # 인증 실패 시 반복 호출 방지 (Circuit Breaker)
                 else:
                     self._log(f"  [API 오류] 상태 코드: {response.status_code}{err_msg} → 웹 크롤링 시도")
                 return self._search_with_web(query, title, strategy)
@@ -409,16 +432,23 @@ class NaverGenreExtractorV4:
             return None
     
     def _search_with_web(self, query: str, title: str, strategy) -> Optional[Dict[str, Any]]:
-        """웹 크롤링 사용 (모던 세션 및 WAF 403 방어)"""
+        """웹 크롤링 사용 (모던 세션 및 WAF 403 방어 + Circuit Breaker)"""
+        if getattr(self, 'web_blocked', False):
+            return None
+            
         try:
             encoded_query = quote(query)
             url = f"https://search.naver.com/search.naver?query={encoded_query}"
             
-            response = self.session.get(url, timeout=10)
+            response = self.session.get(url, timeout=5)
             
             if response.status_code != 200:
                 if response.status_code == 403:
-                    print(f"  [HTTP 오류 403] 네이버 웹 방화벽(WAF) 일시 차단 감지 → 다음 폴백으로 전환")
+                    self.waf_block_count = getattr(self, 'waf_block_count', 0) + 1
+                    print(f"  [HTTP 오류 403] 네이버 웹 방화벽(WAF) 일시 차단 감지 ({self.waf_block_count}회) → 다음 폴백으로 전환")
+                    if self.waf_block_count >= 3:
+                        self.web_blocked = True
+                        print(f"  [Circuit Breaker] 네이버 WAF 차단 지속 감지 → 이후 웹 크롤링 자동 건너뜀")
                 else:
                     print(f"  [HTTP 오류] 상태 코드: {response.status_code}")
                 return None
@@ -495,6 +525,16 @@ class NaverGenreExtractorV4:
                 platform_links['kakao'].append(link)
             elif 'novelnet.co.kr' in link or 'novel.naver.com' in link or 'ssn.so' in link:
                 platform_links['novelnet'].append(link)
+            elif 'qidian.com' in link:
+                platform_links['qidian'].append(link)
+            elif 'jjwxc.net' in link or 'jjwxc.com' in link:
+                platform_links['jjwxc'].append(link)
+            elif 'baike.baidu.com' in link:
+                platform_links['baike'].append(link)
+            elif 'syosetu.com' in link or 'syosetu.org' in link:
+                platform_links['syosetu'].append(link)
+            elif 'kakuyomu.jp' in link:
+                platform_links['kakuyomu'].append(link)
             elif 'webtoonguide.com' in link:
                 platform_links['webtoonguide'].append(link)
             elif 'mrblue.com' in link:
@@ -520,6 +560,11 @@ class NaverGenreExtractorV4:
             'naver_series': [],
             'kakao': [],
             'novelnet': [],
+            'qidian': [],
+            'jjwxc': [],
+            'baike': [],
+            'syosetu': [],
+            'kakuyomu': [],
             'webtoonguide': [],
             'mrblue': [],
             'yes24': [],
@@ -536,6 +581,11 @@ class NaverGenreExtractorV4:
             'naver_series': set(),
             'kakao': set(),
             'novelnet': set(),
+            'qidian': set(),
+            'jjwxc': set(),
+            'baike': set(),
+            'syosetu': set(),
+            'kakuyomu': set(),
             'webtoonguide': set(),
             'mrblue': set(),
             'yes24': set(),
@@ -587,6 +637,21 @@ class NaverGenreExtractorV4:
             elif ('novelnet.co.kr' in target_url or 'novel.naver.com' in target_url or 'ssn.so' in target_url) and normalized_url not in seen_urls['novelnet']:
                 platform_links['novelnet'].append(target_url)
                 seen_urls['novelnet'].add(normalized_url)
+            elif 'qidian.com' in target_url and normalized_url not in seen_urls['qidian']:
+                platform_links['qidian'].append(target_url)
+                seen_urls['qidian'].add(normalized_url)
+            elif ('jjwxc.net' in target_url or 'jjwxc.com' in target_url) and normalized_url not in seen_urls['jjwxc']:
+                platform_links['jjwxc'].append(target_url)
+                seen_urls['jjwxc'].add(normalized_url)
+            elif 'baike.baidu.com' in target_url and normalized_url not in seen_urls['baike']:
+                platform_links['baike'].append(target_url)
+                seen_urls['baike'].add(normalized_url)
+            elif ('syosetu.com' in target_url or 'syosetu.org' in target_url) and normalized_url not in seen_urls['syosetu']:
+                platform_links['syosetu'].append(target_url)
+                seen_urls['syosetu'].add(normalized_url)
+            elif 'kakuyomu.jp' in target_url and normalized_url not in seen_urls['kakuyomu']:
+                platform_links['kakuyomu'].append(target_url)
+                seen_urls['kakuyomu'].add(normalized_url)
             elif 'webtoonguide.com' in target_url and normalized_url not in seen_urls['webtoonguide']:
                 platform_links['webtoonguide'].append(target_url)
                 seen_urls['webtoonguide'].add(normalized_url)
@@ -617,6 +682,11 @@ class NaverGenreExtractorV4:
             'naver_series': '네이버시리즈',
             'kakao': '카카오페이지',
             'novelnet': '소설넷',
+            'qidian': '치뎬',
+            'jjwxc': '진장문학성',
+            'baike': '바이두백과',
+            'syosetu': '소설가가되자',
+            'kakuyomu': '카쿠요무',
             'webtoonguide': '웹툰가이드',
             'mrblue': '미스터블루',
             'yes24': 'YES24',
@@ -706,7 +776,20 @@ class NaverGenreExtractorV4:
         ridibooks_result = None  # 리디북스 결과 임시 저장
         munpia_result = None  # 문피아 결과 임시 저장
         
-        for extractor in self.extractors:
+        # 국가별 플랫폼 추출기 우선순위 동적 재정렬
+        target_country = getattr(strategy, 'country', 'UNKNOWN')
+        extractors_to_try = list(self.extractors)
+        if target_country == 'CN':
+            cn_platforms = {'치뎬', '진장문학성', '바이두백과'}
+            extractors_to_try.sort(key=lambda x: (0 if x.platform_name in cn_platforms else (1 if x.priority < 10 else 2), x.priority))
+        elif target_country == 'JP':
+            jp_platforms = {'소설가가되자', '카쿠요무'}
+            extractors_to_try.sort(key=lambda x: (0 if x.platform_name in jp_platforms else (1 if x.priority < 10 else 2), x.priority))
+        elif target_country == 'KR':
+            kr_platforms = {'리디북스', '문피아', '네이버시리즈', '카카오페이지', '소설넷', '노벨피아', '조아라'}
+            extractors_to_try.sort(key=lambda x: (0 if x.platform_name in kr_platforms else (1 if x.priority < 10 else 2), x.priority))
+
+        for extractor in extractors_to_try:
             platform_key = self._get_platform_key(extractor.platform_name)
             links = platform_links.get(platform_key, [])
             
@@ -969,6 +1052,11 @@ class NaverGenreExtractorV4:
             '네이버시리즈': 'naver_series',
             '카카오페이지': 'kakao',
             '소설넷': 'novelnet',
+            '치뎬': 'qidian',
+            '진장문학성': 'jjwxc',
+            '바이두백과': 'baike',
+            '소설가가되자': 'syosetu',
+            '카쿠요무': 'kakuyomu',
             '웹툰가이드': 'webtoonguide',
             '미스터블루': 'mrblue',
             'YES24': 'yes24',

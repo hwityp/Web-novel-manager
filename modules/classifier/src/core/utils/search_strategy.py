@@ -10,12 +10,14 @@ from modules.classifier.src.core.utils.title_utils import parse_title_info, is_s
 class SearchStrategy:
     """검색 전략 관리 클래스"""
     
-    def __init__(self, title: str):
+    def __init__(self, title: str, country: str = "UNKNOWN"):
         """
         Args:
             title: 원본 제목
+            country: 소설 국적 ('KR', 'CN', 'JP', 'UNKNOWN')
         """
         self.original_title = title
+        self.country = country
         
         # 제목 정규화
         normalized_title = normalize_title(title)
@@ -50,6 +52,30 @@ class SearchStrategy:
                 'priority': 1
             })
         
+        # 0차: 국적이 확정된 경우 해당 국가 특화 쿼리를 최우선으로 배치
+        if self.country == 'CN':
+            queries.append({
+                'query': f"{self.main_title} 중국 소설",
+                'description': "중국 소설(CN) 판별 → '중국 소설' 특화 검색",
+                'priority': 1
+            })
+            queries.append({
+                'query': f"{self.main_title} 치뎬",
+                'description': "중국 소설(CN) 판별 → '치뎬' 플랫폼 검색",
+                'priority': 2
+            })
+        elif self.country == 'JP':
+            queries.append({
+                'query': f"{self.main_title} 소설가가되자",
+                'description': "일본 소설(JP) 판별 → '소설가가되자' 플랫폼 검색",
+                'priority': 1
+            })
+            queries.append({
+                'query': f"{self.main_title} 라노벨",
+                'description': "일본 소설(JP) 판별 → '라노벨' 특화 검색",
+                'priority': 2
+            })
+
         # 1차: 제목 특성에 따라 전략 선택
         if self.is_short:
             # 짧은 제목: "소설" 키워드 추가 (단, 저자명이 없을 때만)
@@ -87,16 +113,16 @@ class SearchStrategy:
                 'priority': 3
             })
         
-        # 2.5차: 중국 소설 제목 패턴 감지 시 추가 검색
-        if self._is_chinese_novel_title(self.main_title):
+        # 2.5차: 중국 소설 제목 패턴 감지 시 추가 검색 (미감지 시 대비)
+        if self.country != 'CN' and self._is_chinese_novel_title(self.main_title):
             queries.append({
                 'query': f"{self.main_title} 중국 소설",
                 'description': f"중국 소설 제목 패턴 → '중국 소설' 키워드 추가",
                 'priority': 3
             })
             queries.append({
-                'query': f"{self.main_title} 선협",
-                'description': f"중국 소설 제목 패턴 → '선협' 키워드 추가",
+                'query': f"{self.main_title} 웹소설",
+                'description': f"중국 소설 제목 패턴 → '웹소설' 키워드 추가",
                 'priority': 4
             })
         

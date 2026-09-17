@@ -28,14 +28,15 @@ class GoogleGenreExtractor:
         '게임판타지': [r'게임\s*판타지', r'겜판'],
         '퓨전판타지': [r'퓨전\s*판타지', r'퓨판'],
         '선협': [r'선협', r'수선', r'수진', r'선도', r'仙侠', r'修真', r'修仙', r'玄幻', r'xianxia'],
-        '스포츠': [r'스포츠', r'바둑', r'야구', r'축구', r'농구', r'격투기', r'권투', r'복싱', r'골프', r'배구', r'테니스'],
+        '언정': [r'언정', r'言情', r'고대\s*언정', r'현대\s*언정', r'궁투', r'택투', r'소복녀', r'복보', r'여주물', r'중국\s*로맨스', r'중생후'],
+        '스포츠': [r'스포츠', r'바둑', r'야구', r'축구', r'농구', r'격투기', r'권투', r'복싱', r'골프', r'배구', r'테니스', r'스트라이커', r'발롱도르', r'골키퍼', r'미드필더', r'공격수', r'득점왕', r'투수', r'홈런'],
         '대체역사': [r'대체\s*역사', r'역사'],
         'SF': [r'SF', r'공상과학', r'사이파이'],
         '공포': [r'공포', r'호러', r'미스터리', r'스릴러'],
         '로맨스': [r'로맨스', r'순정'],
         '라이트노벨': [r'라이트\s*노벨', r'라노벨'],
         '드라마': [r'드라마'],
-        '패러디': [r'패러디', r'팬픽', r'2차\s*창작', r'fanfic']
+        '패러디': [r'패러디', r'팬픽', r'2차\s*창작', r'fanfic', r'신비의\s*제왕', r'동인']
     }
 
     def __init__(self, api_key: str, cse_id: str):
@@ -57,12 +58,13 @@ class GoogleGenreExtractor:
         # 쿼터 차단 플래그 (Circuit Breaker)
         self.quota_blocked = False
 
-    def extract_genre(self, query: str) -> Optional[Dict]:
+    def extract_genre(self, query: str, country: str = "UNKNOWN") -> Optional[Dict]:
         """
         Google 검색을 통해 장르 추출
         
         Args:
             query: 검색어 (소설 제목)
+            country: 소설 국적 (KR / CN / JP / UNKNOWN)
             
         Returns:
             {'genre': str, 'confidence': float, 'source': str} 또는 None
@@ -121,7 +123,47 @@ class GoogleGenreExtractor:
                     if '/novel/' not in link:
                         self.logger.debug(f"Skipping NovelNet non-novel page: {link}")
                         continue
+
+                # [백과사전/어학사전 등 소설과 무관한 도메인 필터링]
+                excluded_domains = ['encykorea.aks.ac.kr', 'terms.naver.com', 'ko.wikipedia.org', 'dict.naver.com', 'dict.daum.net', 'theguru.co.kr']
+                if any(ed in link for ed in excluded_domains):
+                    self.logger.debug(f"Skipping encyclopedia/news domain: {link}")
+                    continue
                 
+                # [해외 웹소설 플랫폼 링크 직접 확인]
+                foreign_platforms = {
+                    'qidian.com': ('치뎬', 'modules.classifier.src.core.platform_extractors.foreign_extractors', 'QidianExtractor', 'CN'),
+                    'jjwxc.net': ('진장문학성', 'modules.classifier.src.core.platform_extractors.foreign_extractors', 'JJWXCExtractor', 'CN'),
+                    'jjwxc.com': ('진장문학성', 'modules.classifier.src.core.platform_extractors.foreign_extractors', 'JJWXCExtractor', 'CN'),
+                    'baike.baidu.com': ('바이두백과', 'modules.classifier.src.core.platform_extractors.foreign_extractors', 'BaiduBaikeExtractor', 'CN'),
+                    'syosetu.com': ('소설가가되자', 'modules.classifier.src.core.platform_extractors.foreign_extractors', 'SyosetuExtractor', 'JP'),
+                    'syosetu.org': ('하멜른', 'modules.classifier.src.core.platform_extractors.foreign_extractors', 'SyosetuExtractor', 'JP'),
+                    'kakuyomu.jp': ('카쿠요무', 'modules.classifier.src.core.platform_extractors.foreign_extractors', 'KakuyomuExtractor', 'JP'),
+                }
+                # 국가 일치 플랫폼 우선 검사
+                fp_items = list(foreign_platforms.items())
+                if country in ('CN', 'JP'):
+                    fp_items.sort(key=lambda item: 0 if item[1][3] == country else 1)
+
+                for dom, (pname, mod_path, cls_name, p_country) in fp_items:
+                    if dom in link:
+                        try:
+                            import importlib
+                            mod = importlib.import_module(mod_path)
+                            extractor_cls = getattr(mod, cls_name)
+                            extractor = extractor_cls({}, {})
+                            f_res = extractor.extract_genre([link], query)
+                            if f_res and f_res.get('genre'):
+                                print(f"  [Google Foreign Direct] {pname}: {f_res['genre']}")
+                                return {
+                                    'genre': f_res['genre'],
+                                    'confidence': f_res.get('confidence', 0.92),
+                                    'source': f_res.get('source', f"Google_{pname}"),
+                                    'snippet': snippet
+                                }
+                        except Exception as fe:
+                            self.logger.debug(f"Foreign extractor direct error: {fe}")
+
                 # 1차: 스니펫 분석
                 text = f"{title} {snippet}"
                 found_genres = self._analyze_text(text)
@@ -141,6 +183,8 @@ class GoogleGenreExtractor:
             
             # 장르 우선순위 결정
             best_genre, score = self._resolve_genre_priority(all_found_genres)
+            if not best_genre:
+                return None
             
             # [Fix] Google은 단일 키워드 매칭 오류 빈도 높음
             # total_score(빈도) 1이면 근거가 너무 약함 → 미분류 반환
@@ -174,6 +218,21 @@ class GoogleGenreExtractor:
         1. 장르를 전혀 못 찾았으면 스크래핑 (기존 로직)
         2. '일반적 장르(판타지/소설)'만 찾았는데, URL이 '정보/리뷰 사이트'면 스크래핑 (정밀도 향상)
         """
+        # 백과사전/어학사전/위키백과/뉴스 등은 스크래핑 제외
+        excluded_domains = ['encykorea.aks.ac.kr', 'terms.naver.com', 'ko.wikipedia.org', 'dict.naver.com', 'theguru.co.kr']
+        if any(ed in url for ed in excluded_domains):
+            return False
+
+        # 허용된 커뮤니티, 블로그, 플랫폼만 스크래핑 허용
+        allowed_scrape_domains = [
+            'dcinside.com', 'namu.wiki', 'arca.live', 'instiz.net', 'theqoo.net',
+            'ridibooks.com', 'munpia.com', 'novelpia.com', 'joara.com', 'ssn.so', 'mrblue.com',
+            'blog.naver.com', 'm.blog.naver.com', 'post.naver.com', 'tistory.com',
+            'qidian.com', 'jjwxc.net', 'syosetu.com', 'kakuyomu.jp'
+        ]
+        if not any(dom in url for dom in allowed_scrape_domains):
+            return False
+
         # 1. 장르 미발견 시 무조건 시도
         if not current_genres:
             return True
@@ -199,6 +258,9 @@ class GoogleGenreExtractor:
         우선순위:
         패러디 > 선협/무협 > 현판/겜판/로판 > 퓨판 > 스포츠/역사 > SF > 판타지 > 소설
         """
+        if not genres:
+            return "", 0
+
         from collections import Counter
         counts = Counter(genres)
         
@@ -206,24 +268,25 @@ class GoogleGenreExtractor:
         # 구체적이고 특징적인 장르일수록 높은 점수
         priority_map = {
             '패러디': 100,      # 팬픽/패러디 최우선 (오분류 방지)
+            '스포츠': 95,      # 스포츠 구체적 키워드(바둑/야구/축구/발롱도르)가 매칭되면 최우선
             '선협': 90,        # 선협 (무협보다 구체적)
+            '언정': 88,        # 언정 (중국 여성향 로맨스/고언/현언)
             '무협': 85,
-            '스포츠': 95,      # 스포츠 구체적 키워드(바둑/야구/축구)가 매칭되면 최우선
             '게임판타지': 75,
             '로맨스판타지': 75,
             '현대판타지': 75,
             '대체역사': 70,
             'SF': 65,
             '라이트노벨': 60,
-            '공포': 60,
-            '퓨전판타지': 50,
+            '퓨전판타지': 55,
+            '공포': 50,        # 일반 블로그 리뷰 등에서 오탐되기 쉬우므로 우선순위 조정
             '로맨스': 40,
             '판타지': 20,      # 가장 일반적
             '소설': 10,        # 가장 일반적
             '드라마': 10
         }
         
-        best_genre = None
+        best_genre = ""
         max_priority = -1
         total_score = 0
         
@@ -235,9 +298,8 @@ class GoogleGenreExtractor:
             if base_priority > max_priority:
                 max_priority = base_priority
                 best_genre = genre
-            
-            # 같은 우선순위일 경우 빈도수 고려 (구현 생략, 단순화)
-            if base_priority == max_priority and counts[genre] > counts.get(best_genre, 0):
+            elif base_priority == max_priority and count > counts.get(best_genre, 0):
+                # 같은 우선순위일 경우 빈도수 고려
                 best_genre = genre
                 
             if genre == best_genre:

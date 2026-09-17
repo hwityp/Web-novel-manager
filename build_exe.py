@@ -125,6 +125,11 @@ def build_exe(debug: bool = False):
         '--hidden-import', 'gui.genre_dictionary_dialog',
         '--hidden-import', 'PIL._tkinter_finder',
         '--hidden-import', 'dotenv',
+        '--hidden-import', 'modules.classifier.src.core.naver_genre_extractor_v4',
+        '--hidden-import', 'modules.classifier.src.core.google_genre_extractor',
+        '--hidden-import', 'modules.classifier.src.core.platform_extractors',
+        '--hidden-import', 'modules.classifier.src.core.platform_extractors.foreign_extractors',
+        '--hidden-import', 'modules.classifier.src.core.utils.search_strategy',
     ]
 
     # 디버그 모드가 아니면 콘솔 숨김

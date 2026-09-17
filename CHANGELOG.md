@@ -5,6 +5,29 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.45] - 2026-09-17
+
+### Added & Improved
+
+- **해외(중국/일본) 원작 웹소설 플랫폼 직접 추출기 신설 (`foreign_extractors.py`):**
+  - 치뎬(起点中文网, `QidianExtractor`), 진장문학성(晋江文学城, `JJWXCExtractor`), 바이두 백과(百度百科, `BaiduBaikeExtractor`), 소설가가 되자/하멜른(小説家になろう/ハーメルン, `SyosetuExtractor`), 카쿠요무(カクヨム, `KakuyomuExtractor`) 전용 스크래핑 추출기 추가.
+  - 국가(CN/JP/KR) 판별 결과에 따라 대상 국가 플랫폼 추출기를 최우선으로 시도하도록 추출 우선순위 동적 재정렬.
+- **국가 판별 기반 검색 전략 최적화 (`modules/classifier/src/core/utils/search_strategy.py`):**
+  - 소설 국적('CN', 'JP', 'KR') 감지 시 해당 국가 특화 쿼리(예: `중국 소설`, `치뎬`, `소설가가되자`, `라노벨`)를 최우선 순위로 자동 배치.
+- **네이버 크롤링 WAF 403 차단 감지 및 Circuit Breaker(회로 차단기) 구축 (`naver_genre_extractor_v4.py`):**
+  - 네이버 웹 방화벽(WAF) 403 연속 차단 감지 시 불필요한 재시도를 즉시 중단하는 Circuit Breaker 구현.
+  - API 인증 실패(401/403) 시 세션 동안 API 반복 호출을 방지하고 웹/폴백 모드로 자동 전환.
+- **웹소설 세부 장르 판별 및 키워드 가중치 고도화 (`genre_keywords.json`, `novel_trait_extractor.py`):**
+  - 스포츠 장르: `발롱도르`, `스트라이커` 등 핵심 키워드 매칭 시 최우선 순위 보장.
+  - 패러디 및 서브컬처: `신비의 제왕`, `완미세계` 등 유명 서브컬처 팬덤 태깅 및 가중치 보강.
+  - 중국 번역본 클리셰(언정, 선협, 삼국지 역사물) 오분류 사례 전수 개선.
+- **정적 타입 검사기(Pyrefly/Pyright) 호환성 및 린터 오류 전수 해결:**
+  - `genre_mapping.py`: `sys._MEIPASS` 정적 타입 검사 오류 해결 (`getattr` 안전 참조).
+  - `google_genre_extractor.py`: `best_genre` 타입 안정화 및 `dict.get` 오버로드 오류 해결.
+  - `naver_genre_extractor_v4.py`: `naver_api_config`의 Optional 타입 힌트 및 None 체크 보장.
+  - `foreign_extractors.py`: BeautifulSoup 태그 멀티 밸류 속성(`AttributeValueList`) 스트립 오류 해결.
+  - `.vscode/settings.json`: 감가상각된 `python.pyrefly.displayTypeErrors` 설정 정리.
+
 ## [v1.3.44] - 2026-09-09
 
 ### Fixed & Improved

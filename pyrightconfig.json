@@ -2,6 +2,15 @@
   "include": [
     "."
   ],
+  "exclude": [
+    "**/__pycache__",
+    "**/tests",
+    "**/logs",
+    "**/scratch",
+    "**/dist",
+    "**/build",
+    "**/.venv"
+  ],
   "extraPaths": [
     "."
   ]

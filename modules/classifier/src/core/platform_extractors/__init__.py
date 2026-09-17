@@ -9,6 +9,13 @@ from modules.classifier.src.core.platform_extractors.novelpia_extractor import N
 from modules.classifier.src.core.platform_extractors.naver_series_extractor import NaverSeriesExtractor
 from modules.classifier.src.core.platform_extractors.kakao_extractor import KakaoExtractor
 from modules.classifier.src.core.platform_extractors.novelnet_mrblue_extractors import NovelnetExtractor, MrblueExtractor
+from modules.classifier.src.core.platform_extractors.foreign_extractors import (
+    QidianExtractor,
+    JJWXCExtractor,
+    BaiduBaikeExtractor,
+    SyosetuExtractor,
+    KakuyomuExtractor,
+)
 
 __all__ = [
     'BasePlatformExtractor',
@@ -19,4 +26,10 @@ __all__ = [
     'KakaoExtractor',
     'NovelnetExtractor',
     'MrblueExtractor',
+    'QidianExtractor',
+    'JJWXCExtractor',
+    'BaiduBaikeExtractor',
+    'SyosetuExtractor',
+    'KakuyomuExtractor',
 ]
+

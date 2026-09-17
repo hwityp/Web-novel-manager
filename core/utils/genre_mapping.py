@@ -24,7 +24,7 @@ from typing import Dict, List, Optional
 def _get_base_path() -> Path:
     """PyInstaller 패키징 환경과 일반 실행 환경 모두에서 올바른 기본 경로 반환"""
     if getattr(sys, 'frozen', False):
-        return Path(sys._MEIPASS)
+        return Path(getattr(sys, '_MEIPASS', ''))
     else:
         return Path(__file__).parent.parent.parent
 
@@ -163,17 +163,22 @@ class GenreMappingLoader:
     
     @staticmethod
     def is_chinese_romance(title: str, text: str = "") -> bool:
-        """중국 로판/로맨스 소설인지 판단"""
+        """중국 로판/로맨스 소설인지 판단 (완결/권수 한자 完, 外 등 제외)"""
         import re
-        sino_patterns = [
-            r'[\u4e00-\u9fff\u3400-\u4dbf]',  # 한자 포함
-            r'천월', r'비빈', r'낭낭', r'계후', r'소교낭', r'약향농', r'복운', r'육령', r'소저', r'공자',
-            r'악독', r'미인', r'종전', r'매매', r'사합원', r'농부', r'가속원래', r'독심', r'만급작정',
-            r'궁투', r'후궁', r'태의', r'칠령', r'팔령', r'지청', r'부처천월', r'교연미인', r'농부가적',
-            r'부인', r'수모', r'단총', r'개가', r'계모', r'반공가산', r'시천당', r'소내포', r'복보',
-            r'교처', r'군관', r'미색', r'극본'
-        ]
         full_text = f"{title} {text}"
+        # 완결/권수 한자 제외한 2글자 이상 CJK 검사
+        cjk_chars = [c for c in full_text if ('\u4e00' <= c <= '\u9fff' or '\u3400' <= c <= '\u4dbf')]
+        substantive_cjk = [c for c in cjk_chars if c not in ('完', '外', '全', '前', '後', '第', '話', '卷', '冊', '編', '篇', '章')]
+        if len(substantive_cjk) >= 2:
+            return True
+
+        sino_patterns = [
+            r'천월', r'비빈', r'낭낭', r'계후', r'소교낭', r'약향농', r'복운', r'육령', r'소저', r'공자',
+            r'악독', r'종전', r'매매', r'사합원', r'농부', r'가속원래', r'독심', r'만급작정',
+            r'궁투', r'후궁', r'태의', r'칠령', r'팔령', r'지청', r'부처천월', r'교연미인', r'농부가적',
+            r'수모', r'단총', r'개가', r'계모', r'반공가산', r'시천당', r'소내포', r'복보',
+            r'교처', r'군관', r'극본'
+        ]
         for pat in sino_patterns:
             if re.search(pat, full_text):
                 return True
