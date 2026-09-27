@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "장르 검색 결과 캐시",
-  "updated_at": "2026-09-08T02:51:37.206857",
+  "updated_at": "2026-09-27T16:50:31.719781",
   "entries": {
     "아포칼립스가 다운로드 됨": {
       "genre": "퓨판, 종말",
@@ -908,6 +908,66 @@
       "confidence": "medium",
       "source": "keyword",
       "cached_at": "2026-09-08T02:51:37.195632"
+    },
+    "섭혼무제": {
+      "genre": "무협",
+      "confidence": "high",
+      "source": "리디북스_jsonld",
+      "cached_at": "2026-09-27T16:50:31.719781"
+    },
+    "명의 아닙니다 찾지 마세요": {
+      "genre": "현판",
+      "confidence": "high",
+      "source": "리디북스_jsonld",
+      "cached_at": "2026-09-27T16:50:31.719781"
+    },
+    "먼치킨 대마법사가 재능을 전혀 안숨김": {
+      "genre": "판타지",
+      "confidence": "high",
+      "source": "소설넷_meta",
+      "cached_at": "2026-09-27T16:50:31.719781"
+    },
+    "마법사의 수기": {
+      "genre": "판타지",
+      "confidence": "high",
+      "source": "네이버시리즈_meta",
+      "cached_at": "2026-09-27T16:50:31.719781"
+    },
+    "마귀는 총으로 잡는다": {
+      "genre": "퓨판",
+      "confidence": "high",
+      "source": "소설넷_meta",
+      "cached_at": "2026-09-27T16:50:31.719781"
+    },
+    "검은머리 석유왕": {
+      "genre": "현판",
+      "confidence": "high",
+      "source": "네이버시리즈_meta",
+      "cached_at": "2026-09-27T16:50:31.719781"
+    },
+    "13회차 멸망을 공략하는 강림자": {
+      "genre": "판타지, 종말",
+      "confidence": "high",
+      "source": "카카오페이지_meta",
+      "cached_at": "2026-09-27T16:50:31.719781"
+    },
+    "거지백작으로 살아남는 법": {
+      "genre": "퓨판",
+      "confidence": "high",
+      "source": "리디북스_jsonld",
+      "cached_at": "2026-09-27T16:50:31.719781"
+    },
+    "재벌이 반도체 전쟁을 기다림": {
+      "genre": "현판, 재테크",
+      "confidence": "high",
+      "source": "리디북스_jsonld",
+      "cached_at": "2026-09-27T16:50:31.719781"
+    },
+    "재벌집 얼굴천재는 아이돌스타": {
+      "genre": "현판",
+      "confidence": "high",
+      "source": "리디북스_jsonld",
+      "cached_at": "2026-09-27T16:50:31.719781"
     }
   }
 }

@@ -21,16 +21,16 @@ class GoogleGenreExtractor:
     
     # 텍스트에서 장르를 추출하기 위한 키워드 패턴
     GENRE_PATTERNS = {
-        '판타지': [r'판타지', r'fantasy'],
-        '무협': [r'무협', r'武侠', r'wuxia'],
-        '현대판타지': [r'현대\s*판타지', r'현판', r'어반\s*판타지'],
-        '로맨스판타지': [r'로맨스\s*판타지', r'로판'],
-        '게임판타지': [r'게임\s*판타지', r'겜판'],
-        '퓨전판타지': [r'퓨전\s*판타지', r'퓨판'],
-        '선협': [r'선협', r'수선', r'수진', r'선도', r'仙侠', r'修真', r'修仙', r'玄幻', r'xianxia'],
+        '판타지': [r'판타지', r'fantasy', r'#판타지'],
+        '무협': [r'무협', r'武侠', r'wuxia', r'#무협'],
+        '현대판타지': [r'현대\s*판타지', r'현판', r'어반\s*판타지', r'#현판'],
+        '로맨스판타지': [r'로맨스\s*판타지', r'로판', r'#로판'],
+        '게임판타지': [r'게임\s*판타지', r'겜판', r'#겜판'],
+        '퓨전판타지': [r'퓨전\s*판타지', r'퓨판', r'#퓨판'],
+        '선협': [r'선협', r'수선', r'수진', r'선도', r'仙侠', r'修真', r'修仙', r'xianxia'],
         '언정': [r'언정', r'言情', r'고대\s*언정', r'현대\s*언정', r'궁투', r'택투', r'소복녀', r'복보', r'여주물', r'중국\s*로맨스', r'중생후'],
         '스포츠': [r'스포츠', r'바둑', r'야구', r'축구', r'농구', r'격투기', r'권투', r'복싱', r'골프', r'배구', r'테니스', r'스트라이커', r'발롱도르', r'골키퍼', r'미드필더', r'공격수', r'득점왕', r'투수', r'홈런'],
-        '대체역사': [r'대체\s*역사', r'역사'],
+        '대체역사': [r'대체\s*역사', r'대체역사물', r'(?<!문서\s)(?<!수정\s)역사\s*소설', r'#역사', r'#대체역사'],
         'SF': [r'SF', r'공상과학', r'사이파이'],
         '공포': [r'공포', r'호러', r'미스터리', r'스릴러'],
         '로맨스': [r'로맨스', r'순정'],
@@ -85,7 +85,7 @@ class GoogleGenreExtractor:
                 'key': self.api_key,
                 'cx': self.cse_id,
                 'q': query,
-                'num': 3,  # 상위 3개 결과만 확인
+                'num': 10,  # 상위 10개 결과 확인 (공식 플랫폼 누락 방지)
                 'fields': 'items(title,snippet,link)'
             }
             
@@ -109,11 +109,13 @@ class GoogleGenreExtractor:
                 
             # 검색 결과 분석
             all_found_genres = []
+            official_genres = []
             
             for item in items:
                 title = item.get('title', '')
                 snippet = item.get('snippet', '')
                 link = item.get('link', '')
+                found_genres = []
                 
                 # [Logic Restoration] 소설넷(ssn.so) 필터링 강화
                 if 'ssn.so' in link:
@@ -164,13 +166,52 @@ class GoogleGenreExtractor:
                         except Exception as fe:
                             self.logger.debug(f"Foreign extractor direct error: {fe}")
 
-                # 1차: 스니펫 분석
+                # [국내 웹소설 주요 플랫폼 스니펫/링크 정밀 분석]
+                # 1. 네이버 시리즈 해시태그 (#현판, #판타지, #무협, #로판, #퓨판 등)
+                if 'series.naver.com' in link:
+                    for h_tag, g_name in [('#현판', '현대판타지'), ('#판타지', '판타지'), ('#무협', '무협'), ('#정통무협', '무협'), ('#로판', '로맨스판타지'), ('#퓨판', '퓨전판타지'), ('#대체역사', '대체역사'), ('#스포츠', '스포츠')]:
+                        if h_tag in snippet or h_tag in title:
+                            found_genres.extend([g_name, g_name, g_name])
+                            official_genres.append(g_name)
+                            self.logger.debug(f"  [Google Series Tag] {h_tag} -> {g_name}")
+
+                # 2. 문피아 카테고리 (예: '총 201화. 완결. 현대판타지.', '총 263화. 완결. 판타지.')
+                if 'munpia.com' in link:
+                    for m_tag, g_name in [('현대판타지', '현대판타지'), ('판타지', '판타지'), ('무협', '무협'), ('로맨스판타지', '로맨스판타지'), ('퓨전판타지', '퓨전판타지'), ('대체역사', '대체역사'), ('스포츠', '스포츠')]:
+                        if re.search(rf'(?:완결|연재)\.\s*{m_tag}', snippet) or f'. {m_tag}.' in snippet or f'. {m_tag} ' in snippet:
+                            found_genres.extend([g_name, g_name, g_name])
+                            official_genres.append(g_name)
+                            self.logger.debug(f"  [Google Munpia Tag] {m_tag} -> {g_name}")
+
+                # 3. 리디북스 (예: '판타지 웹소설', '판타지 e북', '현대 판타지', '퓨전 판타지', '무협 소설', '로맨스판타지')
+                if 'ridibooks.com' in link:
+                    for r_tag, g_name in [('퓨전 판타지', '퓨전판타지'), ('현대 판타지', '현대판타지'), ('무협 소설', '무협'), ('로맨스판타지', '로맨스판타지'), ('판타지 웹소설', '판타지'), ('판타지 e북', '판타지')]:
+                        if r_tag in title or r_tag in snippet:
+                            found_genres.extend([g_name, g_name, g_name])
+                            official_genres.append(g_name)
+                            self.logger.debug(f"  [Google Ridi Tag] {r_tag} -> {g_name}")
+
+                # 4. 소설넷 (예: '무협 웹소설 리뷰', '판타지 웹소설 리뷰', '현대판타지 웹소설 리뷰')
+                if 'ssn.so' in link:
+                    for s_tag, g_name in [('무협 웹소설', '무협'), ('퓨전판타지 웹소설', '퓨전판타지'), ('현대판타지 웹소설', '현대판타지'), ('판타지 웹소설', '판타지'), ('로맨스판타지 웹소설', '로맨스판타지')]:
+                        if s_tag in title or s_tag in snippet:
+                            found_genres.extend([g_name, g_name, g_name])
+                            self.logger.debug(f"  [Google NovelNet Tag] {s_tag} -> {g_name}")
+
+                # 5. 카카오페이지 (예: '웹소설 메타데이터 구분점 판타지', '웹소설 메타데이터 구분점 현대판타지')
+                if 'page.kakao.com' in link:
+                    for k_tag, g_name in [('판타지', '판타지'), ('현대판타지', '현대판타지'), ('무협', '무협'), ('로맨스판타지', '로맨스판타지'), ('퓨전판타지', '퓨전판타지')]:
+                        if f'구분점 {k_tag}' in snippet or f'메타데이터 {k_tag}' in snippet or f'- {k_tag}' in title:
+                            found_genres.extend([g_name, g_name, g_name])
+                            official_genres.append(g_name)
+                            self.logger.debug(f"  [Google Kakao Tag] {k_tag} -> {g_name}")
+
+                # 1차: 일반 스니펫 분석
                 text = f"{title} {snippet}"
-                found_genres = self._analyze_text(text)
+                found_genres.extend(self._analyze_text(text))
                 
-                # 2차: 스크래핑 결정 및 수행
-                # 스니펫에서 장르를 못 찾았거나, 찾았어도 '일반적인 장르'이고 '리뷰 사이트'인 경우 정밀 확인
-                if self._should_scrape(link, found_genres): 
+                # 2차: 스크래핑 결정 및 수행 (공식 플랫폼 발견 시 스크래핑 생략)
+                if not official_genres and self._should_scrape(link, found_genres, query=query, item_title=title): 
                     scraped_genres = self._scrape_url(link)
                     if scraped_genres:
                         found_genres.extend(scraped_genres)
@@ -178,26 +219,29 @@ class GoogleGenreExtractor:
                 
                 all_found_genres.extend(found_genres)
             
+            combined_snippets = " ".join([f"{item.get('title', '')} {item.get('snippet', '')}" for item in items])
+            
+            # 공식 플랫폼 태그가 직접 감지된 경우 공식 플랫폼 우선
+            if official_genres:
+                best_genre, score = self._resolve_genre_priority(official_genres, country=country)
+                if best_genre:
+                    return {
+                        'genre': best_genre,
+                        'confidence': 0.95,
+                        'source': 'Google_Official',
+                        'snippet': combined_snippets
+                    }
+
             if not all_found_genres:
                 return None
             
             # 장르 우선순위 결정
-            best_genre, score = self._resolve_genre_priority(all_found_genres)
+            best_genre, score = self._resolve_genre_priority(all_found_genres, country=country)
             if not best_genre:
                 return None
             
-            # [Fix] Google은 단일 키워드 매칭 오류 빈도 높음
-            # total_score(빈도) 1이면 근거가 너무 약함 → 미분류 반환
-            # '판타지'/'소설'은 일반적이므로 1회도 허용
-            if score <= 1 and best_genre not in ['판타지', '소설', '드라마']:
-                self.logger.info(f"Google 결과 근거 부족 (score={score}, genre={best_genre}) → 미분류")
-                return None
-            
-            # 신뢰도 계산 (0.6 ~ 0.95)
-            # 점수가 높을수록(많이 발견될수록) 신뢰도 상승
-            confidence = 0.6 + (min(score, 5) * 0.07)
-            
-            combined_snippets = " ".join([f"{item.get('title', '')} {item.get('snippet', '')}" for item in items])
+            # 신뢰도 계산 (0.75 ~ 0.95)
+            confidence = 0.75 + (min(score, 5) * 0.04)
             
             return {
                 'genre': best_genre,
@@ -207,33 +251,44 @@ class GoogleGenreExtractor:
             }
             
         except Exception as e:
-            self.logger.error(f"Google 검색 중 오류 발생: {e}")
+            self.logger.error(f"Google 검색 오류: {e}")
             return None
 
-    def _should_scrape(self, url: str, current_genres: List[str]) -> bool:
+    def _should_scrape(self, url: str, current_genres: List[str], query: str = "", item_title: str = "") -> bool:
         """
         URL 스크래핑 여부 결정
         
         전략:
-        1. 장르를 전혀 못 찾았으면 스크래핑 (기존 로직)
-        2. '일반적 장르(판타지/소설)'만 찾았는데, URL이 '정보/리뷰 사이트'면 스크래핑 (정밀도 향상)
+        1. 백과사전/어학사전/개인블로그는 스크래핑 제외 (노이즈 방지)
+        2. 작품 제목 키워드가 검색 결과 제목에 전혀 없으면 스크래핑 제외
+        3. 공인 플랫폼 및 위키/커뮤니티 정보성 페이지만 스크래핑
         """
         # 백과사전/어학사전/위키백과/뉴스 등은 스크래핑 제외
         excluded_domains = ['encykorea.aks.ac.kr', 'terms.naver.com', 'ko.wikipedia.org', 'dict.naver.com', 'theguru.co.kr']
         if any(ed in url for ed in excluded_domains):
             return False
 
-        # 허용된 커뮤니티, 블로그, 플랫폼만 스크래핑 허용
+        # 개인 블로그는 목록 추천 글 등으로 인해 노이즈가 극심하므로 스크래핑 제외
+        if any(b_dom in url for b_dom in ['blog.naver.com', 'tistory.com', 'post.naver.com']):
+            return False
+
+        # 검색 쿼리와 검색 결과 제목의 연관성 검사
+        if query and item_title:
+            query_words = [w for w in re.split(r'\s+', query) if len(w) >= 2]
+            if query_words and not any(w in item_title for w in query_words):
+                return False
+
+        # 허용된 커뮤니티, 위키, 플랫폼만 스크래핑 허용
         allowed_scrape_domains = [
+            'series.naver.com', 'page.kakao.com',
             'dcinside.com', 'namu.wiki', 'arca.live', 'instiz.net', 'theqoo.net',
             'ridibooks.com', 'munpia.com', 'novelpia.com', 'joara.com', 'ssn.so', 'mrblue.com',
-            'blog.naver.com', 'm.blog.naver.com', 'post.naver.com', 'tistory.com',
             'qidian.com', 'jjwxc.net', 'syosetu.com', 'kakuyomu.jp'
         ]
         if not any(dom in url for dom in allowed_scrape_domains):
             return False
 
-        # 1. 장르 미발견 시 무조건 시도
+        # 1. 장르 미발견 시 시도
         if not current_genres:
             return True
             
@@ -242,7 +297,6 @@ class GoogleGenreExtractor:
         is_rich_site = any(site in url for site in rich_info_sites)
         
         # 3. 발견된 장르가 너무 일반적인 경우 (더 구체적인 장르를 찾기 위해 스크래핑)
-        # 예: '소설', '판타지'만 발견됨 -> 본문에서 '선협'이나 '팬픽' 찾기 시도
         generic_genres = ['소설', '판타지', '미스터리', '드라마']
         only_generic = all(g in generic_genres for g in current_genres)
         
@@ -251,12 +305,12 @@ class GoogleGenreExtractor:
             
         return False
 
-    def _resolve_genre_priority(self, genres: List[str]) -> Tuple[str, int]:
+    def _resolve_genre_priority(self, genres: List[str], country: str = "UNKNOWN") -> Tuple[str, int]:
         """
         발견된 장르 목록에서 최적의 장르 결정
         
         우선순위:
-        패러디 > 선협/무협 > 현판/겜판/로판 > 퓨판 > 스포츠/역사 > SF > 판타지 > 소설
+        패러디 > 스포츠 > (CN일 때 선협/언정) > 무협/현판/겜판/로판/퓨판 > 역사/SF > 판타지 > 소설
         """
         if not genres:
             return "", 0
@@ -265,47 +319,43 @@ class GoogleGenreExtractor:
         counts = Counter(genres)
         
         # 우선순위 정의 (높을수록 우선)
-        # 구체적이고 특징적인 장르일수록 높은 점수
+        # 한국 소설의 경우 선협/언정이 현판/판타지/무협/퓨판을 오탐하지 않도록 국적 고려
         priority_map = {
             '패러디': 100,      # 팬픽/패러디 최우선 (오분류 방지)
-            '스포츠': 95,      # 스포츠 구체적 키워드(바둑/야구/축구/발롱도르)가 매칭되면 최우선
-            '선협': 90,        # 선협 (무협보다 구체적)
-            '언정': 88,        # 언정 (중국 여성향 로맨스/고언/현언)
+            '스포츠': 95,       # 스포츠 고유 어휘 매칭 시 최우선
+            '선협': 90 if country == 'CN' else 60,
+            '언정': 88 if country == 'CN' else 50,
             '무협': 85,
-            '게임판타지': 75,
-            '로맨스판타지': 75,
-            '현대판타지': 75,
+            '현대판타지': 82,
+            '게임판타지': 80,
+            '로맨스판타지': 80,
+            '퓨전판타지': 78,
             '대체역사': 70,
             'SF': 65,
             '라이트노벨': 60,
-            '퓨전판타지': 55,
-            '공포': 50,        # 일반 블로그 리뷰 등에서 오탐되기 쉬우므로 우선순위 조정
+            '공포': 50,
             '로맨스': 40,
-            '판타지': 20,      # 가장 일반적
-            '소설': 10,        # 가장 일반적
+            '판타지': 35,
+            '소설': 10,
             '드라마': 10
         }
         
         best_genre = ""
-        max_priority = -1
-        total_score = 0
+        max_score = -1
+        total_count = 0
         
         for genre, count in counts.items():
-            # 기본 우선순위 점수 + 빈도 가산점 (빈도 * 1)
-            # 즉, 많이 언급되면 약간 유리하지만, 태생적 우선순위를 뒤집기는 힘듦
-            # 예: 판타지(20) 10번 언급 = 30점 vs 선협(90) 1번 언급 = 91점 -> 선협 승리
             base_priority = priority_map.get(genre, 0)
-            if base_priority > max_priority:
-                max_priority = base_priority
+            score = base_priority + (count * 5)
+            if score > max_score:
+                max_score = score
                 best_genre = genre
-            elif base_priority == max_priority and count > counts.get(best_genre, 0):
-                # 같은 우선순위일 경우 빈도수 고려
+                total_count = count
+            elif score == max_score and count > counts.get(best_genre, 0):
                 best_genre = genre
-                
-            if genre == best_genre:
-                total_score = count # 반환할 점수 (신뢰도 계산용)
+                total_count = count
         
-        return best_genre, total_score
+        return best_genre, total_count
 
     def _scrape_url(self, url: str) -> List[str]:
         """URL 접속하여 본문 장르 키워드 추출"""
@@ -324,9 +374,9 @@ class GoogleGenreExtractor:
             if resp.status_code == 200:
                 from bs4 import BeautifulSoup
                 soup = BeautifulSoup(resp.text, 'html.parser')
-                # 본문 텍스트 추출 (Script/Style 제외)
-                for script in soup(["script", "style", "header", "footer", "nav"]):
-                    script.extract()
+                # 본문 텍스트 추출 (Script/Style/Navigation/Sidebar 카테고리 제외)
+                for unwanted in soup(["script", "style", "header", "footer", "nav", "aside", "ul", "ol"]):
+                    unwanted.extract()
                 text = soup.get_text()
                 
                 # 텍스트 전처리 (연속 공백 제거)

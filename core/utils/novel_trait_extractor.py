@@ -64,7 +64,11 @@ TRAIT_PATTERNS: List[Tuple[str, List[str]]] = [
     # 10. 이세계
     ("이세계", [r"이세계", r"이계", r"차원", r"이차원", r"异界", r"异세계"]),
     # 11. 군사 / 첩보
-    ("군사", [r"군사", r"군대", r"전쟁", r"밀리터리", r"장군", r"제국", r"전함", r"서난종명", r"军事", r"军旅"]),
+    ("군사", [
+        r"군사", r"군대",
+        r"(?<!반도체\s)(?<!반도체)(?<!상업\s)(?<!상업)(?<!쩐의\s)(?<!입시\s)(?<!취업\s)(?<!무역\s)(?<!총선\s)(?<!대선\s)전쟁",
+        r"밀리터리", r"장군", r"제국", r"전함", r"서난종명", r"军事", r"军旅"
+    ]),
     ("첩보", [r"첩보", r"스파이", r"공작원", r"암살자", r"특수요원", r"국정원", r"서난종명", r"諜報", r"谍报", r"特工"]),
     # 12. 감성 / 분위기
     ("로맨스", [r"로맨스", r"련애유희", r"련애", r"연애", r"사랑", r"순정", r"恋爱", r"甜宠"]),
@@ -413,6 +417,13 @@ class NovelTraitExtractor:
                 continue
             if trait_name in ["종합", "다중"] and primary_genre != "패러디":
                 continue
+                
+            # 연예계/아이돌/방송 소재에서 '재벌'만 매칭된 경우 재테크 특성 제외 (단순 배경 설정)
+            if trait_name == "재테크":
+                is_entertainment = bool(re.search(r"아이돌|얼굴천재|연예[계인]|배우|가수|스타|매니저|방송인", combined_text, re.IGNORECASE))
+                has_actual_finance = bool(re.search(r"재테크|주식|투자|건물주|창업|돈벌기|부동산|자산가|가가1990|1990|致富|炒股", combined_text, re.IGNORECASE))
+                if is_entertainment and not has_actual_finance:
+                    continue
                 
             for pattern in patterns:
                 if re.search(pattern, combined_text, re.IGNORECASE):

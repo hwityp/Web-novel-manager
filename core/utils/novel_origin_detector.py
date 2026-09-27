@@ -440,13 +440,13 @@ class NovelOriginDetector:
             from core.utils.chinese_phonetic_analyzer import ChinesePhoneticAnalyzer
             phonetic_res = ChinesePhoneticAnalyzer.analyze(full_text, title)
             if phonetic_res.is_detected:
-                # 한국 소설에도 흔한 일반적 게임/스포츠/공포 키워드 단독 출현 시 CN 오감지 방지
+                # 한국 소설에도 흔한 일반적 게임/스포츠/공포/현대 키워드 단독 출현 시 CN 오감지 방지
                 is_generic_trope = any(
                     generic in (phonetic_res.reason or "")
-                    for generic in ["게임판타지/생존게임 클리셰", "스포츠", "공포/괴담"]
+                    for generic in ["게임판타지/생존게임 클리셰", "스포츠", "공포/괴담", "전문직/연예계"]
                 ) and not any(
                     cjk_kw in (phonetic_res.matched_pattern or "")
-                    for cjk_kw in ["생존유희", "生存游戏", "유희", "游戏", "속성반", "공로구생", "도생"]
+                    for cjk_kw in ["생존유희", "生存游戏", "유희", "游戏", "속성반", "공로구생", "도생", "계통", "系统", "골드핑거", "모의기"]
                 )
                 if not is_generic_trope:
                     cn_score += 80

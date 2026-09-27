@@ -417,6 +417,16 @@ class GenreClassifierAdapter:
                 if not result or not result.get('genre') or result.get('genre') == '미분류':
                     result = self._naver_extractor.extract_genre_from_title(original_foreign_title, country=country)
             
+            # Naver 결과가 2차 커뮤니티/리뷰 사이트(소설넷, 웹툰가이드 등) 기반인 경우,
+            # Google을 통해 1차 공식 플랫폼(카카오페이지, 시리즈, 문피아 등)의 공인 장르가 있는지 확인
+            is_community_source = bool(result and any(s in result.get('source', '').lower() for s in ['소설넷', 'novelnet', 'webtoon', 'mrblue']))
+            if is_community_source and self._google_extractor:
+                google_res = self._google_extractor.extract_genre(search_title, country=country)
+                if google_res and google_res.get('genre') and google_res.get('genre') != '미분류':
+                    if google_res.get('source', '').startswith('Google_Official') or google_res.get('confidence', 0) >= result.get('confidence', 0):
+                        self.logger.info(f"  [공식 플랫폼 우선] 커뮤니티('{result['genre']}') 대신 Google 공식 플랫폼 장르('{google_res['genre']}') 채택")
+                        result = google_res
+
             if result and result.get('genre'):
                 genre = result['genre']
                 confidence = result.get('confidence', 0.9)

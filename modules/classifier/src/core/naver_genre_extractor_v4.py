@@ -840,8 +840,8 @@ class NaverGenreExtractorV4:
                     self._log(f"  [{extractor.platform_name}] '판타지' 추출 → 다른 플랫폼에서 세분화 확인 (역사/겜판/퓨판)")
                     continue
                 
-                # 현판 체크 중이고 스포츠 또는 역사를 발견한 경우 (재매핑 전에 체크)
-                if hyunpan_result and result['genre'] in ['스포츠', '역사']:
+                # 현판 체크 중이고 스포츠를 발견한 경우 (재매핑 전에 체크)
+                if hyunpan_result and result['genre'] == '스포츠':
                     self._log(f"  [{extractor.platform_name}] '{result['genre']}' 확인됨 → 현판 대신 {result['genre']} 선택")
                     self._log(f"  [최종선택] {extractor.platform_name}: {result['genre']}")
                     print()
@@ -849,6 +849,9 @@ class NaverGenreExtractorV4:
                 
                 # 판타지 세분화 체크 중이고 역사/겜판/퓨판/스포츠를 발견한 경우
                 if fantasy_result and result['genre'] in ['역사', '겜판', '퓨판', '스포츠']:
+                    if extractor.platform_name == '소설넷' and result['genre'] in ['겜판', '역사']:
+                        self._log(f"  [{extractor.platform_name}] 커뮤니티 태그 '{result['genre']}'는 공식 플랫폼 판타지 세분화에서 제외 → 스킵")
+                        continue
                     print(f"  [{extractor.platform_name}] '{result['genre']}' 확인됨 → 판타지 대신 {result['genre']} 선택")
                     print(f"  [최종선택] {extractor.platform_name}: {result['genre']}")
                     print()
@@ -875,8 +878,8 @@ class NaverGenreExtractorV4:
                     result['genre'] = remapped_genre
                     result['confidence'] = max(0.85, result.get('confidence', 0.95) - 0.03)
                     
-                    # 재매핑 후에도 스포츠/역사 체크
-                    if hyunpan_result and result['genre'] in ['스포츠', '역사']:
+                    # 재매핑 후에도 스포츠 체크
+                    if hyunpan_result and result['genre'] == '스포츠':
                         print(f"  [{extractor.platform_name}] '{result['genre']}' 확인됨 (재매핑 후) → 현판 대신 {result['genre']} 선택")
                         print(f"  [최종선택] {extractor.platform_name}: {result['genre']}")
                         print()
@@ -884,6 +887,8 @@ class NaverGenreExtractorV4:
                     
                     # 재매핑 후에도 판타지 세분화 체크
                     if fantasy_result and result['genre'] in ['역사', '겜판', '퓨판', '스포츠']:
+                        if extractor.platform_name == '소설넷' and result['genre'] in ['겜판', '역사']:
+                            continue
                         print(f"  [{extractor.platform_name}] '{result['genre']}' 확인됨 (재매핑 후) → 판타지 대신 {result['genre']} 선택")
                         print(f"  [최종선택] {extractor.platform_name}: {result['genre']}")
                         print()
@@ -902,6 +907,11 @@ class NaverGenreExtractorV4:
         
         # 리디북스만 있고 문피아가 없는 경우
         if ridibooks_result and not munpia_result:
+            if hyunpan_result:
+                self._log(f"  [최종선택] {hyunpan_result.get('source', '네이버시리즈')}: {hyunpan_result['genre']}")
+                print(f"  [최종선택] {hyunpan_result.get('source', '네이버시리즈')}: {hyunpan_result['genre']}")
+                print()
+                return hyunpan_result
             print(f"  [최종선택] 리디북스: {ridibooks_result['genre']}")
             print()
             return ridibooks_result
