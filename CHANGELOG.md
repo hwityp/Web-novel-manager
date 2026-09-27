@@ -5,6 +5,26 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.50] - 2026-09-27
+
+### Added & Improved
+
+- **소설 국적 판별기 띄어쓰기 분석 기반 한자 독음 직역 vs 번역 제목/국내작 구분 고도화 (`core/utils/novel_origin_detector.py`):**
+  - **무공백 한자 독음 직역 제목 판별 (Case A):** 띄어쓰기가 없는 중국/일본 원문 한자 독음 제목을 위해 7자 이상 무공백 한글 및 중국어 한자음 문법 어소(`적`, `료`, `지`, `시`, `종`, `개시`, `아`, `니`, `타`, `불`, `재`, `후`, `리` 등) 결합 시 `CN` 가산(+70점), 일본 한자음 어휘(`지인`, `적거인`, `전생`, `귀멸`, `진격` 등) 결합 시 `JP` 가산(+70점) 적용.
+  - **정상 띄어쓰기 번역 제목 vs 국내작 분기 (Case B):** 한국어 문맥에 맞게 번역된 제목(띄어쓰기 존재)은 무공백 음독 점수를 배제하고, 번역 마커 태그(`[AI번역]`, `(번역)` 등) 및 외래 플랫폼/클리셰(`사합원`, `지청`, `공간물자`, `악역영애`, `약혼파기` 등)로만 해외작을 판별하도록 분리.
+  - **한국 소설 한자 표기 병기 오탐 방지:** `비뢰도(飛雷刀)`, `군림천하(君臨天下)`, `묵향(墨香)`처럼 번역 태그 없이 한글 제목과 괄호 한자 글자 수가 동일한 경우 한국식 한자 병기로 인식하여 `CN` 오탐 차단 및 `KR` 판정.
+  - **일본 신자체(新字体, JIS) 한자 및 클리셰 가드:** `無職転生`의 `転` 등 일본 고유 신자체 감지 시 `JP`로 우선 배정하고, 한국 웹소설의 '이세계' 키워드 단독 사용 시 `JP` 오탐 방지 가드 적용.
+
+- **다국어 웹소설 검색 및 장르 추론 통합 강화 (`foreign_extractors.py`, `naver_genre_extractor_v4.py`, `google_genre_extractor.py`, `genre_classifier_adapter.py`):**
+  - **일본 소설 사이트(소설가가 되자 / Syosetu) JSON API 직접 검색 연동 (`modules/classifier/src/core/platform_extractors/foreign_extractors.py`):** 공식 무료 JSON API(`api.syosetu.com`)를 연동하여 작품 제목 검색 시 공식 장르 코드 매핑 및 2차 창작(패러디) 감지 구현.
+  - **네이버 크롤러 안정화 (`modules/classifier/src/core/naver_genre_extractor_v4.py`):** PC 웹 검색 WAF 차단(HTTP 403) 시 모바일 엔드포인트(`m.search.naver.com`) 자동 폴백 및 외래 플랫폼 링크 파싱 시 `KeyError` 방지.
+  - **구글 검색 엔진 웹 폴백 및 장르 패턴 확장 (`modules/classifier/src/core/google_genre_extractor.py`):** API Quota(429) 시 Bing/웹 검색으로 자동 전환 및 현대 웹소설 장르(밀리터리, 선협, 언정, 패러디 등) 패턴 보강.
+  - **중국 웹소설 음독·어휘 DB 등록 및 CJK Fast-Path 추론 가속 (`core/adapters/genre_classifier_adapter.py`, `core/utils/chinese_phonetic_analyzer.py`):** 치뎬/진장 소설 45개 작품 DB 등록 및 CJK 고신뢰도 패턴 1ms Fast-Path 배치.
+  - **`C:\Users\hwity\문서\MyDown` 45개 미분류 파일 100% 정상 분류 달성 (미분류 0건).**
+
+- **타입 린터 경고 해결 (`modules/classifier/src/core/platform_extractors/foreign_extractors.py`):**
+  - BeautifulSoup `cat_meta` 속성값 리스트 처리 시 불필요한 `str()` 타입 변환 경고(Pyrefly `unnecessary-type-conversion`) 제거.
+
 ## [v1.3.49] - 2026-09-27
 
 ### Fixed & Improved

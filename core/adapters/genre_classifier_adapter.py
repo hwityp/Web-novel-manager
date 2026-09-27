@@ -309,6 +309,28 @@ class GenreClassifierAdapter:
             print(f"  [결과] {task.genre} (confidence: {task.confidence}, source: 본문헤더)")
             return task
         
+        # Step 2.7: CJK 음독/클리셰 분석 엔진 직접 감지 (Phonetic/Known-First)
+        # 이미 등록된 유명 작품(KNOWN_TITLES)이나 고유 어휘/클리셰로 높은 신뢰도 판정이 가능한 경우 즉시 적용
+        try:
+            from core.utils.chinese_phonetic_analyzer import ChinesePhoneticAnalyzer
+            phonetic_res = ChinesePhoneticAnalyzer.analyze(raw_text, pure_title)
+            if phonetic_res.is_detected and phonetic_res.genre in GENRE_WHITELIST and phonetic_res.genre != '미분류':
+                if phonetic_res.confidence == 'high':
+                    corrected_genre = self._apply_origin_specific_rules(phonetic_res.genre, task, raw_text)
+                    task.genre = NovelTraitExtractor.format_genre_tag(
+                        primary_genre=corrected_genre,
+                        title=raw_text
+                    )
+                    task.confidence = 'high'
+                    task.source = '음독분석기'
+                    task.status = 'processing'
+                    self.cache.set(pure_title, task.genre, 'high', '음독분석기')
+                    self.logger.debug(f"  [음독 분석기 즉시 확정] '{pure_title}': {task.genre} ({phonetic_res.reason})")
+                    print(f"  [결과] {task.genre} (confidence: {task.confidence}, source: 음독분석기)")
+                    return task
+        except Exception as pe:
+            self.logger.debug(f"음독 분석기 오류: {pe}")
+
         # Step 3: Stage 1 - 인터넷 검색 (Search-First) - NaverGenreExtractorV4 직접 사용
         try:
             search_result = self._search_genre(pure_title, author, foreign_title, country=origin_res.country)
@@ -461,12 +483,25 @@ class GenreClassifierAdapter:
                 if google_result:
                     return google_result
             
+            # 해외 플랫폼 직접 검색 (Syosetu API 등)
+            if country in ['JP', 'UNKNOWN'] or any(char in search_title for char in ['の', 'は', 'を', 'に', '～', '・']):
+                try:
+                    from modules.classifier.src.core.platform_extractors.foreign_extractors import SyosetuExtractor
+                    s_extractor = SyosetuExtractor({}, {})
+                    s_res = s_extractor.direct_search(original_foreign_title or search_title)
+                    if s_res and s_res.get('genre') and s_res.get('genre') != '미분류':
+                        return s_res
+                except Exception as se:
+                    self.logger.debug(f"Syosetu direct search error: {se}")
+
             return None
             
         except Exception as e:
             self.logger.warning(f"검색 중 오류: {e}")
             import traceback
             self.logger.debug(traceback.format_exc())
+            return None
+
     def _apply_origin_specific_rules(self, mapped_genre: str, task: NovelTask, raw_text: str) -> str:
         """
         국적(원산지) 판별 결과에 따른 장르 보정 규칙 적용
@@ -478,47 +513,59 @@ class GenreClassifierAdapter:
         full_ctx = f"{raw_text} {task.title} {foreign_title}".strip()
 
         # 0. 핵심 제목/클리셰 보장 규칙 (국적 불문 최우선)
+        # SF 보장
+        if any(kw in full_ctx for kw in ['영능자불사우창화', '영능자', '창화', '사이버펑크']):
+            return 'SF'
+
         # 스포츠 보장
-        if any(kw in full_ctx for kw in ['발롱도르', '스트라이커', '좌완파이어볼러', '파이어볼러', '프리미어리그', '챔피언스리그', '손흥민', '메시', '호날두', '미드필더']):
+        if any(kw in full_ctx for kw in ['발롱도르', '스트라이커', '좌완파이어볼러', '파이어볼러', '프리미어리그', '챔피언스리그', '손흥민', '메시', '호날두', '미드필더', '구호반', '화오교죽마관선료', '화오교죽마']):
             return '스포츠'
 
         # 무협 보장
-        if any(kw in full_ctx for kw in ['항마신장', '항마장', '언가군림', '인주란', '군림', '검혼기행', '뇌룡검제', '종무']):
+        if any(kw in full_ctx for kw in ['항마신장', '항마장', '언가군림', '인주란', '군림', '검혼기행', '뇌룡검제', '종무', '국술！대종사', '국술!대종사', '국술', '대종사', '횡추궤괴', '극도무성', '횡추무도', '용상반약공', '고룡세계리적끽과검객', '고룡세계']):
             return '무협'
 
         # 선협 보장
-        if any(kw in full_ctx for kw in ['장생요도', '자소도주', '요도', '도주', '주명승도', '주선', '차천']):
+        if any(kw in full_ctx for kw in ['장생요도', '자소도주', '요도', '도주', '주명승도', '주선', '차천', '태일도과', '도과', '할편공법', '풍비사숙', '화장장', '희신', '아시선']):
             return '선협'
 
-        # 패러디 보장 (신비의 제왕 / 서브컬처 동인 / 투라대륙 본체종)
-        if any(kw in full_ctx for kw in ['새로운 흑황제', '흑황제의 강림', '치신세계', '궤비：치신세계', '궤비:치신세계', '두라지', '두라', '斗罗', '베이커가', '사신은 순애', '인재탄서', '탄서', '진흥본체종', '본체종']):
+        # 패러디 보장 (신비의 제왕 / 서브컬처 동인 / 투라대륙 본체종 / 몬헌 / 왕좌의게임 / 타입문 / 코난 / 해리포터)
+        if any(kw in full_ctx for kw in [
+            '새로운 흑황제', '흑황제의 강림', '치신세계', '궤비：치신세계', '궤비:치신세계', '두라지', '두라', '斗罗',
+            '베이커가', '사신은 순애', '인재탄서', '탄서', '진흥본체종', '본체종',
+            '괴렵', '화룡유특성', '권유', '위새리사', '삼두룡', '항종', '타입문', '커쉐', '발짝만큼의 거리', '발짝만큼'
+        ]):
             return '패러디'
 
-        # 역사 보장 (삼국지/초한지/만명/장안/대체역사 만반도)
-        if any(kw in full_ctx for kw in ['촉한지장가한', '초한지', '대진제국', '장안호', '활재만명', '만명', '장안', '판도충', '만반도']):
+        # 역사 보장 (삼국지/초한지/만명/장안/대체역사 만반도/출룡/포화호선/명령여징복)
+        if any(kw in full_ctx for kw in ['촉한지장가한', '초한지', '대진제국', '장안호', '활재만명', '만명', '장안', '판도충', '만반도', '출룡', '포화호선', '첩영', '명령여징복', '화의금화']):
             return '역사'
         if '촉한' in full_ctx and mapped_genre in ['무협', '판타지', '미분류']:
             return '역사'
 
-        # 언정 보장 (중국 여성향 번역/음독)
-        if any(kw in full_ctx for kw in ['중생후왕비함어료', '중생후왕비', '함어료', '농가소복녀', '소복녀', '70년대로 천월', '일품용화', '용화', '제일교']):
+        # 언정 보장 (중국 여성향 번역/음독/쾌천/표고양/금욕불자/통고금/허니만장)
+        if any(kw in full_ctx for kw in [
+            '중생후왕비함어료', '중생후왕비', '함어료', '농가소복녀', '소복녀', '70년대로 천월', '일품용화', '용화', '제일교',
+            '쾌천', '표고양', '금욕불자', '앵앵괴', '소조종', '초시통고금', '허니만장광망호', '허니만장', '첨우야', '여배각성후', '여배'
+        ]):
             return '언정'
 
-        # 현판 보장 (전문가/학원가/회사/제천무한/생활계/속성점/전민/전직/엔딩요정/아포칼립스)
+        # 겜판 보장
+        if any(kw in full_ctx for kw in ['해상구생', '저유희야태진실료']):
+            return '겜판'
+
+        # 판타지 보장 (천도도서관 / 성장 모험 / 구일음락가 / 해도왕권 / 희랍대악인)
+        if any(kw in full_ctx for kw in ['천도도서관', '활과 검', '구일음락가', '음락가', '해도왕권', '희랍대악인']):
+            return '판타지'
+
+        # 현판 보장 (전문가/학원가/회사/제천무한/생활계/속성점/전민/전직/엔딩요정/아포칼립스/화오/항도/호림원)
         if any(kw in full_ctx for kw in [
             '대치동 클래스', '대치동', '다차원 파견 회사', '파견 회사', '수많은 세계, 쉐임리스', '쉐임리스부터 시작한다', '수많은 세계',
             '시간을 가르는 나의 정체성', '생활계', '생활계직업', '속성점', '일근육', '인재동경', '전민령주', '전민진화', '전직법사', '저정류', '종예',
-            '제천', '종극화력', '중회', '중회1980', '중회1981', '소주를 부르는 횟집', '목표는 엔딩 요정', '엔딩 요정', '데드 엔드', '반격'
+            '제천', '종극화력', '중회', '중회1980', '중회1981', '소주를 부르는 횟집', '목표는 엔딩 요정', '엔딩 요정', '데드 엔드', '반격',
+            '금점층대보', '호림원', '호림', '장악최면지력', '최면지력', '초가전', '령원구', '항도1980', '항도', '화오：', '화오:종', '환불기방대', '매방료', '회당07', '회당', '학신전'
         ]):
             return '현판'
-
-        # 퓨판 보장 (차원이동/서자/회귀 귀환/제일서열)
-        if any(kw in full_ctx for kw in ['멸문한 가문의 서자가 돌아왔다', '가문의 서자가 돌아왔다', '제일서렬', '제1서열']):
-            return '퓨판'
-
-        # 판타지 보장 (천도도서관 / 성장 모험)
-        if any(kw in full_ctx for kw in ['천도도서관', '활과 검']):
-            return '판타지'
         
         # 1. 중국 소설 (CN) 규칙
         if origin == 'CN':

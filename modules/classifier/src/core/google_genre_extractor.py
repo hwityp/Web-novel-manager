@@ -21,22 +21,23 @@ class GoogleGenreExtractor:
     
     # 텍스트에서 장르를 추출하기 위한 키워드 패턴
     GENRE_PATTERNS = {
-        '판타지': [r'판타지', r'fantasy', r'#판타지'],
-        '무협': [r'무협', r'武侠', r'wuxia', r'#무협'],
-        '현대판타지': [r'현대\s*판타지', r'현판', r'어반\s*판타지', r'#현판'],
+        '판타지': [r'판타지', r'fantasy', r'#판타지', r'음락가', r'희랍', r'해도왕권', r'크툴루'],
+        '무협': [r'무협', r'武侠', r'wuxia', r'#무협', r'국술', r'대종사', r'용상반약공', r'극도무성', r'고룡', r'강호', r'무림'],
+        '현대판타지': [r'현대\s*판타지', r'현판', r'어반\s*판타지', r'#현판', r'화오', r'항도', r'호림원', r'호림', r'초가전', r'영원구', r'최면', r'방대', r'회당', r'학신', r'재벌', r'연예계'],
         '로맨스판타지': [r'로맨스\s*판타지', r'로판', r'#로판'],
-        '게임판타지': [r'게임\s*판타지', r'겜판', r'#겜판'],
+        '게임판타지': [r'게임\s*판타지', r'겜판', r'#겜판', r'해상구생'],
         '퓨전판타지': [r'퓨전\s*판타지', r'퓨판', r'#퓨판'],
-        '선협': [r'선협', r'수선', r'수진', r'선도', r'仙侠', r'修真', r'修仙', r'xianxia'],
-        '언정': [r'언정', r'言情', r'고대\s*언정', r'현대\s*언정', r'궁투', r'택투', r'소복녀', r'복보', r'여주물', r'중국\s*로맨스', r'중생후'],
-        '스포츠': [r'스포츠', r'바둑', r'야구', r'축구', r'농구', r'격투기', r'권투', r'복싱', r'골프', r'배구', r'테니스', r'스트라이커', r'발롱도르', r'골키퍼', r'미드필더', r'공격수', r'득점왕', r'투수', r'홈런'],
-        '대체역사': [r'대체\s*역사', r'대체역사물', r'(?<!문서\s)(?<!수정\s)역사\s*소설', r'#역사', r'#대체역사'],
-        'SF': [r'SF', r'공상과학', r'사이파이'],
+        '선협': [r'선협', r'수선', r'수진', r'선도', r'도과', r'공법', r'선종', r'종문', r'화장장', r'선협물', r'仙侠', r'修真', r'修仙', r'xianxia', r'아시선', r'희신'],
+        '언정': [r'언정', r'言情', r'고대\s*언정', r'현대\s*언정', r'궁투', r'택투', r'소복녀', r'복보', r'여주물', r'중국\s*로맨스', r'중생후', r'쾌천', r'표고양', r'금욕불자', r'초시통고금', r'허니만장광망호', r'여배'],
+        '스포츠': [r'스포츠', r'바둑', r'야구', r'축구', r'농구', r'격투기', r'권투', r'복싱', r'골프', r'배구', r'테니스', r'피겨', r'구호반', r'스트라이커', r'발롱도르', r'골키퍼', r'미드필더', r'공격수', r'득점왕', r'투수', r'홈런'],
+        '대체역사': [r'대체\s*역사', r'대체역사물', r'출룡', r'(?<!문서\s)(?<!수정\s)역사\s*소설', r'#역사', r'#대체역사'],
+        '밀리터리': [r'밀리터리', r'전쟁', r'군사', r'첩보', r'스파이', r'포병', r'기갑', r'포화호선', r'포화', r'명령여징복', r'첩영'],
+        'SF': [r'SF', r'공상과학', r'사이파이', r'사이버펑크', r'영능자', r'창화', r'초능력'],
         '공포': [r'공포', r'호러', r'미스터리', r'스릴러'],
         '로맨스': [r'로맨스', r'순정'],
         '라이트노벨': [r'라이트\s*노벨', r'라노벨'],
         '드라마': [r'드라마'],
-        '패러디': [r'패러디', r'팬픽', r'2차\s*창작', r'fanfic', r'신비의\s*제왕', r'동인']
+        '패러디': [r'패러디', r'팬픽', r'2차\s*창작', r'fanfic', r'신비의\s*제왕', r'동인', r'하멜른', r'ハーメルン', r'二次創作', r'포켓몬', r'괴렵', r'권유', r'해리포터', r'코난', r'타입문', r'페이트', r'커쉐', r'항종']
     }
 
     def __init__(self, api_key: str, cse_id: str):
@@ -53,14 +54,14 @@ class GoogleGenreExtractor:
         
         # API 설정 확인
         if not self.api_key or not self.cse_id:
-            self.logger.warning("Google API Key 또는 CSE ID가 설정되지 않았습니다. Google 검색이 비활성화됩니다.")
+            self.logger.warning("Google API Key 또는 CSE ID가 설정되지 않았습니다. Google API 대신 Web Search Fallback을 사용합니다.")
         
         # 쿼터 차단 플래그 (Circuit Breaker)
         self.quota_blocked = False
 
     def extract_genre(self, query: str, country: str = "UNKNOWN") -> Optional[Dict]:
         """
-        Google 검색을 통해 장르 추출
+        Google 검색(또는 웹 검색 폴백)을 통해 장르 추출
         
         Args:
             query: 검색어 (소설 제목)
@@ -69,15 +70,12 @@ class GoogleGenreExtractor:
         Returns:
             {'genre': str, 'confidence': float, 'source': str} 또는 None
         """
-        if not self.api_key or not self.cse_id:
-            return None
-            
-        # Circuit Breaker: 할당량 초과 시 API 호출 차단
-        if self.quota_blocked:
-            return None
+        # API 키 부재 또는 쿼터 초과 시 웹 검색 폴백 바로 실행
+        if not self.api_key or not self.cse_id or self.quota_blocked:
+            return self._search_via_web(query, country=country)
             
         try:
-            self.logger.info(f"Google 검색 시도: {query}")
+            self.logger.info(f"Google API 검색 시도: {query}")
             
             # Google Custom Search API 호출
             url = "https://www.googleapis.com/customsearch/v1"
@@ -91,12 +89,11 @@ class GoogleGenreExtractor:
             
             response = requests.get(url, params=params, timeout=5)
             
-            # 403/429 체크 (할당량 초과)
+            # 403/429 체크 (할당량 초과 시 Circuit Breaker 작동 및 웹 검색 폴백)
             if response.status_code in [403, 429]:
-                self.logger.error(f"Google API Quota Error: {response.status_code}. Further requests blocked.")
-                print(f"CRITICAL: GOOGLE_QUOTA_EXCEEDED ({response.status_code})")
+                self.logger.warning(f"Google API Quota Error: {response.status_code} → 웹 검색 폴백으로 전환")
                 self.quota_blocked = True
-                return {'error': 'quota_exceeded'}
+                return self._search_via_web(query, country=country)
 
             response.raise_for_status()
             
@@ -104,155 +101,195 @@ class GoogleGenreExtractor:
             items = data.get('items', [])
             
             if not items:
-                self.logger.info("Google 검색 결과 없음")
-                return None
+                self.logger.info("Google API 검색 결과 없음 → 웹 검색 폴백")
+                return self._search_via_web(query, country=country)
                 
-            # 검색 결과 분석
-            all_found_genres = []
-            official_genres = []
-            
-            for item in items:
-                title = item.get('title', '')
-                snippet = item.get('snippet', '')
-                link = item.get('link', '')
-                found_genres = []
-                
-                # [Logic Restoration] 소설넷(ssn.so) 필터링 강화
-                if 'ssn.so' in link:
-                    if any(x in link for x in ['/profile/', '/author/', '/notifications/', '/comments/']):
-                        self.logger.debug(f"Skipping NovelNet invalid page (profile/author/etc): {link}")
-                        continue
-                    if '/novel/' not in link:
-                        self.logger.debug(f"Skipping NovelNet non-novel page: {link}")
-                        continue
-
-                # [백과사전/어학사전 등 소설과 무관한 도메인 필터링]
-                excluded_domains = ['encykorea.aks.ac.kr', 'terms.naver.com', 'ko.wikipedia.org', 'dict.naver.com', 'dict.daum.net', 'theguru.co.kr']
-                if any(ed in link for ed in excluded_domains):
-                    self.logger.debug(f"Skipping encyclopedia/news domain: {link}")
-                    continue
-                
-                # [해외 웹소설 플랫폼 링크 직접 확인]
-                foreign_platforms = {
-                    'qidian.com': ('치뎬', 'modules.classifier.src.core.platform_extractors.foreign_extractors', 'QidianExtractor', 'CN'),
-                    'jjwxc.net': ('진장문학성', 'modules.classifier.src.core.platform_extractors.foreign_extractors', 'JJWXCExtractor', 'CN'),
-                    'jjwxc.com': ('진장문학성', 'modules.classifier.src.core.platform_extractors.foreign_extractors', 'JJWXCExtractor', 'CN'),
-                    'baike.baidu.com': ('바이두백과', 'modules.classifier.src.core.platform_extractors.foreign_extractors', 'BaiduBaikeExtractor', 'CN'),
-                    'syosetu.com': ('소설가가되자', 'modules.classifier.src.core.platform_extractors.foreign_extractors', 'SyosetuExtractor', 'JP'),
-                    'syosetu.org': ('하멜른', 'modules.classifier.src.core.platform_extractors.foreign_extractors', 'SyosetuExtractor', 'JP'),
-                    'kakuyomu.jp': ('카쿠요무', 'modules.classifier.src.core.platform_extractors.foreign_extractors', 'KakuyomuExtractor', 'JP'),
-                }
-                # 국가 일치 플랫폼 우선 검사
-                fp_items = list(foreign_platforms.items())
-                if country in ('CN', 'JP'):
-                    fp_items.sort(key=lambda item: 0 if item[1][3] == country else 1)
-
-                for dom, (pname, mod_path, cls_name, p_country) in fp_items:
-                    if dom in link:
-                        try:
-                            import importlib
-                            mod = importlib.import_module(mod_path)
-                            extractor_cls = getattr(mod, cls_name)
-                            extractor = extractor_cls({}, {})
-                            f_res = extractor.extract_genre([link], query)
-                            if f_res and f_res.get('genre'):
-                                print(f"  [Google Foreign Direct] {pname}: {f_res['genre']}")
-                                return {
-                                    'genre': f_res['genre'],
-                                    'confidence': f_res.get('confidence', 0.92),
-                                    'source': f_res.get('source', f"Google_{pname}"),
-                                    'snippet': snippet
-                                }
-                        except Exception as fe:
-                            self.logger.debug(f"Foreign extractor direct error: {fe}")
-
-                # [국내 웹소설 주요 플랫폼 스니펫/링크 정밀 분석]
-                # 1. 네이버 시리즈 해시태그 (#현판, #판타지, #무협, #로판, #퓨판 등)
-                if 'series.naver.com' in link:
-                    for h_tag, g_name in [('#현판', '현대판타지'), ('#판타지', '판타지'), ('#무협', '무협'), ('#정통무협', '무협'), ('#로판', '로맨스판타지'), ('#퓨판', '퓨전판타지'), ('#대체역사', '대체역사'), ('#스포츠', '스포츠')]:
-                        if h_tag in snippet or h_tag in title:
-                            found_genres.extend([g_name, g_name, g_name])
-                            official_genres.append(g_name)
-                            self.logger.debug(f"  [Google Series Tag] {h_tag} -> {g_name}")
-
-                # 2. 문피아 카테고리 (예: '총 201화. 완결. 현대판타지.', '총 263화. 완결. 판타지.')
-                if 'munpia.com' in link:
-                    for m_tag, g_name in [('현대판타지', '현대판타지'), ('판타지', '판타지'), ('무협', '무협'), ('로맨스판타지', '로맨스판타지'), ('퓨전판타지', '퓨전판타지'), ('대체역사', '대체역사'), ('스포츠', '스포츠')]:
-                        if re.search(rf'(?:완결|연재)\.\s*{m_tag}', snippet) or f'. {m_tag}.' in snippet or f'. {m_tag} ' in snippet:
-                            found_genres.extend([g_name, g_name, g_name])
-                            official_genres.append(g_name)
-                            self.logger.debug(f"  [Google Munpia Tag] {m_tag} -> {g_name}")
-
-                # 3. 리디북스 (예: '판타지 웹소설', '판타지 e북', '현대 판타지', '퓨전 판타지', '무협 소설', '로맨스판타지')
-                if 'ridibooks.com' in link:
-                    for r_tag, g_name in [('퓨전 판타지', '퓨전판타지'), ('현대 판타지', '현대판타지'), ('무협 소설', '무협'), ('로맨스판타지', '로맨스판타지'), ('판타지 웹소설', '판타지'), ('판타지 e북', '판타지')]:
-                        if r_tag in title or r_tag in snippet:
-                            found_genres.extend([g_name, g_name, g_name])
-                            official_genres.append(g_name)
-                            self.logger.debug(f"  [Google Ridi Tag] {r_tag} -> {g_name}")
-
-                # 4. 소설넷 (예: '무협 웹소설 리뷰', '판타지 웹소설 리뷰', '현대판타지 웹소설 리뷰')
-                if 'ssn.so' in link:
-                    for s_tag, g_name in [('무협 웹소설', '무협'), ('퓨전판타지 웹소설', '퓨전판타지'), ('현대판타지 웹소설', '현대판타지'), ('판타지 웹소설', '판타지'), ('로맨스판타지 웹소설', '로맨스판타지')]:
-                        if s_tag in title or s_tag in snippet:
-                            found_genres.extend([g_name, g_name, g_name])
-                            self.logger.debug(f"  [Google NovelNet Tag] {s_tag} -> {g_name}")
-
-                # 5. 카카오페이지 (예: '웹소설 메타데이터 구분점 판타지', '웹소설 메타데이터 구분점 현대판타지')
-                if 'page.kakao.com' in link:
-                    for k_tag, g_name in [('판타지', '판타지'), ('현대판타지', '현대판타지'), ('무협', '무협'), ('로맨스판타지', '로맨스판타지'), ('퓨전판타지', '퓨전판타지')]:
-                        if f'구분점 {k_tag}' in snippet or f'메타데이터 {k_tag}' in snippet or f'- {k_tag}' in title:
-                            found_genres.extend([g_name, g_name, g_name])
-                            official_genres.append(g_name)
-                            self.logger.debug(f"  [Google Kakao Tag] {k_tag} -> {g_name}")
-
-                # 1차: 일반 스니펫 분석
-                text = f"{title} {snippet}"
-                found_genres.extend(self._analyze_text(text))
-                
-                # 2차: 스크래핑 결정 및 수행 (공식 플랫폼 발견 시 스크래핑 생략)
-                if not official_genres and self._should_scrape(link, found_genres, query=query, item_title=title): 
-                    scraped_genres = self._scrape_url(link)
-                    if scraped_genres:
-                        found_genres.extend(scraped_genres)
-                        print(f"  [Scraping Success] {link} -> {scraped_genres}")
-                
-                all_found_genres.extend(found_genres)
-            
-            combined_snippets = " ".join([f"{item.get('title', '')} {item.get('snippet', '')}" for item in items])
-            
-            # 공식 플랫폼 태그가 직접 감지된 경우 공식 플랫폼 우선
-            if official_genres:
-                best_genre, score = self._resolve_genre_priority(official_genres, country=country)
-                if best_genre:
-                    return {
-                        'genre': best_genre,
-                        'confidence': 0.95,
-                        'source': 'Google_Official',
-                        'snippet': combined_snippets
-                    }
-
-            if not all_found_genres:
-                return None
-            
-            # 장르 우선순위 결정
-            best_genre, score = self._resolve_genre_priority(all_found_genres, country=country)
-            if not best_genre:
-                return None
-            
-            # 신뢰도 계산 (0.75 ~ 0.95)
-            confidence = 0.75 + (min(score, 5) * 0.04)
-            
-            return {
-                'genre': best_genre,
-                'confidence': min(confidence, 0.95),
-                'source': 'Google_Scraping',
-                'snippet': combined_snippets
-            }
+            return self._process_search_items(items, query=query, country=country, source_prefix="Google")
             
         except Exception as e:
-            self.logger.error(f"Google 검색 오류: {e}")
+            self.logger.error(f"Google API 검색 오류: {e} → 웹 검색 폴백")
+            return self._search_via_web(query, country=country)
+
+    def _search_via_web(self, query: str, country: str = "UNKNOWN") -> Optional[Dict]:
+        """Google API 쿼터 소진 시 Bing 및 모바일 네이버 웹 검색 스크래핑 폴백"""
+        try:
+            from bs4 import BeautifulSoup
+            import urllib.parse
+
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8'
+            }
+
+            clean_q = re.sub(r'[\(\[\{].*?[\)\]\}]', '', query).strip()
+            clean_q = re.sub(r'\s*\d+[-~]\d+.*$', '', clean_q).strip()
+
+            items = []
+            # 1. Bing 검색 시도
+            try:
+                b_url = f"https://www.bing.com/search?q={urllib.parse.quote(clean_q + ' 소설')}"
+                resp = requests.get(b_url, headers=headers, timeout=5)
+                if resp.status_code == 200:
+                    resp.encoding = 'utf-8'
+                    soup = BeautifulSoup(resp.text, 'html.parser')
+                    for li in soup.find_all('li', class_='b_algo')[:10]:
+                        h2 = li.find('h2')
+                        a = h2.find('a') if h2 else None
+                        snippet_el = li.find('div', class_='b_caption')
+                        t = a.get_text().strip() if a else ''
+                        href = a.get('href', '') if a else ''
+                        s = snippet_el.get_text().strip() if snippet_el else ''
+                        if t or s:
+                            items.append({'title': t, 'snippet': s, 'link': href})
+            except Exception as be:
+                self.logger.debug(f"Bing search error: {be}")
+
+            # 2. 모바일 네이버 검색 시도
+            try:
+                m_headers = {
+                    'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+                }
+                m_url = f"https://m.search.naver.com/search.naver?query={urllib.parse.quote(clean_q + ' 소설')}"
+                m_resp = requests.get(m_url, headers=m_headers, timeout=5)
+                if m_resp.status_code == 200:
+                    m_soup = BeautifulSoup(m_resp.text, 'html.parser')
+                    for cont in m_soup.find_all(['li', 'div', 'section'])[:15]:
+                        txt = cont.get_text(separator=' ', strip=True)
+                        if txt and 20 < len(txt) <= 600:
+                            a_tag = cont.find('a', href=True)
+                            href = a_tag['href'] if a_tag else ''
+                            items.append({'title': txt[:80], 'snippet': txt, 'link': href})
+            except Exception as ne:
+                self.logger.debug(f"Mobile Naver search error: {ne}")
+
+            if not items:
+                return None
+
+            return self._process_search_items(items, query=clean_q, country=country, source_prefix="WebSearch")
+
+        except Exception as e:
+            self.logger.error(f"Web search fallback error: {e}")
             return None
+
+    def _process_search_items(self, items: List[Dict], query: str, country: str = "UNKNOWN", source_prefix: str = "Google") -> Optional[Dict]:
+        """검색 결과 아이템 목록에서 플랫폼 직접 크롤링 및 텍스트/스니펫 분석"""
+        all_found_genres = []
+        official_genres = []
+        
+        for item in items:
+            title = item.get('title', '')
+            snippet = item.get('snippet', '')
+            link = item.get('link', '')
+            found_genres = []
+            
+            # [소설넷 필터링]
+            if 'ssn.so' in link:
+                if any(x in link for x in ['/profile/', '/author/', '/notifications/', '/comments/']):
+                    self.logger.debug(f"Skipping NovelNet invalid page (profile/author/etc): {link}")
+                    continue
+                if '/novel/' not in link:
+                    self.logger.debug(f"Skipping NovelNet non-novel page: {link}")
+                    continue
+
+            # [백과사전/어학사전 등 소설과 무관한 도메인 필터링]
+            excluded_domains = ['encykorea.aks.ac.kr', 'terms.naver.com', 'ko.wikipedia.org', 'dict.naver.com', 'dict.daum.net', 'theguru.co.kr']
+            if any(ed in link for ed in excluded_domains):
+                self.logger.debug(f"Skipping encyclopedia/news domain: {link}")
+                continue
+            
+            # [해외 웹소설 플랫폼 링크 직접 확인]
+            foreign_platforms = {
+                'qidian.com': ('치뎬', 'modules.classifier.src.core.platform_extractors.foreign_extractors', 'QidianExtractor', 'CN'),
+                'jjwxc.net': ('진장문학성', 'modules.classifier.src.core.platform_extractors.foreign_extractors', 'JJWXCExtractor', 'CN'),
+                'jjwxc.com': ('진장문학성', 'modules.classifier.src.core.platform_extractors.foreign_extractors', 'JJWXCExtractor', 'CN'),
+                'baike.baidu.com': ('바이두백과', 'modules.classifier.src.core.platform_extractors.foreign_extractors', 'BaiduBaikeExtractor', 'CN'),
+                'syosetu.com': ('소설가가되자', 'modules.classifier.src.core.platform_extractors.foreign_extractors', 'SyosetuExtractor', 'JP'),
+                'syosetu.org': ('하멜른', 'modules.classifier.src.core.platform_extractors.foreign_extractors', 'SyosetuExtractor', 'JP'),
+                'kakuyomu.jp': ('카쿠요무', 'modules.classifier.src.core.platform_extractors.foreign_extractors', 'KakuyomuExtractor', 'JP'),
+            }
+            fp_items = list(foreign_platforms.items())
+            if country in ('CN', 'JP'):
+                fp_items.sort(key=lambda it: 0 if it[1][3] == country else 1)
+
+            for dom, (pname, mod_path, cls_name, p_country) in fp_items:
+                if dom in link:
+                    try:
+                        import importlib
+                        mod = importlib.import_module(mod_path)
+                        extractor_cls = getattr(mod, cls_name)
+                        extractor = extractor_cls({}, {})
+                        f_res = extractor.extract_genre([link], query)
+                        if f_res and f_res.get('genre'):
+                            print(f"  [{source_prefix} Foreign Direct] {pname}: {f_res['genre']}")
+                            return {
+                                'genre': f_res['genre'],
+                                'confidence': f_res.get('confidence', 0.92),
+                                'source': f_res.get('source', f"{source_prefix}_{pname}"),
+                                'snippet': snippet
+                            }
+                    except Exception as fe:
+                        self.logger.debug(f"Foreign extractor direct error: {fe}")
+
+            # [국내 웹소설 주요 플랫폼 스니펫/링크 정밀 분석]
+            if 'series.naver.com' in link:
+                for h_tag, g_name in [('#현판', '현대판타지'), ('#판타지', '판타지'), ('#무협', '무협'), ('#정통무협', '무협'), ('#로판', '로맨스판타지'), ('#퓨판', '퓨전판타지'), ('#대체역사', '대체역사'), ('#스포츠', '스포츠')]:
+                    if h_tag in snippet or h_tag in title:
+                        found_genres.extend([g_name, g_name, g_name])
+                        official_genres.append(g_name)
+
+            if 'munpia.com' in link:
+                for m_tag, g_name in [('현대판타지', '현대판타지'), ('판타지', '판타지'), ('무협', '무협'), ('로맨스판타지', '로맨스판타지'), ('퓨전판타지', '퓨전판타지'), ('대체역사', '대체역사'), ('스포츠', '스포츠')]:
+                    if re.search(rf'(?:완결|연재)\.\s*{m_tag}', snippet) or f'. {m_tag}.' in snippet or f'. {m_tag} ' in snippet:
+                        found_genres.extend([g_name, g_name, g_name])
+                        official_genres.append(g_name)
+
+            if 'ridibooks.com' in link:
+                for r_tag, g_name in [('퓨전 판타지', '퓨전판타지'), ('현대 판타지', '현대판타지'), ('무협 소설', '무협'), ('로맨스판타지', '로맨스판타지'), ('판타지 웹소설', '판타지'), ('판타지 e북', '판타지')]:
+                    if r_tag in title or r_tag in snippet:
+                        found_genres.extend([g_name, g_name, g_name])
+                        official_genres.append(g_name)
+
+            # 1차: 일반 스니펫 분석
+            text = f"{title} {snippet}"
+            found_genres.extend(self._analyze_text(text))
+            
+            # 2차: 스크래핑 결정 및 수행 (공식 플랫폼 발견 시 스크래핑 생략)
+            if not official_genres and self._should_scrape(link, found_genres, query=query, item_title=title): 
+                scraped_genres = self._scrape_url(link)
+                if scraped_genres:
+                    found_genres.extend(scraped_genres)
+            
+            all_found_genres.extend(found_genres)
+        
+        combined_snippets = " ".join([f"{item.get('title', '')} {item.get('snippet', '')}" for item in items])
+        
+        if official_genres:
+            best_genre, score = self._resolve_genre_priority(official_genres, country=country)
+            if best_genre:
+                return {
+                    'genre': best_genre,
+                    'confidence': 0.95,
+                    'source': f'{source_prefix}_Official',
+                    'snippet': combined_snippets
+                }
+
+        if not all_found_genres:
+            return None
+        
+        best_genre, score = self._resolve_genre_priority(all_found_genres, country=country)
+        if not best_genre:
+            return None
+        
+        confidence = 0.75 + (min(score, 5) * 0.04)
+        
+        return {
+            'genre': best_genre,
+            'confidence': min(confidence, 0.95),
+            'source': f'{source_prefix}_Scraping',
+            'snippet': combined_snippets
+        }
 
     def _should_scrape(self, url: str, current_genres: List[str], query: str = "", item_title: str = "") -> bool:
         """
@@ -331,6 +368,7 @@ class GoogleGenreExtractor:
             '로맨스판타지': 80,
             '퓨전판타지': 78,
             '대체역사': 70,
+            '밀리터리': 72,
             'SF': 65,
             '라이트노벨': 60,
             '공포': 50,

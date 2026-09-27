@@ -72,7 +72,7 @@ class QidianExtractor(BasePlatformExtractor):
                 if isinstance(content_val, str) and content_val.strip():
                     raw_genres.append(content_val.strip())
                 elif isinstance(content_val, list):
-                    raw_genres.extend(str(c).strip() for c in content_val if str(c).strip())
+                    raw_genres.extend(c.strip() for c in content_val if c.strip())
 
             # a 태그 중 카테고리 링크
             for a in soup.find_all('a', href=re.compile(r'/category/|/all\?')):
@@ -313,6 +313,69 @@ class SyosetuExtractor(BasePlatformExtractor):
                         }
 
         return None
+
+    def direct_search(self, title: str) -> Optional[Dict[str, Any]]:
+        """소설가가 되자(Syosetu) 무료 공식 API를 이용한 직접 검색 및 장르 추론"""
+        if not title:
+            return None
+        import urllib.parse
+        import requests
+
+        try:
+            clean_q = re.sub(r'[\(\[\{].*?[\)\]\}]', '', title).strip()
+            clean_q = re.sub(r'\s*\d+[-~]\d+.*$', '', clean_q).strip()
+            clean_q = clean_q.replace('소설', '').strip()
+            if not clean_q:
+                return None
+
+            encoded = urllib.parse.quote(clean_q)
+            api_url = f"https://api.syosetu.com/novelapi/api/?out=json&word={encoded}&lim=5"
+            resp = requests.get(api_url, headers=self.headers, timeout=5)
+            if resp.status_code == 200:
+                data = resp.json()
+                # data[0]은 {'allcount': N}, data[1:]부터 소설 정보
+                if len(data) > 1:
+                    item = data[1]
+                    raw_genre_code = item.get('genre')
+                    keywords = item.get('keyword', '')
+                    item_title = item.get('title', '')
+                    ncode = item.get('ncode', '')
+                    novel_url = f"https://ncode.syosetu.com/{ncode.lower()}/" if ncode else "https://syosetu.com"
+
+                    # 2차 창작/패러디 키워드 우선 검사
+                    if any(kw in keywords for kw in ['二次創作', '二次', 'パロディ', '東方', 'ファンフィクション']):
+                        print(f"  [{self.platform_name} API] 2차 창작 키워드 감지 → '패러디'")
+                        return {
+                            'genre': '패러디',
+                            'confidence': 0.95,
+                            'source': 'Syosetu_API',
+                            'raw_genre': '二次創作',
+                            'url': novel_url,
+                            'snippet': f"{item_title} / {keywords}"
+                        }
+
+                    code_map = {
+                        101: '로판', 102: '로판',
+                        201: '판타지', 202: '현판',
+                        301: '소설', 302: '소설', 303: '역사', 304: '소설', 305: '공포', 306: '판타지', 307: '소설',
+                        401: '겜판', 402: 'SF', 403: 'SF', 404: 'SF'
+                    }
+                    if raw_genre_code in code_map:
+                        mapped = code_map[raw_genre_code]
+                        print(f"  [{self.platform_name} API] 장르 코드 {raw_genre_code} 감지 → '{mapped}'")
+                        return {
+                            'genre': mapped,
+                            'confidence': 0.95,
+                            'source': 'Syosetu_API',
+                            'raw_genre': str(raw_genre_code),
+                            'url': novel_url,
+                            'snippet': f"{item_title} / {keywords}"
+                        }
+        except Exception as e:
+            print(f"  [{self.platform_name} API 오류] {e}")
+
+        return None
+
 
 
 class KakuyomuExtractor(BasePlatformExtractor):

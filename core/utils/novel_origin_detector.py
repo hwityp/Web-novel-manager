@@ -59,11 +59,38 @@ class NovelOriginDetector:
     # 3. 일본어 가나 정규식 (히라가나, 카타카나)
     JAPANESE_KANA_REGEX = re.compile(r'[\u3040-\u309f\u30a0-\u30ff]')
 
+    # 3-1. 일본어 고유 신자체(新字体, JIS) 한자 정규식
+    JAPANESE_SHINJITAI_REGEX = re.compile(
+        r'[\u8ee2\u6c17\u5b66\u4f53\u56fd\u7adc\u5e83\u5b9f\u9244\u6e0b\u6e05\u52b1\u4e88\u4f59\u6075\u6765\u60aa'
+        r'\u4e0e\u4e89\u4ecf\u5150\u5186\u5263\u53d8\u56f3\u58f0\u58f2\u5909\u5b9f\u6075\u6170\u6226\u629e\u636e'
+        r'\u654e\u65ad\u65f6\u685c\u697d\u6b69\u6b74\u6c17\u6ca2\u6d5c\u6f54\u70b9\u72ec\u756a\u767a\u76d7\u771e'
+        r'\u793c\u795e\u796fc\u79d8\u79c1\u7a42\u7b87\u7c8b\u7d75\u7d99\u7dd2\u7f72\u8056\u80a9\u8133\u8107\u82b8'
+        r'\u8584\u866b\u8853\u8863\u898b\u89c8\u8a00\u8a33\u8a3c\u8b5c\u8b66\u9055\u9162\u91d1\u9280\u92ed\u96a0'
+        r'\u970a\u9858\u99c1\u9a0e\u9a19\u9ed2]'
+    )
+
     # 4. 한자 정규식 (CJK 통합 한자)
     CHINESE_CHAR_REGEX = re.compile(r'[\u4e00-\u9fff\u3400-\u4dbf]')
 
     # 4-1. 중국어 고유 전각 문장부호 정규식 (전각 쉼표: '，', 전각 콜론: '：', 모점: '、')
     CHINESE_PUNCTUATION_REGEX = re.compile(r'[\uFF0C\uFF1A\u3001]')
+
+    # 4-2. 중국어 한자음 문법 어소 (무공백 한자 독음 제목에서 흔히 나타나는 한자음)
+    CN_PHONETIC_GRAMMAR_REGEX = re.compile(
+        r'(?:리적|후적|지력|료마|시수|불사우|관선료|풍료|붕료|매방료|흔난|타적|나저|회리적|니설|저시|척능|'
+        r'적맹왕|아적|이적|아시|아취시|이취시|천성|천서|천서후|포회|별야|불안투로|척패|가급|가유|개착|외괘|'
+        r'흘육|아태상|아피박|아합법|아성위|아진몰상|이신몰상|개국|종.+?개시|개시|인재|시가사|쾌천지|두라지|항종지|'
+        r'성료|함어료|별태리보|국사대인|선자|아재|아진적|아능|아도시|나사년|종편|포부|니문|수책|오월령|'
+        r'적장부|적신도|단목후|파경후|천월|생활계|속성점|적아|불시|옹유|요도|전민|전직|자소도주|일품용화|'
+        r'표고양|금욕불자|앵앵괴|소조종|화오|국술|대종사|도과|항도|항종|권유|괴렵|위새리사|삼두룡|통고금|'
+        r'초시|포화호선|출룡|희신|희랍대악인|허니만장|금점층|호림원|호림|초가전|령원구|학신전|회당|'
+        r'극도무성|용상반약공|횡추|화의금화|첩영|명령여징복|연대문|여배|각성후|쾌천)'
+    )
+
+    # 4-3. 일본어 한자음 문법 어소
+    JP_PHONETIC_GRAMMAR_REGEX = re.compile(
+        r'(?:지인|적거인|전생|방랑담|수기녹|귀멸|진격|은혼|주술회전)'
+    )
 
     # 5. 중국 소설 고유 클리셰 및 어휘 패턴
     CN_TRAIT_KEYWORDS: Dict[str, str] = {
@@ -274,6 +301,62 @@ class NovelOriginDetector:
         "주명승도": "중국 선협(铸明升道)",
         "시가사": "중국어 구어체 음독 '시가사(是个啥)'",
         "초능력시가사": "중국어 번역투 '초능력시가사(超能力是个啥)'",
+        # 어미 및 조사 음독
+        "리적": "중국어 '~리적(里的: ~안의)' 음독",
+        "후적": "중국어 '~후적(后的: ~후의)' 음독",
+        "지력": "중국어 '~지력(之力: ~의 힘)' 음독",
+        "료마": "중국어 의문조사 '~료마(了吗)' 음독",
+        "시수": "중국어 '~시수(是谁: 누구인가)' 음독",
+        "불사우": "중국어 '~불사우(不死于: ~로 죽지 않는다)' 음독",
+        "관선료": "중국어 '관선료(官宣了: 공식 발표했다)' 음독",
+        "풍료": "중국어 '풍료(疯了: 미쳤다)' 음독",
+        "붕료": "중국어 '붕료(崩了: 붕괴했다)' 음독",
+        "매방료": "중국어 '매방료(买房了: 집을 샀다)' 음독",
+        "흔난": "중국어 '흔난(很难: 매우 어렵다)' 음독",
+        "타적": "중국어 3인칭 소유격 '타적(他的: 그의)' 음독",
+        "나저": "중국어 '나저(那这: 그렇다면 이것은)' 음독",
+        "회리적": "중국어 '회리적(怀里的: 품 속의)' 음독",
+        "니설": "중국어 '니설(你说: 네가 말하기를)' 음독",
+        "저시": "중국어 '저시(这是: 이것이)' 음독",
+        "척능": "중국어 '척능(只能: 오직 ~할 수밖에)' 음독",
+        # 중국 고유 클리셰 및 어휘 음독
+        "표고양": "중국 고대 언정 외사촌 아가씨(表姑娘)",
+        "금욕불자": "중국 로맨스 언정 금욕불자(禁欲佛子)",
+        "앵앵괴": "중국 인터넷 유행어 애교쟁이(嘤嘤怪)",
+        "소조종": "중국 언정 상전/조상님(小祖宗)",
+        "화오": "중국 연예계(华娱) 또는 피겨(花滑)",
+        "국술": "중국 전통 권술(国术)",
+        "대종사": "대종사(大宗师)",
+        "도과": "선협 도의 결실(道果)",
+        "항도": "홍콩 섬(港岛)",
+        "항종": "홍콩 영화 종합 유니버스(港综)",
+        "권유": "왕좌의 게임 중국어 약칭(权游)",
+        "괴렵": "몬스터 헌터 중국어 약칭(怪猎)",
+        "위새리사": "비세리스 음독(韦赛里斯)",
+        "삼두룡": "타르가르옌 삼두룡(三头龙)",
+        "통고금": "고금을 통하다(通古今)",
+        "초시": "슈퍼마켓(超市)",
+        "포화호선": "포화호선(炮火弧线)",
+        "출룡": "대체역사 출룡(黜龙)",
+        "구일음락가": "크툴루 옛지배자 음악가(旧日音乐家)",
+        "구호반": "축구 9.5번 공격수(九号半)",
+        "영능자": "사이커/초능력자(灵能者)",
+        "희신": "경극의 신(戏神)",
+        "희랍대악인": "그리스 신화 대악인(希腊带恶人)",
+        "허니만장": "허니만장광망호(许你万丈光芒好)",
+        "금점층": "골든 셰이디드 고양이(金渐层)",
+        "호림원": "산림 레인저(护林员)",
+        "호림": "산림 보호(护林)",
+        "초가전": "가챠 뽑기 전(抽卡前)",
+        "령원구": "털이/약탈(零元购)",
+        "학신전": "학문의 신의 전당(学神殿)",
+        "회당": "되돌아가다(回档)",
+        "극도무성": "극도 무성(极道武圣)",
+        "용상반약공": "김용 무협 용상반약공(龙象般若功)",
+        "횡추": "거침없이 밀어붙이다(横推)",
+        "화의금화": "남북조 역사극 화의금화(华衣锦华)",
+        "첩영": "스파이/첩보(谍影)",
+        "명령여징복": "커맨드 앤 컨커(命令与征服)",
     }
 
     # 6. 일본 소설 고유 클리셰 및 어휘 패턴
@@ -336,6 +419,8 @@ class NovelOriginDetector:
         "신무협": "한국 창작 신무협",
         "판도충": "한국 대체역사 밈/용어",
         "만반도": "한국 대체역사 밈/용어",
+        "타입문": "서브컬처 타입문(TYPE-MOON)",
+        "커쉐": "명탐정 코난 커쉐(柯学)",
     }
 
     @classmethod
@@ -399,9 +484,28 @@ class NovelOriginDetector:
             if cls.JAPANESE_KANA_REGEX.search(cjk_source):
                 jp_score += 80
                 reasons.append(f"원문 제목에 일본어 가나(히라가나/카타카나) 포함: '{cjk_source}'")
+            elif cls.JAPANESE_SHINJITAI_REGEX.search(cjk_source):
+                jp_score += 75
+                reasons.append(f"원문 제목에 일본어 신자체(新字体) 한자 포함: '{cjk_source}'")
             elif cls.CHINESE_CHAR_REGEX.search(cjk_source):
-                cn_score += 70
-                reasons.append(f"원문 제목에 한자(CJK) 표기 포함: '{cjk_source}'")
+                # 한국 소설의 한자 표기 병기 검사:
+                # 번역 태그/중국 전각 기호가 없고, 외래 클리셰가 없으며,
+                # 한글 제목 글자 수와 괄호 한자 글자 수가 동일한 경우 (예: 비뢰도 == 飛雷刀, 군림천하 == 君臨天下, 묵향 == 墨香)
+                clean_korean = re.sub(r'[^가-힣]', '', title or raw_name)
+                clean_cjk = re.sub(r'[^\u4e00-\u9fff]', '', cjk_source)
+                has_cn_punct = bool(cls.CHINESE_PUNCTUATION_REGEX.search(full_text))
+                has_trans_tag = bool(cls.TRANSLATION_TAGS.search(full_text))
+                is_foreign_trope = any(kw in clean_korean for kw in ['악역영애', '사합원', '선협', '언정', '지청', '수선', '이세계', '전생', '오토메', '포회', '천월', '중생'])
+
+                if not has_trans_tag and not has_cn_punct and not is_foreign_trope and clean_korean and clean_cjk and len(clean_korean) == len(clean_cjk):
+                    kr_score += 65
+                    reasons.append(f"한국 소설의 한자 표기 병기 감지 ({clean_korean} == {clean_cjk})")
+                elif any(kw in full_text for kw in ['전생', '이세계', '오토메', '라노벨', '영애']):
+                    jp_score += 75
+                    reasons.append(f"원문 한자 표기 및 일본 소설 클리셰 동반: '{cjk_source}'")
+                else:
+                    cn_score += 70
+                    reasons.append(f"원문 제목에 한자(CJK) 표기 포함: '{cjk_source}'")
 
         # -------------------------------------------------------------
         # 2-1. 중국어 고유 전각 문장부호 감지 (전각 쉼표: '，', 전각 콜론: '：', 모점: '、')
@@ -419,6 +523,47 @@ class NovelOriginDetector:
         if (has_jp_tilde or has_jp_sentence) and (cls.TRANSLATION_TAGS.search(full_text) or jp_score > 0):
             jp_score += 45
             reasons.append("일본식 라노벨/웹소설 서식(물결표 부제/문장형 제목) 감지")
+
+        # -------------------------------------------------------------
+        # 2-3. 띄어쓰기 여부 분석 (원문 한자 독음 직역 vs 번역 제목 / 국내작)
+        # -------------------------------------------------------------
+        # 괄호, 특수기호, 숫자를 제거한 순수 한글 제목 추출
+        clean_title_no_bracket = re.sub(r'[\(\[\{（【〔［《〈｛].*?[\)\]\}）】〕］》〉｝]', '', title or raw_name).strip()
+        clean_title_words = re.sub(r'[\d\-~+~_,\.!?，：]+', ' ', clean_title_no_bracket).strip()
+        words = [w for w in clean_title_words.split() if w]
+        is_spaced = len(words) >= 2
+        korean_only = re.sub(r'[^가-힣]', '', clean_title_words)
+        korean_len = len(korean_only)
+
+        if not is_spaced:
+            # [Case A: 띄어쓰기가 없는 무공백 한자 독음 제목]
+            # 중국/일본 원문은 띄어쓰기가 없으므로, 번역 없이 한국식 한자 독음으로 옮겨 적은 경우
+            if korean_len >= 7:
+                if cls.CN_PHONETIC_GRAMMAR_REGEX.search(korean_only):
+                    cn_score += 70
+                    reasons.append(f"띄어쓰기 없는 장문({korean_len}자) 중국 한자 독음 직역 제목 감지: '{korean_only}'")
+                elif cls.JP_PHONETIC_GRAMMAR_REGEX.search(korean_only):
+                    jp_score += 70
+                    reasons.append(f"띄어쓰기 없는 장문({korean_len}자) 일본 한자 독음 직역 제목 감지: '{korean_only}'")
+                else:
+                    cn_score += 45
+                    reasons.append(f"띄어쓰기 없는 장문({korean_len}자) 한자 독음형 제목 감지")
+            elif korean_len >= 3:
+                # 3~6자의 무공백 제목: 중국/일본 특유의 음독 어휘가 있을 때만 가산 (한국 무협/판타지 오탐 방지)
+                if cls.CN_PHONETIC_GRAMMAR_REGEX.search(korean_only):
+                    cn_score += 60
+                    reasons.append(f"띄어쓰기 없는 중국 고유 한자 독음 어휘 일치: '{korean_only}'")
+                elif cls.JP_PHONETIC_GRAMMAR_REGEX.search(korean_only):
+                    jp_score += 60
+                    reasons.append(f"띄어쓰기 없는 일본 고유 한자 독음 어휘 일치: '{korean_only}'")
+        else:
+            # [Case B: 정상 띄어쓰기가 된 제목 (번역 제목 또는 국내 창작물)]
+            # 번역된 제목의 경우에는 띄어쓰기가 되어 있으므로 무공백 음독 점수는 부여하지 않고,
+            # 번역 태그나 외래 플랫폼/클리셰가 없을 경우 국내 창작물 가산
+            reasons.append(f"정상 띄어쓰기 어절 구조({len(words)}개 어절) 감지 (무공백 한자 독음 제외)")
+            if not cls.TRANSLATION_TAGS.search(full_text) and cn_score == 0 and jp_score == 0:
+                kr_score += 30
+                reasons.append("번역 마커 없는 정상 한국어 띄어쓰기 문장 (국내 창작물 가산)")
 
         # -------------------------------------------------------------
         # 3. 본문 헤더 및 텍스트 인코딩 검사
@@ -440,13 +585,13 @@ class NovelOriginDetector:
             from core.utils.chinese_phonetic_analyzer import ChinesePhoneticAnalyzer
             phonetic_res = ChinesePhoneticAnalyzer.analyze(full_text, title)
             if phonetic_res.is_detected:
-                # 한국 소설에도 흔한 일반적 게임/스포츠/공포/현대 키워드 단독 출현 시 CN 오감지 방지
+                # 한국 소설에도 흔한 일반적 게임/스포츠/공포/현대/전통무협 키워드 단독 출현 시 CN 오감지 방지
                 is_generic_trope = any(
                     generic in (phonetic_res.reason or "")
-                    for generic in ["게임판타지/생존게임 클리셰", "스포츠", "공포/괴담", "전문직/연예계"]
+                    for generic in ["게임판타지/생존게임 클리셰", "스포츠", "공포/괴담", "전문직/연예계", "전통 무협/강호 클리셰"]
                 ) and not any(
                     cjk_kw in (phonetic_res.matched_pattern or "")
-                    for cjk_kw in ["생존유희", "生存游戏", "유희", "游戏", "속성반", "공로구생", "도생", "계통", "系统", "골드핑거", "모의기"]
+                    for cjk_kw in ["생존유희", "生存游戏", "유희", "游戏", "속성반", "공로구생", "도생", "계통", "系统", "골드핑거", "모의기", "고룡", "국술", "대종사", "횡추", "극도무성", "용상반약공"]
                 )
                 if not is_generic_trope:
                     cn_score += 80
@@ -513,8 +658,8 @@ class NovelOriginDetector:
         # (B) 일본 고유 어휘 검사
         for kw, desc in cls.JP_TRAIT_KEYWORDS.items():
             if kw in combined_text:
-                # 마왕, 용사 등은 한국 판타지에도 자주 쓰이므로 번역 태그나 해외 단서가 있을 때만 가산
-                if kw in ['마왕', '용사'] and not has_translation_tag and jp_score == 0:
+                # 마왕, 용사, 이세계, 슬로우라이프 등은 한국 판타지에도 자주 쓰이므로 번역 태그나 해외 단서가 있을 때만 가산
+                if kw in ['마왕', '용사', '이세계', '슬로우라이프', '슬로우 라이프'] and not has_translation_tag and jp_score == 0:
                     continue
                 jp_score += 40
                 reasons.append(f"일본 고유 클리셰 어휘: {kw} ({desc})")

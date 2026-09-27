@@ -432,7 +432,7 @@ class NaverGenreExtractorV4:
             return None
     
     def _search_with_web(self, query: str, title: str, strategy) -> Optional[Dict[str, Any]]:
-        """웹 크롤링 사용 (모던 세션 및 WAF 403 방어 + Circuit Breaker)"""
+        """웹 크롤링 사용 (모던 세션 및 WAF 403 방어 + Circuit Breaker + 모바일 폴백)"""
         if getattr(self, 'web_blocked', False):
             return None
             
@@ -442,16 +442,27 @@ class NaverGenreExtractorV4:
             
             response = self.session.get(url, timeout=5)
             
+            # WAF 403 차단 시 모바일 네이버(m.search.naver.com)로 폴백 시도
             if response.status_code != 200:
                 if response.status_code == 403:
-                    self.waf_block_count = getattr(self, 'waf_block_count', 0) + 1
-                    print(f"  [HTTP 오류 403] 네이버 웹 방화벽(WAF) 일시 차단 감지 ({self.waf_block_count}회) → 다음 폴백으로 전환")
-                    if self.waf_block_count >= 3:
-                        self.web_blocked = True
-                        print(f"  [Circuit Breaker] 네이버 WAF 차단 지속 감지 → 이후 웹 크롤링 자동 건너뜀")
+                    print("  [네이버 WAF 403] 데스크톱 차단 감지 → 모바일 네이버(m.search.naver.com) 폴백 시도")
+                    m_headers = {
+                        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                        'Accept-Language': 'ko-KR,ko;q=0.9'
+                    }
+                    m_url = f"https://m.search.naver.com/search.naver?query={encoded_query}"
+                    m_resp = self.session.get(m_url, headers=m_headers, timeout=5)
+                    if m_resp.status_code == 200:
+                        response = m_resp
+                    else:
+                        self.waf_block_count = getattr(self, 'waf_block_count', 0) + 1
+                        if self.waf_block_count >= 3:
+                            self.web_blocked = True
+                        return None
                 else:
                     print(f"  [HTTP 오류] 상태 코드: {response.status_code}")
-                return None
+                    return None
             
             soup = BeautifulSoup(response.text, 'html.parser')
             all_links = soup.find_all('a', href=True)
@@ -501,6 +512,11 @@ class NaverGenreExtractorV4:
             'naver_series': [],
             'kakao': [],
             'novelnet': [],
+            'qidian': [],
+            'jjwxc': [],
+            'baike': [],
+            'syosetu': [],
+            'kakuyomu': [],
             'webtoonguide': [],
             'mrblue': [],
             'yes24': [],
