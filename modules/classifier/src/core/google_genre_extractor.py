@@ -124,45 +124,60 @@ class GoogleGenreExtractor:
 
             clean_q = re.sub(r'[\(\[\{].*?[\)\]\}]', '', query).strip()
             clean_q = re.sub(r'\s*\d+[-~]\d+.*$', '', clean_q).strip()
+            clean_q = re.sub(r'[，：！？、～·《》]', ' ', clean_q)
+            clean_q = re.sub(r'\s+', ' ', clean_q).strip()
 
             items = []
-            # 1. Bing 검색 시도
-            try:
-                b_url = f"https://www.bing.com/search?q={urllib.parse.quote(clean_q + ' 소설')}"
-                resp = requests.get(b_url, headers=headers, timeout=5)
-                if resp.status_code == 200:
-                    resp.encoding = 'utf-8'
-                    soup = BeautifulSoup(resp.text, 'html.parser')
-                    for li in soup.find_all('li', class_='b_algo')[:10]:
-                        h2 = li.find('h2')
-                        a = h2.find('a') if h2 else None
-                        snippet_el = li.find('div', class_='b_caption')
-                        t = a.get_text().strip() if a else ''
-                        href = a.get('href', '') if a else ''
-                        s = snippet_el.get_text().strip() if snippet_el else ''
-                        if t or s:
-                            items.append({'title': t, 'snippet': s, 'link': href})
-            except Exception as be:
-                self.logger.debug(f"Bing search error: {be}")
+            
+            # 검색 쿼리 목록 구성
+            search_queries = [f"{clean_q} 소설"]
+            if country == 'CN':
+                search_queries.append(f"{clean_q} 중국 소설")
+                subparts = [p.strip() for p in re.split(r'\s+', clean_q) if len(p.strip()) >= 2]
+                if len(subparts) >= 2:
+                    search_queries.append(f"{subparts[0]} {subparts[1]}")
 
-            # 2. 모바일 네이버 검색 시도
-            try:
-                m_headers = {
-                    'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-                }
-                m_url = f"https://m.search.naver.com/search.naver?query={urllib.parse.quote(clean_q + ' 소설')}"
-                m_resp = requests.get(m_url, headers=m_headers, timeout=5)
-                if m_resp.status_code == 200:
-                    m_soup = BeautifulSoup(m_resp.text, 'html.parser')
-                    for cont in m_soup.find_all(['li', 'div', 'section'])[:15]:
-                        txt = cont.get_text(separator=' ', strip=True)
-                        if txt and 20 < len(txt) <= 600:
-                            a_tag = cont.find('a', href=True)
-                            href = a_tag['href'] if a_tag else ''
-                            items.append({'title': txt[:80], 'snippet': txt, 'link': href})
-            except Exception as ne:
-                self.logger.debug(f"Mobile Naver search error: {ne}")
+            # 1. Bing 검색 시도
+            for sq in search_queries:
+                try:
+                    b_url = f"https://www.bing.com/search?q={urllib.parse.quote(sq)}"
+                    resp = requests.get(b_url, headers=headers, timeout=5)
+                    if resp.status_code == 200:
+                        resp.encoding = 'utf-8'
+                        soup = BeautifulSoup(resp.text, 'html.parser')
+                        for li in soup.find_all('li', class_='b_algo')[:10]:
+                            h2 = li.find('h2')
+                            a = h2.find('a') if h2 else None
+                            snippet_el = li.find('div', class_='b_caption')
+                            t = a.get_text().strip() if a else ''
+                            href = a.get('href', '') if a else ''
+                            s = snippet_el.get_text().strip() if snippet_el else ''
+                            if t or s:
+                                items.append({'title': t, 'snippet': s, 'link': href})
+                    if items:
+                        break
+                except Exception as be:
+                    self.logger.debug(f"Bing search error: {be}")
+
+            # 2. 모바일 네이버 검색 시도 (결과 부족 시)
+            if len(items) < 3:
+                try:
+                    m_headers = {
+                        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+                    }
+                    m_url = f"https://m.search.naver.com/search.naver?query={urllib.parse.quote(clean_q + ' 소설')}"
+                    m_resp = requests.get(m_url, headers=m_headers, timeout=5)
+                    if m_resp.status_code == 200:
+                        m_soup = BeautifulSoup(m_resp.text, 'html.parser')
+                        for cont in m_soup.find_all(['li', 'div', 'section'])[:15]:
+                            txt = cont.get_text(separator=' ', strip=True)
+                            if txt and 20 < len(txt) <= 600:
+                                a_tag = cont.find('a', href=True)
+                                href = a_tag['href'] if a_tag else ''
+                                items.append({'title': txt[:80], 'snippet': txt, 'link': href})
+                except Exception as ne:
+                    self.logger.debug(f"Mobile Naver search error: {ne}")
 
             if not items:
                 return None
@@ -178,11 +193,28 @@ class GoogleGenreExtractor:
         all_found_genres = []
         official_genres = []
         
+        clean_target = re.sub(r'[\s_.,!?:;\'"~，：！？、～·-]+', '', query).lower()
+        subparts = [p.strip().lower() for p in re.split(r'[\s_.,!?:;\'"~，：！？、～·-]+', query) if len(p.strip()) >= 2]
+        if len(clean_target) >= 4:
+            subparts.append(clean_target[:4])
+            subparts.append(clean_target[:3])
+
         for item in items:
             title = item.get('title', '')
             snippet = item.get('snippet', '')
             link = item.get('link', '')
             found_genres = []
+
+            # [유효성 검증] 검색 결과가 소설과 실제로 관련이 있는지 검증 (TVING, 인벤 등 무관한 검색 노이즈 차단)
+            combined_txt = f"{title} {snippet}".lower()
+            clean_combined = re.sub(r'[\s_.,!?:;\'"~，：！？、～·-]+', '', combined_txt)
+            is_platform_link = any(dom in link for dom in [
+                'series.naver.com', 'munpia.com', 'ridibooks.com', 'qidian.com',
+                'jjwxc.net', 'syosetu.com', 'ssn.so', 'novelpia.com', 'joara.com'
+            ])
+            is_title_relevant = (len(clean_target) >= 2 and clean_target in clean_combined) or any(sp in clean_combined for sp in subparts)
+            if not (is_title_relevant or is_platform_link):
+                continue
             
             # [소설넷 필터링]
             if 'ssn.so' in link:
@@ -311,8 +343,14 @@ class GoogleGenreExtractor:
 
         # 검색 쿼리와 검색 결과 제목의 연관성 검사
         if query and item_title:
-            query_words = [w for w in re.split(r'\s+', query) if len(w) >= 2]
-            if query_words and not any(w in item_title for w in query_words):
+            clean_q = re.sub(r'[\s_.,!?:;\'"~，：！？、～·-]+', '', query).lower()
+            clean_it = re.sub(r'[\s_.,!?:;\'"~，：！？、～·-]+', '', item_title).lower()
+            subparts = [p.strip().lower() for p in re.split(r'[\s_.,!?:;\'"~，：！？、～·-]+', query) if len(p.strip()) >= 2]
+            if len(clean_q) >= 4:
+                subparts.append(clean_q[:4])
+                subparts.append(clean_q[:3])
+            title_matches = (len(clean_q) >= 2 and (clean_q in clean_it or clean_it in clean_q)) or any(sp in clean_it for sp in subparts)
+            if not title_matches:
                 return False
 
         # 허용된 커뮤니티, 위키, 플랫폼만 스크래핑 허용

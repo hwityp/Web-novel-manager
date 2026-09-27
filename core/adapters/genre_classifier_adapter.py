@@ -309,29 +309,7 @@ class GenreClassifierAdapter:
             print(f"  [결과] {task.genre} (confidence: {task.confidence}, source: 본문헤더)")
             return task
         
-        # Step 2.7: CJK 음독/클리셰 분석 엔진 직접 감지 (Phonetic/Known-First)
-        # 이미 등록된 유명 작품(KNOWN_TITLES)이나 고유 어휘/클리셰로 높은 신뢰도 판정이 가능한 경우 즉시 적용
-        try:
-            from core.utils.chinese_phonetic_analyzer import ChinesePhoneticAnalyzer
-            phonetic_res = ChinesePhoneticAnalyzer.analyze(raw_text, pure_title)
-            if phonetic_res.is_detected and phonetic_res.genre in GENRE_WHITELIST and phonetic_res.genre != '미분류':
-                if phonetic_res.confidence == 'high':
-                    corrected_genre = self._apply_origin_specific_rules(phonetic_res.genre, task, raw_text)
-                    task.genre = NovelTraitExtractor.format_genre_tag(
-                        primary_genre=corrected_genre,
-                        title=raw_text
-                    )
-                    task.confidence = 'high'
-                    task.source = '음독분석기'
-                    task.status = 'processing'
-                    self.cache.set(pure_title, task.genre, 'high', '음독분석기')
-                    self.logger.debug(f"  [음독 분석기 즉시 확정] '{pure_title}': {task.genre} ({phonetic_res.reason})")
-                    print(f"  [결과] {task.genre} (confidence: {task.confidence}, source: 음독분석기)")
-                    return task
-        except Exception as pe:
-            self.logger.debug(f"음독 분석기 오류: {pe}")
-
-        # Step 3: Stage 1 - 인터넷 검색 (Search-First) - NaverGenreExtractorV4 직접 사용
+        # Step 3: Stage 1 - 인터넷 검색 (Search-First) - Naver / Google / 해외플랫폼 웹 검색 우선 시도
         try:
             search_result = self._search_genre(pure_title, author, foreign_title, country=origin_res.country)
         except TypeError:
@@ -368,9 +346,9 @@ class GenreClassifierAdapter:
                 print(f"  [결과] {task.genre} (confidence: {task.confidence}, source: {source})")
                 return task
         
-        # Step 4: Stage 3 - 키워드 폴백 (검색 실패 시에만)
-        self.logger.debug(f"  [폴백] 검색 실패, 키워드 매칭 시도")
-        print(f"  [폴백] 검색 실패, 키워드 매칭 시도")
+        # Step 4: Stage 3 - 키워드 및 음독 분석기 폴백 (검색 실패 시에만 안전망으로 실행)
+        self.logger.debug(f"  [폴백] 검색 실패, 키워드/음독 매칭 시도")
+        print(f"  [폴백] 검색 실패, 키워드/음독 매칭 시도")
         keyword_result = self._keyword_fallback(pure_title, raw_text, foreign_title)
         
         if keyword_result and keyword_result.get('genre') != '미분류':
@@ -385,15 +363,16 @@ class GenreClassifierAdapter:
                     primary_genre=mapped_genre,
                     title=raw_text
                 )
-                task.confidence = 'medium'  # 키워드 매칭 = medium
-                task.source = '키워드'
+                src = keyword_result.get('source', 'keyword')
+                task.confidence = 'medium'  # 폴백 매칭 = medium
+                task.source = self._format_source(src)
                 task.status = 'processing'
                 
                 # 캐시에 저장
-                self.cache.set(pure_title, task.genre, 'medium', 'keyword')
+                self.cache.set(pure_title, task.genre, 'medium', src)
                 
-                self.logger.debug(f"  [결과] {task.genre} (confidence: {task.confidence}, source: keyword)")
-                print(f"  [결과] {task.genre} (confidence: {task.confidence}, source: keyword)")
+                self.logger.debug(f"  [결과] {task.genre} (confidence: {task.confidence}, source: {task.source})")
+                print(f"  [결과] {task.genre} (confidence: {task.confidence}, source: {task.source})")
                 return task
         
         # Step 5: 모든 방법 실패
@@ -712,6 +691,7 @@ class GenreClassifierAdapter:
             return None
         
         try:
+            source = 'keyword'
             result = self._keyword_classifier.classify_with_confidence(title)
             genre = result.get('primary_genre', '미분류')
             confidence = result.get('confidence', 0.0)
@@ -737,7 +717,7 @@ class GenreClassifierAdapter:
                         genre = cjk_single.get('primary_genre')
                         confidence = cjk_single.get('confidence', 0.0)
 
-            # 중국 소설 음독/번역투 분석기(ChinesePhoneticAnalyzer) 적용
+            # 중국 소설 음독/번역투 분석기(ChinesePhoneticAnalyzer) 적용 (안전망)
             try:
                 from core.utils.chinese_phonetic_analyzer import ChinesePhoneticAnalyzer
                 phonetic_res = ChinesePhoneticAnalyzer.analyze(raw_text, title)
@@ -745,6 +725,7 @@ class GenreClassifierAdapter:
                     if genre == '미분류' or phonetic_res.confidence == 'high':
                         genre = phonetic_res.genre
                         confidence = 0.95 if phonetic_res.confidence == 'high' else 0.85
+                        source = '음독분석기'
                         self.logger.debug(f"  [음독 분석기 감지] {raw_text} -> {genre} ({phonetic_res.reason})")
             except Exception as pe:
                 self.logger.debug(f"음독 분석기 오류: {pe}")
@@ -873,7 +854,8 @@ class GenreClassifierAdapter:
             
             return {
                 'genre': mapped_genre,
-                'confidence': confidence
+                'confidence': confidence,
+                'source': source
             }
             
         except Exception as e:
@@ -920,6 +902,28 @@ class GenreClassifierAdapter:
             'yes24': 'YES24',
             '알라딘': '알라딘',
             'aladin': '알라딘',
+            '치뎬': '치뎬',
+            'qidian': '치뎬',
+            '진장문학성': '진장문학성',
+            'jjwxc': '진장문학성',
+            '바이두백과': '바이두백과',
+            'baike': '바이두백과',
+            '소설가가되자': '소설가가되자',
+            'syosetu': '소설가가되자',
+            '카쿠요무': '카쿠요무',
+            'kakuyomu': '카쿠요무',
+            '하멜른': '하멜른',
+            '디시': '디시인사이드',
+            'dcinside': '디시인사이드',
+            '아카라이브': '아카라이브',
+            'arca': '아카라이브',
+            '나무위키': '나무위키',
+            'namu': '나무위키',
+            'websearch': '웹검색',
+            'google': 'Google',
+            'naver': '네이버',
+            '음독분석기': '음독분석기',
+            '음독': '음독분석기',
             'keyword': '키워드',
             'cache': '캐시',
             'user': '사용자',

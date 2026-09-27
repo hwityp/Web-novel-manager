@@ -54,16 +54,32 @@ class SearchStrategy:
         
         # 0차: 국적이 확정된 경우 해당 국가 특화 쿼리를 최우선으로 배치
         if self.country == 'CN':
+            import re
+            clean_cn = re.sub(r'[，：！？、～·《》]', ' ', self.main_title)
+            clean_cn = re.sub(r'\s+', ' ', clean_cn).strip()
+            
             queries.append({
-                'query': f"{self.main_title} 중국 소설",
+                'query': f"{clean_cn} 소설",
+                'description': "중국 소설(CN) 판별 → '소설' 키워드 특화 검색",
+                'priority': 1
+            })
+            queries.append({
+                'query': f"{clean_cn} 중국 소설",
                 'description': "중국 소설(CN) 판별 → '중국 소설' 특화 검색",
                 'priority': 1
             })
             queries.append({
-                'query': f"{self.main_title} 치뎬",
+                'query': f"{clean_cn} 치뎬",
                 'description': "중국 소설(CN) 판별 → '치뎬' 플랫폼 검색",
                 'priority': 2
             })
+            subparts = [p.strip() for p in re.split(r'[，：！？、～·《》\s]+', self.main_title) if len(p.strip()) >= 2]
+            if len(subparts) >= 2:
+                queries.append({
+                    'query': f"{subparts[0]} {subparts[1]}",
+                    'description': "중국 소설(CN) → 핵심 구문 조합 검색",
+                    'priority': 2
+                })
         elif self.country == 'JP':
             queries.append({
                 'query': f"{self.main_title} 소설가가되자",

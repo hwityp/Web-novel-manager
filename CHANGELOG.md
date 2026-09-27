@@ -5,6 +5,27 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.51] - 2026-09-27
+
+### Added & Improved
+
+- **웹 검색 우선(Search-First) 장르 분류 파이프라인 흐름 정상화 (`core/adapters/genre_classifier_adapter.py`):**
+  - **음독분석기 조기 종료 제거:** 기존에 웹 검색 전에 실행되어 결과를 조기 반환(`return task`)하던 음독분석기(ChinesePhoneticAnalyzer) 위치를 `Step 4: 키워드 폴백` 단계의 안전망으로 전환.
+  - **인터넷 검색 우선순위 보장:** 국내외 공식 플랫폼 및 인터넷 웹 검색(Naver, Google/Bing 웹 스크래핑)이 항상 먼저 실행되어, 인터넷에 정보가 존재하는 소설은 정확히 웹 검색 출처(`웹검색`, `Google`, `Naver` 등)로 장르를 확정하도록 개선.
+  - **음독분석기 결과 신뢰도 및 출처 명시:** 검색 실패 시 안전망으로 폴백되는 음독분석기 결과의 `source`를 `'음독분석기'`, 신뢰도를 `'medium'`으로 명확화하고 캐시에 정상 저장하도록 구조화.
+
+- **중국 소설 검색 전략 및 다단계 쿼리 고도화 (`modules/classifier/src/core/utils/search_strategy.py`):**
+  - **중국어 전각 문장부호 정제:** 중국 웹소설 특유의 전각 기호(`[，：！？、～·《》]`)를 자동 정제하여 검색 포털 친화적 쿼리 생성.
+  - **다단계 특화 쿼리 자동 생성:** `"{clean_title} 소설"`, `"{clean_title} 중국 소설"`, `"{clean_title} 치뎬"`, 핵심 어휘 분할 조합 쿼리를 단계별로 시도하여 검색 적중률 대폭 향상.
+
+- **네이버 스니펫 추출기 도메인 및 장르 매핑 확장 (`modules/classifier/src/core/naver_genre_extractor_v4.py`):**
+  - **서브컬처 및 해외 플랫폼 스니펫 분석:** 중국 원서 플랫폼(`qidian`, `jjwxc`, `baike`) 및 주요 서브컬처 커뮤니티(`dcinside`, `arca.live`, `namu.wiki`, `ssn.so`) 허용 도메인 추가.
+  - **장르 키워드 확장:** 선협, 언정, 현환, 패러디 등 중국 웹소설 세부 장르 매핑 보강 및 2글자 이상 핵심 어휘 부분 매칭 지원.
+
+- **구글/빙 웹 검색 노이즈 차단 및 연관성 검증 도입 (`modules/classifier/src/core/google_genre_extractor.py`):**
+  - **Relevance Filtering (연관성 필터):** 검색 결과 스니펫 및 페이지 제목에 소설 원본 제목의 접두어(3~4글자) 또는 주요 어휘가 포함되어 있는지 검증하는 로직 추가.
+  - **엉뚱한 오분류 차단:** Bing/구글 웹 검색 폴백 시 검색어와 무관한 스포츠 중계(TVING)나 게임 커뮤니티(인벤) 페이지가 크롤링되어 엉뚱한 장르(`스포츠`, `현판`)로 오분류되던 현상 완전 차단.
+
 ## [v1.3.50] - 2026-09-27
 
 ### Added & Improved

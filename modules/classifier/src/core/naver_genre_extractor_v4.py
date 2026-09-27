@@ -999,7 +999,13 @@ class NaverGenreExtractorV4:
             ('mrblue', ['미스터블루']),
             ('kyobo', ['교보문고']),
             ('yes24', ['yes24', '예스24']),
-            ('aladin', ['알라딘'])
+            ('aladin', ['알라딘']),
+            ('qidian', ['치뎬', '치디엔', 'qidian', '起点']),
+            ('jjwxc', ['진장', '진장문학성', 'jjwxc', '晋江']),
+            ('baike', ['바이두', '바이두백과', 'baidu']),
+            ('dcinside', ['디시인사이드', '디시', '선협갤', '무협갤', '장마갤', '장르소설']),
+            ('arca', ['아카라이브', 'arca']),
+            ('namu', ['나무위키']),
         ]
 
         # 장르 키워드 매핑 (긴 키워드 우선)
@@ -1011,21 +1017,26 @@ class NaverGenreExtractorV4:
             ('대체역사', '역사'), ('대체 역사', '역사'), ('역사물', '역사'), ('역사', '역사'),
             ('스포츠물', '스포츠'), ('스포츠', '스포츠'),
             ('전통무협', '무협'), ('무협소설', '무협'), ('무협', '무협'),
-            ('선협소설', '선협'), ('선협', '선협'),
+            ('선협소설', '선협'), ('선협물', '선협'), ('선협', '선협'), ('수선', '선협'), ('수진', '선협'),
+            ('언정소설', '언정'), ('언정물', '언정'), ('언정', '언정'),
+            ('동방현환', '선협'), ('현환소설', '판타지'), ('현환', '판타지'),
             ('판타지소설', '판타지'), ('판타지', '판타지'),
             ('SF소설', 'SF'), ('SF', 'SF'),
             ('미스터리', '미스터리'), ('밀리터리', '밀리터리'),
-            ('패러디', '패러디')
+            ('패러디', '패러디'), ('팬픽', '패러디'), ('동인', '패러디')
         ]
 
         import re
-        clean_target_title = re.sub(r'[\s_.,!?:;\'"~-]+', '', title).lower()
+        clean_target_title = re.sub(r'[\s_.,!?:;\'"~，：！？、～·-]+', '', title).lower()
+        subparts = [p.strip().lower() for p in re.split(r'[\s_.,!?:;\'"~，：！？、～·-]+', title) if len(p.strip()) >= 2]
 
         # 유효 플랫폼 도메인 키워드
         platform_url_keywords = [
             'series.naver.com', 'novel.naver.com', 'ridibooks.com', 'munpia.com',
             'novelpia.com', 'page.kakao.com', 'joara.com', 'novelnet', 'mrblue.com',
-            'kyobobook.co.kr', 'yes24.com', 'aladin.co.kr'
+            'kyobobook.co.kr', 'yes24.com', 'aladin.co.kr',
+            'qidian.com', 'jjwxc.net', 'jjwxc.com', 'baike.baidu.com',
+            'dcinside.com', 'arca.live', 'namu.wiki', 'ssn.so'
         ]
 
         for platform_key, kw_list in platform_keywords:
@@ -1038,11 +1049,12 @@ class NaverGenreExtractorV4:
                 clean_text = re.sub(r'<[^>]+>', '', full_text)
                 if len(clean_text) > 800:
                     continue
-                clean_item_text = re.sub(r'[\s_.,!?:;\'"~-]+', '', clean_text).lower()
+                clean_item_text = re.sub(r'[\s_.,!?:;\'"~，：！？、～·-]+', '', clean_text).lower()
 
                 # [Fix] 스니펫 유효성 검증:
-                # 1. 검색 대상 소설의 제목(최소 2글자 이상)이 검색 결과 텍스트에 포함되어 있어야 함
-                if len(clean_target_title) >= 2 and clean_target_title not in clean_item_text:
+                # 1. 검색 대상 소설의 제목(최소 2글자 이상) 또는 주요 2글자 이상 어휘가 검색 결과 텍스트에 포함되어 있어야 함
+                title_matches = (len(clean_target_title) >= 2 and clean_target_title in clean_item_text) or any(sp in clean_item_text for sp in subparts)
+                if not title_matches:
                     continue
                 
                 # 2. 플랫폼 식별 (URL에 플랫폼 도메인이 있거나 텍스트에 플랫폼 키워드가 포함되어야 함)
