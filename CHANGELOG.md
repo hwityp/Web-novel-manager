@@ -5,6 +5,25 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.49] - 2026-09-27
+
+### Fixed & Improved
+
+- **공백 없이 인접한 회차 범위 및 단위 앵커 추출 개선 (`core/title_anchor_extractor.py`):**
+  - 한글, 영문, CJK 한자, 닫는 괄호 바로 뒤에 공백 없이 붙은 범위(`1~129`, `1-100` 등) 및 단위(`129화` 등)를 올바르게 인식하고 앵커로 분리(`(?<=[가-힣a-zA-Z\u4e00-\u9fff\)\]）】］])`).
+  - `대미인천리수군1~129(완)` 형태의 파일명이 회차 범위를 제목으로 오인하지 않고 `[언정] 대미인천리수군 1-129 (완).txt`로 정상 분리 및 표준 공백/하이픈 삽입 정규화 수행.
+
+- **GUI Treeview 목록 전체 파일명 표시 및 말줄임표(`...`) 절삭 제거 (`gui/main_window.py`):**
+  - `_populate_result_table`에서 원본 파일명 50자(`[:50]`) 및 정규화 파일명 60자(`[:60]`) 강제 말줄임표 절삭 로직 제거.
+  - 긴 웹소설 제목도 온전하게 목록에 표시되며, 내장된 가로 스크롤바와 컬럼 너비 조정으로 완전한 파일명 확인 가능.
+
+- **파일명 수정 대화상자(`EditNameDialog`) 가로 폭 확장 및 더블클릭 연동 강화 (`gui/main_window.py`):**
+  - 파일명 편집 창의 기본 크기를 720px로 확장하고 입력 필드 가로 자동 확장(`fill="x"`) 및 리사이징 지원으로 긴 제목도 편리하게 편집 가능하도록 개선.
+  - Treeview 더블클릭 시 표시용 텍스트 대신 `task.metadata['normalized_name']`의 완전한 원본 문자열을 직접 조회하도록 보강하여 무결성 보장.
+
+- **수동 편집 파일명 보호 로직 보강 (`core/adapters/filename_normalizer_adapter.py`):**
+  - `preview_normalized_name()`에서도 사용자가 GUI에서 수동 편집한 파일명(`user_edited=True`)이 이후 단계(장르 확정 등)의 재정규화로 덮어써지지 않도록 보호.
+
 ## [v1.3.48] - 2026-09-27
 
 ### Fixed & Improved

@@ -700,12 +700,12 @@ class TitleAnchorExtractor:
         candidates = []
         
         # 1. 단위 패턴 (1화, 50권, 1부, 165본편 등)
-        unit_match = re.search(r'(?:[\s_]|(?<=[.!?？!！]))\s*\d+\s*(?:[화권부편회장]|본편)(?:\s|$|[,\(\[\+])', name)
+        unit_match = re.search(r'(?:[\s_]|(?<=[.!?？!！])|(?<=[가-힣a-zA-Z\u4e00-\u9fff\)\]）】］]))\s*\d+\s*(?:[화권부편회장]|본편)(?:\s|$|[,\(\[\+])', name)
         if unit_match:
             candidates.append(unit_match)
             
-        # 2. 숫자 범위 패턴 (1-536, 1~100, _1_222 등)
-        range_match = re.search(r'(?:[\s_]|(?<=[.!?？!！]))\s*\d+\s*[-~_]\s*\d+', name)
+        # 2. 숫자 범위 패턴 (1-536, 1~100, _1_222 등 - 공백 없이 붙은 경우 포함)
+        range_match = re.search(r'(?:[\s_]|(?<=[.!?？!！])|(?<=[가-힣a-zA-Z\u4e00-\u9fff\)\]）】］]))\s*\d+\s*[-~_]\s*\d+', name)
         if range_match:
             candidates.append(range_match)
             

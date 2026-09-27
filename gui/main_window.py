@@ -137,8 +137,11 @@ class EditNameDialog(ctk.CTkToplevel):
     def __init__(self, parent, title: str, initial_value: str = ""):
         super().__init__(parent)
         self.title(title)
-        self.geometry("400x180")
-        self.resizable(False, False)
+        dlg_width = 720 if "파일명" in title else 450
+        dlg_height = 190
+        self.geometry(f"{dlg_width}x{dlg_height}")
+        self.resizable(True, False)
+        self.minsize(450, 190)
         
         # 모달 설정
         self.transient(parent)
@@ -146,8 +149,8 @@ class EditNameDialog(ctk.CTkToplevel):
         
         # 중앙 배치
         self.update_idletasks()
-        x = parent.winfo_x() + (parent.winfo_width() // 2) - 200
-        y = parent.winfo_y() + (parent.winfo_height() // 2) - 90
+        x = parent.winfo_x() + (parent.winfo_width() // 2) - (dlg_width // 2)
+        y = parent.winfo_y() + (parent.winfo_height() // 2) - (dlg_height // 2)
         self.geometry(f"+{x}+{y}")
         
         self.result = None
@@ -162,16 +165,17 @@ class EditNameDialog(ctk.CTkToplevel):
             font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_BASE),
             text_color=THEME["text_primary"]
         )
-        label.pack(pady=(20, 10))
+        label.pack(pady=(18, 8))
         
         self.entry = ctk.CTkEntry(
-            self, width=300,
+            self,
             font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_BASE),
             fg_color=THEME["bg_input"], text_color=THEME["text_primary"]
         )
-        self.entry.pack(pady=10)
+        self.entry.pack(fill="x", padx=25, pady=8)
         self.entry.insert(0, initial_value)
         self.entry.focus_set()
+        self.entry.icursor(len(initial_value))
         self.entry.bind("<Return>", self._on_ok)
         
         btn_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -1026,8 +1030,8 @@ class WNAPMainWindow(ctk.CTk):
             
             # iid를 인덱스로 설정하여 더블클릭 시 쉽게 매핑
             self.result_tree.insert("", "end", iid=str(idx), values=(
-                original[:50] + "..." if len(original) > 50 else original,
-                normalized[:60] + "..." if len(str(normalized)) > 60 else normalized,
+                original,
+                normalized,
                 genre,
                 confidence,
                 source
@@ -1590,7 +1594,14 @@ class WNAPMainWindow(ctk.CTk):
         if col == "#2":
             # 현재 값 가져오기
             values = self.result_tree.item(item, "values")
-            current_val = values[1] # normalized
+            task_idx = None
+            try:
+                task_idx = int(item) # iid를 인덱스로 사용
+            except (ValueError, TypeError):
+                pass
+            
+            task = self.tasks_cache[task_idx] if (task_idx is not None and 0 <= task_idx < len(self.tasks_cache)) else None
+            current_val = (task.metadata.get('normalized_name') if task else None) or values[1]
             
             # 커스텀 입력 대화상자 사용 (초기값 지원)
             dialog = EditNameDialog(self, title="파일명 편집", initial_value=current_val)
@@ -1599,9 +1610,7 @@ class WNAPMainWindow(ctk.CTk):
             if new_val and new_val != current_val:
                 # 1. 내부 데이터(tasks_cache) 업데이트
                 try:
-                    task_idx = int(item) # iid를 인덱스로 사용
-                    if 0 <= task_idx < len(self.tasks_cache):
-                        task = self.tasks_cache[task_idx]
+                    if task is not None:
                         task.metadata['normalized_name'] = new_val
                         task.metadata['user_edited'] = True  # 수동 편집 플래그
                         # 로그 기록
@@ -1618,8 +1627,15 @@ class WNAPMainWindow(ctk.CTk):
         # [NEW] 'genre' 컬럼 (#3) 편집 허용
         elif col == "#3":
             values = self.result_tree.item(item, "values")
-            current_genre = values[2] # genre
-            current_normalized = values[1] # normalized name
+            task_idx = None
+            try:
+                task_idx = int(item)
+            except (ValueError, TypeError):
+                pass
+            
+            task = self.tasks_cache[task_idx] if (task_idx is not None and 0 <= task_idx < len(self.tasks_cache)) else None
+            current_genre = (task.genre if task else None) or values[2]
+            current_normalized = (task.metadata.get('normalized_name') if task else None) or values[1]
             
             dialog = EditNameDialog(self, title="장르 편집", initial_value=current_genre)
             new_genre = dialog.get_input()

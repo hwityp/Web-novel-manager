@@ -217,6 +217,10 @@ class FilenameNormalizerAdapter:
         Returns:
             정규화된 파일명 문자열
         """
+        # [Fix] 사용자가 UI에서 수동 편집한 파일명이 있으면 우선 반환
+        if task.metadata.get('user_edited') and task.metadata.get('normalized_name'):
+            return task.metadata['normalized_name']
+
         # 제목 앵커 추출
         if not task.title:
             parse_result = self._extractor.extract(task.raw_name)
