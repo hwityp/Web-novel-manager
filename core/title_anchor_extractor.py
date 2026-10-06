@@ -353,9 +353,13 @@ class TitleAnchorExtractor:
         r'[\(\[（【［]\s*텍본\s*[\)\]）】］]',
     ]
     
+    RANGE_DASHES = r'[-~_〜～〰–—−]'
+
     # 완결 마커 패턴 (전각 괄호 지원)
     COMPLETION_PATTERNS = [
-        r'(?<!\S)(?:完|완)[\s,]*\+?[\s,]*(?:外|외(?:전|포)?)(?!\S)',  # 完外, 완+외전, 完+外 등 복합 마커
+        r'(?<!\S)(?:完|완(?:결)?)[\s,]*\+?[\s,]*(?:外|외(?:전|포)?)(?!\S)',  # 完外, 완+외전, 完+外 등 복합 마커
+        r'(?<!\S)(?:外|외(?:전|포)?)[\s,]*\+?[\s,]*(?:完|완(?:결)?)(?!\S)',  # 외포완, 외포 완, 外完 등 역순 복합 마커 [NEW]
+        r'(?<=[가-힣a-zA-Z0-9\u4e00-\u9fff])\s*(?:외포완|외전완|외포\s*완|완결외전|完外|外完)(?!\S)',  # 제목 뒤 붙은 외포완/외포 완/완결외전 [NEW]
         r'[\(\[（【［]\s*완결\s*[\)\]）】］]',
         r'[\(\[（【［]\s*完\s*[\)\]）】］]',
         r'[\(\[（【［]\s*완\s*[\)\]）】］]',
@@ -389,6 +393,7 @@ class TitleAnchorExtractor:
         r'후일담',
         r'특외',
         r'외포',                             # 외전 포함 [NEW]
+        r'후포',                             # 후기 포함 [NEW]
         r'外',                              # 外 (외전 단축) [NEW]
         r'번외포함',                         # 번외포함 [NEW]
     ]
@@ -449,14 +454,14 @@ class TitleAnchorExtractor:
         )
         
         # [NEW] 단독 외전 패턴 (compile dynamically from SIDE_STORY_PATTERNS)
-        # 예: " 제목 ... 외전 1" 또는 "외전"
+        # 예: " 제목 ... 외전 1", "외전", "외전11화", "외전 1-5" 등
         self.standalone_side_pattern = re.compile(
-            r'(?:^|\s+)(' + '|'.join(self.SIDE_STORY_PATTERNS) + r')(?:\s*\d*[-~]?\d*)?(?:\s|$)',
+            r'(?:^|\s+)(' + '|'.join(self.SIDE_STORY_PATTERNS) + rf')(?:\s*\d*(?:\s*{self.RANGE_DASHES}\s*\d*)?\s*[화권부편회장]?)?(?:\s|$)',
             re.IGNORECASE
         )
         
-        # 범위 패턴 (1-536, 1~536, 1-536화, 1-536권, _1_536 등)
-        self.range_pattern = re.compile(r'(\d+)\s*[-~_]\s*(\d+)\s*[화권부편회장]?')
+        # 범위 패턴 (1-536, 1~536, 1〜1353, 1-536화, 1-536권, _1_536 등)
+        self.range_pattern = re.compile(rf'(\d+)\s*{self.RANGE_DASHES}\s*(\d+)\s*[화권부편회장]?')
         
         # 단일 숫자 패턴 (120, 126 등 - 끝에 있는 단일 숫자)
         # [UPDATED] 뒤에 부/권 등의 단위가 오거나 완결 마커, 또는 외전/에필/번외 등, 또는 문자열 끝인 경우 매칭
@@ -546,8 +551,8 @@ class TitleAnchorExtractor:
             if extracted_g:
                 genre = extracted_g
 
-        # [0.1] 해시태그 패턴 제거 (#패러디, #해리포터, #명탐정 코난 등)
-        name = re.sub(r'#([가-힣a-zA-Z0-9_]+(?:\s+(?!\d+|완결?|完|외전|후기|에필)[가-힣a-zA-Z0-9_]+)*)', '', name)
+        # [0.1] 해시태그 패턴 제거 (#패러디, #해리포터, #명탐정 코난, #붕괴-스타레일 등)
+        name = re.sub(r'#([가-힣a-zA-Z0-9_:\-·]+(?:\s+(?!\d+|완결?|完|외전|후기|에필)[가-힣a-zA-Z0-9_:\-·]+)*)', '', name)
 
         # 노이즈 패턴 제거
         name = self.noise_pattern.sub('', name)
@@ -562,6 +567,7 @@ class TitleAnchorExtractor:
             '학원', '생존', '착각', '방송', '헌터', '던전', '요리', '단총', '복보',
             '해리포터', '나루토', '원피스', '드래곤볼', '포켓몬스터', '포켓몬', '코난', '명탐정 코난', '명탐정코난',
             '주술회전', '귀멸의 칼날', '마블', 'DC', '투라대륙', '블리치', '신비의 제왕', '완미세계', '삼국지', '미드',
+            '붕괴-스타레일', '붕괴: 스타레일', '붕괴스타레일', '스타레일', '붕괴 스타레일',
             '종합', '쭝허', '다중', '다중패러디'
         ]
         while True:
@@ -699,13 +705,29 @@ class TitleAnchorExtractor:
         # (패턴 객체, 우선순위 설명)
         candidates = []
         
+        # 0. 다중 부 패턴 (예: 1부133 完 2부100完, 1부 133 2부 100)
+        multi_vol_match = re.search(
+            rf'(?:[\s_]|(?<=[.!?？!！])|(?<=[가-힣a-zA-Z\u4e00-\u9fff\)\]）】］]))\s*(\d+\s*부)\s*(\d+)(?:\s*(?:完|완|완결))?\s*(\d+\s*부)\s*(\d+)',
+            name
+        )
+        if multi_vol_match:
+            candidates.append(multi_vol_match)
+
         # 1. 단위 패턴 (1화, 50권, 1부, 165본편 등)
+        # 단, \d+부가 나오고 그 뒤에 범위(1-225 등)가 따라오는 경우,
+        # 부제목(예: 2부 귀호 1-225)이나 본 범위의 시작을 위해 unit_match로 제목을 조기 절단하지 않음
         unit_match = re.search(r'(?:[\s_]|(?<=[.!?？!！])|(?<=[가-힣a-zA-Z\u4e00-\u9fff\)\]）】］]))\s*\d+\s*(?:[화권부편회장]|본편)(?:\s|$|[,\(\[\+])', name)
         if unit_match:
-            candidates.append(unit_match)
+            is_volume_preceding_range = False
+            if '부' in unit_match.group(0):
+                after_unit = name[unit_match.end():]
+                if re.search(rf'\d+\s*{self.RANGE_DASHES}\s*\d+', after_unit):
+                    is_volume_preceding_range = True
+            if not is_volume_preceding_range:
+                candidates.append(unit_match)
             
-        # 2. 숫자 범위 패턴 (1-536, 1~100, _1_222 등 - 공백 없이 붙은 경우 포함)
-        range_match = re.search(r'(?:[\s_]|(?<=[.!?？!！])|(?<=[가-힣a-zA-Z\u4e00-\u9fff\)\]）】］]))\s*\d+\s*[-~_]\s*\d+', name)
+        # 2. 숫자 범위 패턴 (1-536, 1~100, 1〜1353, _1_222 등 - 공백 없이 붙은 경우 포함)
+        range_match = re.search(rf'(?:[\s_]|(?<=[.!?？!！])|(?<=[가-힣a-zA-Z\u4e00-\u9fff\)\]）】］]))\s*\d+\s*{self.RANGE_DASHES}\s*\d+', name)
         if range_match:
             candidates.append(range_match)
             
@@ -713,7 +735,13 @@ class TitleAnchorExtractor:
         # [UPDATED] Use compiled pattern
         single_num_match = self.single_number_pattern.search(name)
         if single_num_match:
-            candidates.append(single_num_match)
+            is_volume_preceding_range = False
+            after_single = name[single_num_match.end():]
+            if re.match(r'^\s*부(?:\s|$)', after_single):
+                if re.search(rf'\d+\s*{self.RANGE_DASHES}\s*\d+', after_single):
+                    is_volume_preceding_range = True
+            if not is_volume_preceding_range:
+                candidates.append(single_num_match)
             
         # 4. 완결 마커 패턴 (괄호형, 전각 괄호 지원)
         paren_completion_match = re.search(r'\.?\s*[\(\[（【［]\s*완(?:결)?\s*[\)\]）】］]\.?\s*$', name)
@@ -765,17 +793,37 @@ class TitleAnchorExtractor:
                 author_from_res = potential_author
                 residual = residual[:author_match.start()].strip()
 
+        # [Special Case 0] Multi-volume multi-range (e.g. "1부133 完 2부100完", "1부 133 2부 100")
+        multi_vol_comp_match = re.search(
+            rf'^(\d+\s*부)\s*(\d+(?:\s*{self.RANGE_DASHES}\s*\d+)?)\s*(?:完|완|완결)?\s*(\d+\s*부)\s*(\d+(?:\s*{self.RANGE_DASHES}\s*\d+)?)',
+            residual
+        )
+        if multi_vol_comp_match:
+            v1 = multi_vol_comp_match.group(1).replace(' ', '')
+            r1_raw = multi_vol_comp_match.group(2).replace(' ', '')
+            v2 = multi_vol_comp_match.group(3).replace(' ', '')
+            r2_raw = multi_vol_comp_match.group(4).replace(' ', '')
+
+            r1 = r1_raw if re.search(self.RANGE_DASHES, r1_raw) else f"1-{int(r1_raw)}"
+            r2 = r2_raw if re.search(self.RANGE_DASHES, r2_raw) else f"1-{int(r2_raw)}"
+
+            range_info = f"{v1} {r1} {v2} {r2}"
+            if re.search(r'完|완|완결', residual):
+                is_completed = True
+            residual = residual[multi_vol_comp_match.end():].strip()
+            complex_found = True
+
         # [Special Case] Range + Comp + Volume + Range (e.g. "1-546 完 2부 212")
         # 처리가 복잡한 다중 파트/범위 패턴을 통째로 잡아내어 순서를 보존함
         # Regex: Range(1-546) + Comp(完) + Volume(2부) + Range(212 or 1-212)
-        complex_match = re.search(r'^(\d+\s*[-~]\s*\d+)\s*(?:完|완|완결)\s*(\d+\s*부)\s*(\d+(?:\s*[-~]\s*\d+)?)', residual)
-        if complex_match:
+        complex_match = re.search(rf'^(\d+\s*{self.RANGE_DASHES}\s*\d+)\s*(?:完|완|완결)\s*(\d+\s*부)\s*(\d+(?:\s*{self.RANGE_DASHES}\s*\d+)?)', residual)
+        if complex_match and not complex_found:
             part1_range = complex_match.group(1).replace(' ', '')
             part2_vol = complex_match.group(2).replace(' ', '')
             part2_range_raw = complex_match.group(3).replace(' ', '')
             
             # Part 2 Range Normalization (e.g. 212 -> 1-212)
-            if '-' not in part2_range_raw and '~' not in part2_range_raw:
+            if not re.search(self.RANGE_DASHES, part2_range_raw):
                 part2_range = f"1-{part2_range_raw}"
             else:
                 part2_range = part2_range_raw
@@ -792,7 +840,7 @@ class TitleAnchorExtractor:
 
         # [NEW] N 完 외전 N-M (Bug 7)
         # 예시: "1000 完 외전 1-98" -> range=1-1000, side=외전 1-98, complete=True
-        m = re.search(r'^(\d{1,5})\s+(完|완|Complete)\s+(외전|外)\s+(\d{1,4})\s*[-~]\s*(\d{1,4})', residual, re.IGNORECASE)
+        m = re.search(rf'^(\d{{1,5}})\s+(完|완|Complete)\s+(외전|外)\s+(\d{{1,4}})\s*{self.RANGE_DASHES}\s*(\d{{1,4}})', residual, re.IGNORECASE)
         if m and not complex_found:
             range_info = f"1-{int(m.group(1))}"
             side_story_parts.append(f"외전 {int(m.group(4))}-{int(m.group(5))}")
@@ -802,7 +850,7 @@ class TitleAnchorExtractor:
             
         # [NEW] N 에필로그 N-M 完 (Bug 4)
         # 예시: "052 에필로그1-3 完" -> range=1-52, side=에필 1-3, complete=True
-        m = re.search(r'^(\d{1,5})\s*(에필로그|에필)\s*(\d{1,4})\s*[-~]\s*(\d{1,4})\s*(完|완|Complete)\b', residual, re.IGNORECASE)
+        m = re.search(rf'^(\d{{1,5}})\s*(에필로그|에필)\s*(\d{{1,4}})\s*{self.RANGE_DASHES}\s*(\d{{1,4}})\s*(完|완|Complete)\b', residual, re.IGNORECASE)
         if m and not complex_found:
             range_info = f"1-{int(m.group(1))}"
             side_story_parts.append(f"에필 {int(m.group(3))}-{int(m.group(4))}")
@@ -821,10 +869,19 @@ class TitleAnchorExtractor:
                 side_story_parts.append("외전")
             residual = residual[:match_bon.start()] + " " + residual[match_bon.end():]
         
-        # 1.5 "완+외" / "完+外" / "完外" 패턴 처리 [NEW]
-        elif re.search(r'(?:完|완)[\s,]*\+?[\s,]*(?:外|외(?:전|포)?)', residual):
+        # 1.5 "완+외" / "完+外" / "完外" / "외포완" / "외포 완" / "완결외전" 등 복합 패턴 처리 [NEW]
+        wan_wai_pattern = (
+            rf'(?:'
+            rf'(?P<comp1>完|완(?:결)?)[\s,]*\+?[\s,]*(?P<side1>(?:外|외(?:전|포)?)(?:\s*\d+(?:\s*{self.RANGE_DASHES}\s*\d+)?\s*[화권부편회장]?)?)'
+            rf'|'
+            rf'(?P<side2>(?:外|외(?:전|포)?)(?:\s*\d+(?:\s*{self.RANGE_DASHES}\s*\d+)?\s*[화권부편회장]?)?)[\s,]*\+?[\s,]*(?P<comp2>完|완(?:결)?)'
+            rf')'
+        )
+        wan_wai_match = re.search(wan_wai_pattern, residual)
+        if wan_wai_match:
             is_completed = True
-            residual = re.sub(r'(?:完|완)[\s,]*\+?[\s,]*(?:外|외(?:전|포)?)(?!\S)?', ' 외전 ', residual)
+            side_raw = wan_wai_match.group('side1') or wan_wai_match.group('side2') or '외전'
+            residual = residual[:wan_wai_match.start()] + f" {side_raw} " + residual[wan_wai_match.end():]
 
         # 2. "본편 및 외전" 패턴 처리 (위에서 안 걸린 변형 대응)
         elif re.search(r'본편\s*및\s*외전', residual):
@@ -949,10 +1006,15 @@ class TitleAnchorExtractor:
         
         # [NEW] Handle specific abbreviations
         if '외포' in side_text: side_text = side_text.replace('외포', '외전')
+        if '후포' in side_text: side_text = side_text.replace('후포', '후기')
         if '外' in side_text: side_text = side_text.replace('外', '외전')
         if '번외포함' in side_text: side_text = side_text.replace('번외포함', '번외')
 
         side_text = re.sub(r'에필로그', '에필', side_text, flags=re.IGNORECASE)
+
+        # 단위 제거 및 공백 정규화 (예: "외전11화" -> "외전 11", "외전 11화" -> "외전 11")
+        side_text = re.sub(r'(\d+)\s*[화권부편회장]$', r'\1', side_text)
+        side_text = re.sub(r'^(외전|에필|후기|번외|특별편|스핀오프|후일담)\s*(\d+)', r'\1 \2', side_text)
         return side_text.strip()
     
     def format_normalized_filename(self, parse_result: TitleParseResult, genre: str = "") -> str:

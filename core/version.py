@@ -15,11 +15,11 @@
 ==============================================================================
 """
 
-__version__ = "1.3.51"
-RELEASE_DATE = "2026-09-27"
+__version__ = "1.3.52"
+RELEASE_DATE = "2026-10-07"
 
-VERSION_INFO = (1, 3, 51)
-__release_date__ = "2026-09-27"
+VERSION_INFO = (1, 3, 52)
+__release_date__ = "2026-10-07"
 __author__ = "WNAP Team"
 __app_name__ = "WNAP - Web Novel Archive Pipeline"
 

@@ -90,6 +90,9 @@ TRAIT_PATTERNS: List[Tuple[str, List[str]]] = [
     ("마블", [r"마블", r"어벤[져저]스", r"아이언맨", r"캡틴\s*아메리카", r"marvel"]),
     ("DC", [r"DC", r"배트맨", r"슈퍼맨"]),
     ("완미세계", [r"완미세계", r"완미세계지", r"完美世界"]),
+    ("붕괴 스타레일", [
+        r"붕괴\s*[:\-·]?\s*스타레일", r"붕괴스타레일", r"스타레일", r"星穹铁道", r"星铁"
+    ]),
     ("신비의 제왕", [
         r"신비의\s*제왕", r"궤비지주", r"诡秘之主", r"치신세계", r"致新세계", r"致新世界",
         r"흑황제", r"黑皇帝", r"시간을\s*가르는\s*나의\s*정체성",
@@ -157,7 +160,10 @@ PARODY_FANDOM_MAP = {
     "목엽": "나루토",
     "마블": "마블", "어벤져스": "마블", "어벤저스": "마블", "아이언맨": "마블",
     "DC": "DC", "dc": "DC", "배트맨": "DC", "슈퍼맨": "DC",
-    "완미세계": "완미세계", "완미세계지": "완미세계"
+    "완미세계": "완미세계", "완미세계지": "완미세계",
+    "붕괴: 스타레일": "붕괴 스타레일", "붕괴:스타레일": "붕괴 스타레일",
+    "붕괴-스타레일": "붕괴 스타레일", "붕괴스타레일": "붕괴 스타레일",
+    "붕괴 스타레일": "붕괴 스타레일", "스타레일": "붕괴 스타레일"
 }
 
 
@@ -184,10 +190,10 @@ class NovelTraitExtractor:
         name = re.sub(r'\.[a-zA-Z0-9]{1,10}$', '', raw_name).strip()
 
         # 1. 태그/첨언 후보군 추출
-        # (1) 해시태그 (다중 단어로 구성된 #명탐정 코난 등 지원, 수치/완결 마커는 제외)
+        # (1) 해시태그 (다중 단어로 구성된 #명탐정 코난, #붕괴-스타레일 등 지원, 수치/완결 마커는 제외)
         hashtags = [
             m.strip() for m in re.findall(
-                r'#([가-힣a-zA-Z0-9_]+(?:\s+(?!\d+|완결?|完|외전|후기|에필)[가-힣a-zA-Z0-9_]+)*)',
+                r'#([가-힣a-zA-Z0-9_:\-·]+(?:\s+(?!\d+|완결?|完|외전|후기|에필)[가-힣a-zA-Z0-9_:\-·]+)*)',
                 name
             ) if m.strip()
         ]
@@ -213,6 +219,16 @@ class NovelTraitExtractor:
 
         # 2. 토큰 분해 및 정리
         tokens: List[str] = []
+        explicit_bracket_tokens = []
+        for b in brackets:
+            if ',' in b or '/' in b:
+                for t in re.split(r'[,/]+', b):
+                    t_strip = t.strip()
+                    if t_strip:
+                        explicit_bracket_tokens.append(t_strip)
+            elif ' ' not in b.strip():
+                explicit_bracket_tokens.append(b.strip())
+
         for source in candidate_sources:
             # 먼저 쉼표나 슬래시로 1차 분리
             comma_parts = re.split(r'[,/]+', source)
@@ -220,11 +236,14 @@ class NovelTraitExtractor:
                 cp_strip = cp.strip()
                 if not cp_strip:
                     continue
-                # 복합어(예: "명탐정 코난", "해리 포터", "~패러디")가 매핑에 직접 존재하면 단일 토큰으로 보존
+                # 복합어(예: "명탐정 코난", "해리 포터", "붕괴 스타레일", "~패러디")가 매핑에 직접 존재하면 단일 토큰으로 보존
                 if (cp_strip in PARODY_FANDOM_MAP or 
                     cp_strip in GENRE_ALIAS_MAP or 
                     cp_strip.endswith("패러디") or
                     any(cp_strip == trait_name or any(re.fullmatch(pat, cp_strip, re.IGNORECASE) for pat in patterns) for trait_name, patterns in TRAIT_PATTERNS)):
+                    tokens.append(cp_strip)
+                elif cp_strip in explicit_bracket_tokens:
+                    # 쉼표 구분 대괄호 또는 단일 대괄호 태그는 사용자가 직접 지정한 태그이므로 공백으로 분해하지 않고 그대로 유지 (예: "세계관 교체", "탄서성공", "감정안", "배우물")
                     tokens.append(cp_strip)
                 else:
                     # 공백으로 추가 분해
@@ -264,7 +283,7 @@ class NovelTraitExtractor:
                     primary_genre = GENRE_ALIAS_MAP[token]
                 continue
 
-            # (C) 팬덤 키워드인 경우 (해리포터, 나루토 등) -> 해당 팬덤 특성 추가
+            # (C) 팬덤 키워드인 경우 (해리포터, 나루토, 붕괴 스타레일 등) -> 해당 팬덤 특성 추가
             if token in PARODY_FANDOM_MAP:
                 add_trait(PARODY_FANDOM_MAP[token])
                 continue
@@ -297,7 +316,8 @@ class NovelTraitExtractor:
                         any(t in ["패러디"] or "패러디" in t for t in tokens) or
                         any(h in ["패러디"] or "패러디" in h for h in hashtags)
                     )
-                    if is_parody_ctx and (token in hashtags or token in [t.strip() for b in brackets for t in re.split(r'[,/]+', b)]):
+                    # 대괄호 태그는 사용자가 명시한 특성이므로 보존, 패러디 맥락 해시태그도 보존
+                    if token in explicit_bracket_tokens or (is_parody_ctx and token in hashtags):
                         add_trait(token)
                     else:
                         # 만약 장르명이 내포되어 있다면

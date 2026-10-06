@@ -5,6 +5,35 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.52] - 2026-10-07
+
+### Added & Improved
+
+- **통합 장르 키워드 사전 관리 센터 GUI 전면 재정의 및 기능 고도화 (`gui/genre_dictionary_dialog.py`):**
+  - **3대 전문 탭뷰 시스템 도입:**
+    - `📖 등록 키워드 관리`: 15개 장르별 필터, 실시간 검색, 키워드 신규 등록(`AddKeywordDialog`), 가중치 1~10 직접 수정(`EditWeightDialog`), 다중 선택 영구 삭제(CRUD 지원).
+    - `⚡ 캐시 마이닝 & 자동 최적화`: 캐시 데이터(`config/genre_cache.json`) 분석, 불필요한 노이즈 어휘 선별 제외(체크박스 및 행 제외), 안전한 선택 후보 병합 동기화.
+    - `🏷️ 특성/팬덤 & 음독 패턴 레퍼런스`: 패러디 팬덤 매핑, Trait 핵심 특성 태그, 중국어 CJK 기계번역 직역투 접두사 규칙 열람 화면 제공.
+  - **상단 4대 통계 요약 카드 & 실시간 콘솔:** 총 등록 키워드, 사전 버전, 지원 장르 수, 축적 캐시 건수 실시간 반영 및 작업 로그 텍스트박스 제공.
+
+- **백엔드 키워드 동기화 엔진 API 확장 및 안정화 (`core/utils/keyword_syncer.py`):**
+  - **사전 관리 CRUD API 구축:** `get_keywords()`, `add_or_update_keyword()`, `delete_keyword()`, `batch_delete_keywords()` 구현.
+  - **이중 JSON 파일 원자적(Atomic) 동기화 & 롤백:** `modules/classifier/genre_keywords.json` 및 `modules/classifier/src/data/genre_keywords.json`에 임시 파일 쓰기 후 동시 교체 및 자동 `.bak` 백업/롤백 지원.
+  - **런타임 메모리 실시간 리로드:** 사전 파일 갱신 즉시 `KeywordManager.load_keywords()`를 호출하여 애플리케이션 재시작 없이 분류 파이프라인에 즉시 반영.
+  - **견고한 Pytest 실행기 탐색:** Windows 환경에서 기본 파이썬 실행기에 pytest가 없더라도 `shutil.which('pytest')`, `py -3.13`을 안전하게 탐색하여 회귀 테스트 수행 시 무조건 롤백되던 결함 해결.
+
+- **사용자 보고 14가지 파일명 정규화 결함 수정 및 영구 회귀 테스트 가드 구축 (`core/title_anchor_extractor.py`, `core/utils/novel_trait_extractor.py`):**
+  - **완결 + 외전 역순/복합 마커 인식:** `외포완`, `외포 완`, `완결외전`, `완 외전11화`, `후포` 등을 `(완) + 외전`, `(완) + 에필, 후기`로 완벽 변환.
+  - **특수 물결표(U+301C) 범위 인식:** 일본식 파도표(`〜`) 및 전각 물결표를 정규식 범위(`RANGE_DASHES`)에 포함하여 `1〜1353`을 `1-1353`으로 정상 분리.
+  - **사용자 지정 대괄호 다중 태그/미등록 특성 보존:** 쉼표 구분 대괄호 태그(`[퓨판, 세계관 교체, 시스템]`, `[현판, 배우물]`, `[퓨판, 탄서성공]`)의 토큰 유실 방지.
+  - **부제목 보존:** `2부 귀호`, `3부 곤륜검선 백병지주` 등 부 번호 뒤 부제목이 화수 범위에 의해 잘려나가지 않도록 앵커 규칙 보완.
+  - **해시태그 특수문자 지원 및 팬덤 통일:** `#붕괴-스타레일`, `붕괴: 스타레일` 등을 `붕괴 스타레일`로 표준화.
+  - **다중 부 연번 표기 지원:** `1부133 完 2부100完` 형태를 `1부 1-133 2부 1-100 (완)`으로 자동 정규화.
+  - **영구 단위 테스트:** `tests/test_annotation_and_normalization.py`에 14개 케이스 전수 검증 메서드 추가.
+
+- **사전 관리 센터 상세 사용 설명서 추가 (`docs/`):**
+  - `docs/DICTIONARY_USER_GUIDE.md` 및 `docs/DICTIONARY_USER_GUIDE.txt` 작성 및 markdownlint 검증 완료.
+
 ## [v1.3.51] - 2026-09-27
 
 ### Added & Improved
