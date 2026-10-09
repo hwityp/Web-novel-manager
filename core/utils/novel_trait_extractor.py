@@ -149,7 +149,7 @@ GENRE_ALIAS_MAP = {
     "게임판타지": "겜판", "게임 판타지": "겜판", "겜판": "겜판",
     "로맨스판타지": "로판", "로맨스 판타지": "로판", "로판": "로판",
     "로맨스": "로판", "순정": "로판",
-    "퓨전무협": "무협", "퓨전 무협": "무협", "신무협": "무협", "무협": "무협",
+    "퓨전무협": "무협", "퓨전 무협": "무협", "신무협": "무협", "전통무협": "무협", "전통 무협": "무협", "무협": "무협",
     "판타지": "판타지", "선협": "선협", "언정": "언정", "스포츠": "스포츠",
     "패러디": "패러디", "역사": "역사", "SF": "퓨판", "SF판타지": "퓨판", "공상과학": "퓨판", "공포": "공포",
     "미스터리": "미스터리", "밀리터리": "밀리터리", "현대": "현대", "소설": "소설"
@@ -415,6 +415,15 @@ class NovelTraitExtractor:
             if "궁투" in extracted_traits or "궁정" in extracted_traits:
                 primary_genre = "언정"
 
+        # 신무협 -> 무협 정규화
+        if primary_genre in ("신무협", "퓨전무협", "전통무협", "전통 무협"):
+            primary_genre = "무협"
+
+        # 시스템은 주 장르가 아니므로 primary_genre에서 제거하고 특성으로 전환
+        if primary_genre == "시스템":
+            primary_genre = None
+            add_trait("시스템")
+
         # primary_genre가 식별되지 않았다면 None 반환 (웹 검색 등으로 위임)
         if not primary_genre:
             return None
@@ -432,6 +441,8 @@ class NovelTraitExtractor:
         """
         태그 문자열 (예: "SF, 시스템" 또는 "언정, 궁투, 빙의" 또는 "현판 시스템")을 파싱하여
         메인 장르와 특징 키워드 목록으로 분리
+        - '신무협'은 항상 '무협'으로 통일
+        - '시스템'은 주 장르가 아니므로 부가 키워드로만 취급
         """
         if not tag_str:
             return "", []
@@ -446,16 +457,35 @@ class NovelTraitExtractor:
         if not tokens:
             return "", []
             
-        primary_genre = tokens[0]
+        # 신무협 -> 무협 정규화
+        tokens = ["무협" if t in ("신무협", "퓨전무협", "전통무협", "전통 무협") else t for t in tokens]
+        
+        primary_genre = ""
         additional_keywords = []
         
-        for kw in tokens[1:]:
-            if kw and kw != primary_genre and kw not in additional_keywords:
-                additional_keywords.append(kw)
-                if len(additional_keywords) >= 2:
+        # 주 장르와 부가 키워드 분리 ('시스템'은 주 장르 불가)
+        for t in tokens:
+            if t == "시스템":
+                if "시스템" not in additional_keywords:
+                    additional_keywords.append("시스템")
+            elif not primary_genre and (t in GENRE_ALIAS_MAP or t in [
+                '소설', '판타지', '현대', '현판', '무협', '선협', '스포츠', '퓨판', '역사', '로판', '겜판', '언정', '공포', '패러디', 'SF'
+            ]):
+                primary_genre = GENRE_ALIAS_MAP.get(t, t)
+                if primary_genre in ("신무협", "퓨전무협", "전통무협", "전통 무협"):
+                    primary_genre = "무협"
+            else:
+                if t and t not in additional_keywords and t != primary_genre:
+                    additional_keywords.append(t)
+                    
+        # tokens 중 주 장르가 식별되지 않은 경우 (예: [시스템], [시스템, 회귀] 등)
+        if not primary_genre and tokens:
+            for t in tokens:
+                if t != "시스템":
+                    primary_genre = t
                     break
                     
-        return primary_genre, additional_keywords
+        return primary_genre, additional_keywords[:2]
 
     @classmethod
     def extract_traits(
@@ -560,8 +590,30 @@ class NovelTraitExtractor:
         if not primary_genre or primary_genre == "미분류":
             return primary_genre or "미분류"
 
-        # 사합원 소설의 장르 보정: 사합원물은 치뎬(남성향) 연대/도시물이 주류이므로 여성향 클리셰가 없으면 기본 '현판'
+        # [신무협/퓨전무협은 항상 '무협'으로 통일]
+        if primary_genre in ("신무협", "퓨전무협", "전통무협", "전통 무협") or "신무협" in primary_genre:
+            primary_genre = "무협"
+
         all_text_ctx = f"{title} {web_snippet} {' '.join(web_tags or [])}"
+
+        # ['시스템'은 주 장르가 아니며 장르 부가 키워드일 뿐임]
+        # primary_genre가 '시스템'인 경우 문맥에 맞는 실제 주 장르로 교정하고 '시스템'을 키워드로 보장
+        if primary_genre == "시스템":
+            if not existing_keywords:
+                existing_keywords = ["시스템"]
+            elif "시스템" not in existing_keywords:
+                existing_keywords = ["시스템"] + list(existing_keywords)
+
+            if any(re.search(pat, all_text_ctx, re.IGNORECASE) for pat in [r"수선", r"선협", r"종문", r"도주", r"비승"]):
+                primary_genre = "선협"
+            elif any(re.search(pat, all_text_ctx, re.IGNORECASE) for pat in [r"무림", r"강호", r"문파", r"검협"]):
+                primary_genre = "무협"
+            elif any(re.search(pat, all_text_ctx, re.IGNORECASE) for pat in [r"마법", r"엘프", r"드래곤", r"제국", r"마왕"]):
+                primary_genre = "판타지"
+            else:
+                primary_genre = "현판"
+
+        # 사합원 소설의 장르 보정: 사합원물은 치뎬(남성향) 연대/도시물이 주류이므로 여성향 클리셰가 없으면 기본 '현판'
         is_sahapwon = any(re.search(pat, all_text_ctx, re.IGNORECASE) for pat in [r"사합원", r"4합원", r"四合院"])
         if is_sahapwon:
             female_cliche_patterns = [

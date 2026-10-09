@@ -56,7 +56,12 @@ class GenreMappingLoader:
         "겜판": "겜판",
         "무협": "무협",
         "무협 소설": "무협",
+        "신무협": "무협",
+        "퓨전무협": "무협",
+        "전통 무협": "무협",
+        "전통무협": "무협",
         "선협": "선협",
+        "시스템": "현판",
         "판타지": "판타지",
         "정통판타지": "판타지",
         "정통 판타지": "판타지",
@@ -215,6 +220,14 @@ class GenreMappingLoader:
         """
         if not platform_genre:
             return "미분류"
+            
+        # 신무협/퓨전무협은 항상 '무협'으로 정규화
+        if platform_genre in ['신무협', '퓨전무협', '전통무협', '전통 무협'] or '신무협' in platform_genre:
+            return '무협'
+            
+        # 시스템은 주 장르가 아니므로 기본 주 장르인 '현판'으로 매핑 (특성 키워드로 보존)
+        if platform_genre == '시스템':
+            return '현판'
         
         # 정확한 매핑 찾기
         mapped = self.mappings.get(platform_genre)

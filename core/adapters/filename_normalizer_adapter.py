@@ -335,11 +335,23 @@ class FilenameNormalizerAdapter:
             return '미분류'
             
         from core.utils.novel_trait_extractor import NovelTraitExtractor
-        primary_genre, _ = NovelTraitExtractor.parse_existing_tag(genre)
+        primary_genre, traits = NovelTraitExtractor.parse_existing_tag(genre)
+        
+        # 신무협 -> 무협 정규화
+        if primary_genre in ('신무협', '퓨전무협', '전통무협', '전통 무협') or '신무협' in primary_genre or '신무협' in genre:
+            primary_genre = '무협'
+
+        # 시스템은 주 장르가 아니므로 기본 현판으로 교정하고 시스템을 서브 키워드로 유지
+        if primary_genre == '시스템' or not primary_genre or '시스템' in genre:
+            if primary_genre == '시스템' or not primary_genre:
+                primary_genre = '현판'
+            if '시스템' not in traits:
+                traits = ['시스템'] + [t for t in traits if t != '시스템']
         
         if primary_genre not in GENRE_WHITELIST:
             return '미분류'
-        return genre
+            
+        return NovelTraitExtractor.format_genre_tag(primary_genre, existing_keywords=traits)
     
     def _build_normalized_name(
         self,

@@ -893,19 +893,41 @@ class GenreClassifierAdapter:
     def _finalize_task_genre(self, task: NovelTask, raw_text: str = "") -> NovelTask:
         """
         최종 태스크 장르 정합성 보장:
-        - 중국 소설(CN)의 경우 '로판' 또는 '로맨스'는 예외 없이 '언정'으로 일괄 통일
+        1. '신무협'은 항상 '무협'으로 통일
+        2. '시스템'은 주 장르가 아니므로 부가 키워드로만 취급하고 실제 주 장르로 교정
+        3. 중국 소설(CN)의 경우 '로판' 또는 '로맨스'는 예외 없이 '언정'으로 일괄 통일
         """
         if not task.genre or task.genre == '미분류':
             return task
 
+        from core.utils.novel_trait_extractor import NovelTraitExtractor
+        primary_g, traits = NovelTraitExtractor.parse_existing_tag(task.genre)
+
+        # 1. 신무협 -> 무협 정규화
+        if primary_g in ('신무협', '퓨전무협', '전통무협', '전통 무협') or '신무협' in primary_g or '신무협' in task.genre:
+            primary_g = '무협'
+
+        # 2. 시스템 주 장르 배제 및 부가 키워드화
+        if primary_g == '시스템' or not primary_g or '시스템' in task.genre:
+            if primary_g == '시스템' or not primary_g:
+                primary_g = '현판'
+            if '시스템' not in traits:
+                traits = ['시스템'] + [t for t in traits if t != '시스템']
+
+        task.genre = NovelTraitExtractor.format_genre_tag(
+            primary_genre=primary_g,
+            title=task.title or raw_text,
+            existing_keywords=traits
+        )
+        primary_g, traits = NovelTraitExtractor.parse_existing_tag(task.genre)
+
+        # 3. 중국 소설 언정 통일
         origin = task.metadata.get('country_origin', 'UNKNOWN')
         foreign_title = task.metadata.get('original_foreign_title', '')
         full_text = f"{raw_text} {task.title} {task.raw_name} {foreign_title}".strip()
         is_cn = origin == 'CN' or self.mapping_loader.is_chinese_romance(task.title or raw_text, full_text)
         
         if is_cn:
-            from core.utils.novel_trait_extractor import NovelTraitExtractor
-            primary_g, traits = NovelTraitExtractor.parse_existing_tag(task.genre)
             if primary_g in ['로판', '로맨스', '로맨스판타지'] or '로판' in primary_g or '로맨스' in primary_g:
                 task.genre = NovelTraitExtractor.format_genre_tag(
                     primary_genre='언정',

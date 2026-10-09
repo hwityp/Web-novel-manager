@@ -5,6 +5,36 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.55] - 2026-10-10
+
+### Added & Improved
+
+- **"신무협" 장르의 "무협" 표준 장르 100% 통합 및 정규화 (`core/` & `config/`):**
+  - **전 계층 통합 매핑 구축:** 플랫폼 추출기, 웹 검색, 파일명 태그 등에서 유입되는 '신무협', '퓨전무협', '전통무협' 변형을 표준 장르인 `'무협'`으로 100% 단일화.
+  - **매핑 및 파서 전면 동기화:**
+    - `config/genre_mapping.json`: `"신무협": "무협"`, `"퓨전무협": "무협"`, `"전통무협": "무협"` 등록.
+    - `core/utils/genre_mapping.py`: `DEFAULT_MAPPINGS` 및 `map_genre()` 상단에서 '신무협' 계열을 강제 '무협'으로 변환.
+    - `core/utils/novel_trait_extractor.py`: `GENRE_ALIAS_MAP`, `parse_existing_tag`, `extract_from_annotations`, `format_genre_tag` 전반에서 '신무협' 유입 시 즉시 '무협'으로 정규화.
+    - `core/adapters/filename_normalizer_adapter.py`: `_validate_genre`에서 최종 파일명 생성 직전 '무협'으로 보정 및 `format_genre_tag` 재포맷 반환.
+
+- **"시스템" 장르의 주 장르 배제 및 부가 키워드(특성)화 규칙 확립:**
+  - **주 장르 자리 배제:** '시스템'은 서사 장치이자 부가 키워드일 뿐 주 장르가 아니므로 `primary_genre`에서 배제하고 부가 특성 키워드(`traits`)로만 배치.
+  - **문맥 기반 실제 주 장르 자동 교정:**
+    - `parse_existing_tag`: `[시스템]` 태그 파싱 시 `primary_genre`를 공백으로 두고 `additional_keywords`에 '시스템'을 자동 배치.
+    - `format_genre_tag` 및 `_finalize_task_genre`: `primary_genre`가 '시스템'이거나 비어있을 경우, 제목 및 본문 문맥(수선/선협, 무림/강호, 마법/엘프 등)을 분석하여 '선협', '무협', '판타지', '현판' 중 적합한 주 장르를 배정하고 '시스템'을 서브 키워드로 유지 (예: `[현판, 시스템]`, `[선협, 시스템]`).
+    - `_validate_genre`: 파일명 정규화 단계에서 `[시스템]` 단독 태그 유입 시 주 장르를 기본 '현판'으로 승격하고 '시스템'을 서브 키워드로 포맷 (`[현판, 시스템]`).
+
+- **`TitleAnchorExtractor` 파일명 선행 태그 정규식 보강 (`core/title_anchor_extractor.py`):**
+  - `GENRE_TAG_PATTERNS` 및 `META_TAG_KEYWORDS`에 `신무협`, `퓨전무협`, `전통무협`, `시스템`을 추가하여 파일명 앞의 `[신무협]`, `[시스템]` 대괄호 태그가 제목으로 흡수되지 않고 장르/특성 정규화 엔진으로 정확히 전달되도록 분리 로직 고도화.
+
+- **단위 테스트 8종 보강 및 전체 200개 테스트 100% 통과:**
+  - `tests/test_novel_trait_extractor.py`에 신무협 단독/복합 파싱 및 시스템 주 장르 배제/부가 키워드화 단위 테스트 및 `test_shinmuhyup_and_system_normalization` 파이프라인 정규화 테스트 추가.
+  - `pytest` 전체 200개 테스트 전수 통과 (0 Failure).
+
+- **`MyDown` 실제 폴더 297개 파일 실증 검증 (`lists.txt`):**
+  - 실제 파일 일체 미변경(Read-Only) 원칙 하에 로직 2 파이프라인 시뮬레이션 완료.
+  - '신무협' 주 장르 잔존 건수 0건 (100% '무협' 통합), '시스템' 단독 주 장르 잔존 건수 0건 (100% 부가 키워드화 적용, 총 28건) 정합성 확인.
+
 ## [v1.3.54] - 2026-10-10
 
 ### Added & Improved
