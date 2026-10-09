@@ -589,10 +589,12 @@ class GenreDictionaryDialog(ctk.CTkToplevel):
             return
 
         item = self.tree_kw.item(selected[0])
-        values = item["values"]
-        kw = str(values[1])
-        genre = str(values[2])
-        weight = int(values[3])
+        raw_vals = item.get("values", [])
+        if not isinstance(raw_vals, (list, tuple)) or len(raw_vals) < 4:
+            return
+        kw = str(raw_vals[1])
+        genre = str(raw_vals[2])
+        weight = int(raw_vals[3])
 
         EditWeightDialog(self, self.syncer, kw, genre, weight, self._on_action_success)
 
@@ -604,8 +606,9 @@ class GenreDictionaryDialog(ctk.CTkToplevel):
 
         items_to_delete = []
         for s in selected:
-            vals = self.tree_kw.item(s)["values"]
-            items_to_delete.append((str(vals[1]), str(vals[2])))
+            raw_vals = self.tree_kw.item(s).get("values", [])
+            if isinstance(raw_vals, (list, tuple)) and len(raw_vals) >= 3:
+                items_to_delete.append((str(raw_vals[1]), str(raw_vals[2])))
 
         msg = f"선택한 {len(items_to_delete)}개의 키워드를 사전에서 영구 삭제하시겠습니까?\n"
         if len(items_to_delete) <= 5:

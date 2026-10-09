@@ -1,22 +1,148 @@
 {
   "version": "1.0.0",
-  "candidate_count": 4,
+  "candidate_count": 1020,
   "candidates": [
     {
       "keyword": "두라",
       "genre": "패러디",
       "count": 8,
       "purity": 1.0,
-      "suggested_weight": 8,
+      "suggested_weight": 7,
       "source_type": "ngram",
       "cjk_source": null
     },
     {
-      "keyword": "아포칼립스",
-      "genre": "퓨판",
-      "count": 2,
+      "keyword": "채팅방",
+      "genre": "패러디",
+      "count": 6,
       "purity": 1.0,
-      "suggested_weight": 8,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "사합원",
+      "genre": "현판",
+      "count": 5,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "해군",
+      "genre": "패러디",
+      "count": 5,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "마블",
+      "genre": "패러디",
+      "count": 4,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "만배반환",
+      "genre": "선협",
+      "count": 4,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "나루토",
+      "genre": "패러디",
+      "count": 3,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "재벌",
+      "genre": "현판",
+      "count": 3,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "야구",
+      "genre": "스포츠",
+      "count": 3,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "피난처",
+      "genre": "퓨판",
+      "count": 3,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "우치하",
+      "genre": "패러디",
+      "count": 3,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "닌자",
+      "genre": "패러디",
+      "count": 3,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "에이스",
+      "genre": "패러디",
+      "count": 3,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "탄서성공",
+      "genre": "퓨판",
+      "count": 3,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "신선",
+      "genre": "선협",
+      "count": 3,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "종문",
+      "genre": "선협",
+      "count": 3,
+      "purity": 1.0,
+      "suggested_weight": 7,
       "source_type": "ngram",
       "cjk_source": null
     },
@@ -25,16 +151,9034 @@
       "genre": "역사",
       "count": 2,
       "purity": 1.0,
-      "suggested_weight": 8,
+      "suggested_weight": 7,
       "source_type": "ngram",
       "cjk_source": null
     },
     {
-      "keyword": "사합원",
+      "keyword": "살아남기",
+      "genre": "판타지",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "재벌집",
       "genre": "현판",
       "count": 2,
       "purity": 1.0,
-      "suggested_weight": 8,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "투수",
+      "genre": "스포츠",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "미래손오반",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "개국자재극의공",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "미래",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "손오반",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "울트라",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "인스팅트",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "궤비세계",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "신비",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "여왕",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "가이드",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "말세",
+      "genre": "퓨판",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "60년대",
+      "genre": "현판",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "전민유희",
+      "genre": "겜판",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "종상시말일개시괘기",
+      "genre": "겜판",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "자동사냥",
+      "genre": "겜판",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "분가후",
+      "genre": "무협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "생존하기",
+      "genre": "무협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "무림",
+      "genre": "무협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "레벨업",
+      "genre": "무협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "미완",
+      "genre": "무협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아수도백무금기",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "가리지",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "않고",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "받는다",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "부비재능수선",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아적종문전면비",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "유료",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "결제해야",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "된다고",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "전면",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "무료다",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "악역",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "종영식사간성진선",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "영식사",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "진선",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "일상적수선생활",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "수선생활",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "풍령근가공간",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "포회녀배소요선",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "풍령근",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "공간",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "포배",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "유유자적한",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "소요선",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "인재합환종",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "개국성위성녀도려",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "들어온",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "도려",
+      "genre": "선협",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "천진학문고과거",
+      "genre": "언정",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "가학",
+      "genre": "언정",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "연애",
+      "genre": "언정",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "언정소설",
+      "genre": "언정",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "과거",
+      "genre": "언정",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "시험",
+      "genre": "언정",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "육십년대",
+      "genre": "언정",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "동북",
+      "genre": "언정",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "대미녀",
+      "genre": "언정",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "관우",
+      "genre": "역사",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "나뭇잎",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "마을",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "괴의",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "돌팔",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "절대",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "오진하지",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "않아",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "던만추",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "미소녀",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "지식",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "사도",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "게으른",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "천궁",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "유성처럼",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "떨어진",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "키아나",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "줍는",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "성궁철도",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아재선주개발수유",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "붕괴",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "스타레일",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "선주",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "나부",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "모바일",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "개발합니다",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "학원도시적온도제어",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "학원도시",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "온도제어",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "대장",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "록스",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "약탈자",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "애니",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "해군본부신문발언인",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "본부",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "대변인",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "해적좌망도",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "구진일가타문진신료",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "9할",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "진실",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "1할",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "거짓",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "그들",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "호그와트",
+      "genre": "패러디",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "고속도",
+      "genre": "퓨판",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "물자",
+      "genre": "퓨판",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "수도만배반환",
+      "genre": "퓨판",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "육성",
+      "genre": "퓨판",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "반환",
+      "genre": "퓨판",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "장백산",
+      "genre": "현판",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "구원",
+      "genre": "현판",
+      "count": 2,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "공략",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "불가능",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "히로인",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "소꿉친구",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "칠령",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "주술회전",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "탈주닌자",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "휴우",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "유가오",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "뱀이",
+      "genre": "겜판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "여자친구인데도",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "파티",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "쫓겨났습니다",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "회귀해서",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "pd",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "게임업계",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "정상화",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "십전무황",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "방구석",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "연습생",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "음악천재였다",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "북송천월지남",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "중생낭자재종전",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "다중",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아르바이트",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "삼국",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아불시조예",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아불가능시검신",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "설호적용봉태니",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "전멸",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "밤부터",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "최강자",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "밀수꾼",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "인수함",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "단총의비타잡속명",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "변신라리검선",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "이번",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "생은",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "산다",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "함어수선",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "단단기전능",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "마도",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "태어났더니",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "정조역전",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "천도진천금피괴매시",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "환생자",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아니었습니다",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "멸망한",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "돌아온",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "천일검제",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "당나귀",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "발굽",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "깎기",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "만위세계적맹왕",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "우주선",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "블랙리스트",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "ex급",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "검신이었다",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "메이딘",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "용병단",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "검술",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "궁술",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "미친",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "자작",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "이공자",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "돈도",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "수세천재종전일상",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "괴도",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "가고",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "가남",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "개국절호명미",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "와저주창",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "영부인",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "간첩",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "다가오",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "천성후낭",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "과연대로대재개황료",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "천월",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "대저로댁재칠령년대흘",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "부동산",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "스트리밍",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "만급천금저삽폭회귀",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "요마수선전",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "맛으로",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "평정하",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "중입니다",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "상태창",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "2개",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "소복보피투인생후",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "성전경성단총",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "대장장",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "숨김",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "구역",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "나야",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "3세",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "총수",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "되고",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "수양저당npc적",
+      "genre": "겜판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "핍아중생시파",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "그에게",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "수선",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "하라",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "하였는",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "우마무스메",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "전설",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "무패",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "여포",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "장인",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "무림뱅커",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "진천금타시전능대료",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "소사매중생발전",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "전종문슬슬발두",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "동시천월",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "재제천성위전설",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "백리몽",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "무인도",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "중생화홍연대",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아적기술령선백연",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "항해",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아유일개형제교파뢰특",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "천하제일",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "곤륜객잔",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "천재말세둔화망",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "린거둔창아둔량",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "강속구",
+      "genre": "스포츠",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "모용전신",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "세자흔흉",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "악독한",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "새엄마",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "남편",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "하늘처럼",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "떠받든다",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "중생년대주단총대료",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "우주급가애",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "편집자",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "이중생활",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "칠영악독후마",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "경한노공총상천",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "유표",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아들",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "개돼지",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아시유광기",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "npc",
+      "genre": "겜판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "사람에게",
+      "genre": "겜판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "달빛",
+      "genre": "겜판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "되었습니다npc",
+      "genre": "겜판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "대애마존",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아적녀제자전시병교",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "막내아들",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "중생54년",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "인거사주",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "대소저저총시불구상진",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "빛을",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "변호사",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "회귀한",
+      "genre": "스포츠",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "과하게",
+      "genre": "스포츠",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "괘기유희통왕이세계",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "범골",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "신병",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "몬스터",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "라이프",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아티팩트",
+      "genre": "겜판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "비밀",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "흑마경찰",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "천재배우",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아우라",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "룡왕지자연신왕",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "대착mc계통도중토",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "구성봉호두라",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "역습계통재래",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "무혼빙룡왕",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "마소도상은료",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "계통조래만년",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아학폭당삼",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "제자당삼",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "정적발사",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "재사래극온건변강",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "퍼펙트",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "벙어리",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "공녀",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "목소리",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "듣고",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "무혼허원수",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "왕동상은료",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "천하제일인",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "야만족",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "위대하게",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "려포적인생모의기",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "두라절세",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "불후룡족",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "종람전패왕룡가족개시",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "대승기재유역습계통",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "칠살경절세",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "회장님",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "신입생활",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "복제하는데",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "늘면",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "독재자",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "박통",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "마인크래프트",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "엔더상자",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "난세서",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "천강탄막",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "포회녀배타각성료",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "회귀당한",
+      "genre": "스포츠",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "메이저리그",
+      "genre": "스포츠",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "씹어",
+      "genre": "스포츠",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "먹음",
+      "genre": "스포츠",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "s급",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "한방",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "보이",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "한의사",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "숨기지",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "f급",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아태상중생료",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "악자일심리혼",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "수부문풍광단총저",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "방산",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "천재맹보",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "신의재미비",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "재종만적일상생활",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "종애이등법환개시",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아진몰상하위기아",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "진천금재연대고과연",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "암살자",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "최상위",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "포식자",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아진몰상중생아",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아합법수선",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "빙십마규아마두",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "종인계개시적유희상인",
+      "genre": "겜판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "천칠령",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아시래교산저개가적",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "쓰는데",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아이언맨",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "멘붕함",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아적완미말세인생",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "천성육령극품포회",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아절부세백",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "중생만화지신",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "환생마신전",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아적어수진불시사신",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "에일리언",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아적세포감옥",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아취시불안투로척패",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "별야나자귀",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "15세기",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "제가",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "먹겠습니다",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "천성반파적포회전처",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "섭혼무제",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "명의",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아닙니다",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "찾지",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "마세요",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "대마법사",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "전혀",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "안숨김",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "수기",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "마귀",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "총으로",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "잡는다",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "검은머리",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "석유왕",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "13회차",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "멸망",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "공략하",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "강림자",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "거지백작",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "살아남",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "반도체",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "전쟁",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "기다림",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "얼굴천재",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아이돌스타",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "스릴러",
+      "genre": "공포",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "주점",
+      "genre": "공포",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "납치",
+      "genre": "공포",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "사건",
+      "genre": "공포",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "대사저",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "치료",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "삼랑",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "청혼하러",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "온다",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "선비",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "마마",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "육아",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "연대문리가극품",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아란참타간활",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "대착공간천칠령",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "반공가리거하향",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "평민",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "출신",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "책략가였던",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "초기",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "원소에게",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "쫓겨났다",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "청장미공주",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "다시쓰",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "혁명기",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "전생안",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "의료",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "원펀맨",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "정의",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "드래곤볼",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "시간여행",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "DC히어로",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "몸이",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "바꼈다",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "명사수",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "트라이나다",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "푸리나",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "뒤돌아보지마",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "여행자야",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "100미터",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "거인",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "거프",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "철권",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "샹크스",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "잘린",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "팔을",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "줍는다",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "이클립스",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "문을",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "열어",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "경찰관이야",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "포켓몬",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "번식",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "중생말세지쌍총",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "문명",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "승급",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "심사",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "십일종언",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "야옹",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "월드",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "버전",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "업데이트",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "둘이",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "서로",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "주재자",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "황금동",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "실력파라",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "거야",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "나에게",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "핵이",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "마취",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "것이",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "쉽다",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "퀸카",
+      "genre": "겜판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "여친",
+      "genre": "겜판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "E급",
+      "genre": "겜판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "탑의",
+      "genre": "겜판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "겜공역전",
+      "genre": "겜판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "게임천재",
+      "genre": "겜판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "꽃만",
+      "genre": "겜판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "키우는데",
+      "genre": "겜판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "강함",
+      "genre": "겜판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "템빨",
+      "genre": "겜판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "괴이게임",
+      "genre": "공포",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "오신",
+      "genre": "공포",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "환영합니다",
+      "genre": "공포",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "광둔",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "강산운라",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "나만",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "임신시킬",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "무협",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "멸문",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "역근경",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "대원만",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "이르렀다",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "무림맹",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "감찰관",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "무협지",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "안으로",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "운룡회귀",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "전생검신",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "전속성무도",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "절대회귀",
+      "genre": "무협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "집필초심",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "난무",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "무관",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "입문하",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "천부",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "무한히",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "착실히",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "출석만",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "나가서",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "나대겠느냐",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "도관",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "상속받으니",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "무미랑",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "향을",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "피우러",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "왔다",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "불후",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "자손",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "자질",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "바꿀",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "맞이",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "스탯",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "올려",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "선부",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "성로선종",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "수선계",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "돌아",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "수선종청풍방시개시",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "시뮬레이션",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "학살",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "범인",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "선제",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "신농도군",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "신여음",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "가로채고",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아재수선세계개농장",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "남동생",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "선택받",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "자다",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "주인공",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "하인",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "삼는",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "장생",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "농사지으며",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "갱신",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "장생수선",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "부적",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "제작",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "멸망시키려",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "했을",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "뿐인데",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "어째서",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "역천하여",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "거지",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "진옥무신",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "속에서",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "시체",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "일어나",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "천도수근",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "일분경운백분수획",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "첩자인",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "문파",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "전체",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "책임짐",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "거절하지",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "않는다면",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "의부",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "모시겠습니다",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "영근없",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "수선하는데",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "많은게",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "무슨",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "문제라도",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "마도조사다",
+      "genre": "선협",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "농구님",
+      "genre": "스포츠",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "감독",
+      "genre": "스포츠",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "하고",
+      "genre": "스포츠",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "싶어요",
+      "genre": "스포츠",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "씹어먹",
+      "genre": "스포츠",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "방출된",
+      "genre": "스포츠",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "외야수",
+      "genre": "스포츠",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "한가한",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "집안",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "연대",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "칠십년대",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "대조군인",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "불쌍한",
+      "genre": "언정",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "청요",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "마운트",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "블레이드",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "여포봉선",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "장비",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "진정한",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "황제",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "베기",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "처음",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "제대",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "맛보기",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "손책",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "죽이고",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "강동",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "파종",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "초선",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "어디",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "중세",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "십자군",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "원정",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "고려",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "없이",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "문명합니다",
+      "genre": "역사",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "고블린",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "중증",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "의존",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "검수",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "고블린에게",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "복수하",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "소녀",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "영웅",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "네피림",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "수레국화",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "천사",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "양반",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "그만",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "함부",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "들어와요",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "흑무",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "해바라기",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "약혼자",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "버렸더니",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "즐거운",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "마법학교",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "기다리고",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "있었다",
+      "genre": "판타지",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "블리치",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "하늘",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "서겠다",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "XX급",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "호카게",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "목둔",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아이젠",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "연기하",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "매년",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "하나씩",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "광소",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "4인방",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "썼더니",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "오오츠츠키",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "강림",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "폭로되었다",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "놀라운",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "모래마을",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "수십",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "년간",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "들이받다",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "처리장",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "제천",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "야생",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "서바이벌",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "이차원",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "천룡인",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "여인섬",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "만들다",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "추락",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "함께",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "다크",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "원신",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "여신들에게",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "둘러싸여",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "S급",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "많아서",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "수가",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "스티브",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "차원",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "이동",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "소우주",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "심비오트",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "빙의한",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "모든것",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "날아올랐다",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "얼티밋",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "바이오로지",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "원작",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "스파이더맨",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "만난",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "가면라이더",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "크립토니안",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "신비로운",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "시작했습니다",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "만위세계적유일완",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "만위함어극성인",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "미만",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "해객지주협",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "난도아진유여성우",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "만계",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "개척",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "런어웨",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아스타",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "쿠치키",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "젊은",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "쓰는",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "8대",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "비술",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "품격",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "만약",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "공께서",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "버리지",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "않으신다면",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "양아버지",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "삼고자",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "하옵니다",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "비하인드",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "스토리",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "빅보스",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아재만위흔기궤비복소",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "몸이바꼈다",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "실교",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "재부시실력지상",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "시아군림천하달",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "왕의",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "탄생",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "맞이하라",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "수색",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "타격",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "탈출",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "그런데",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "워해머",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "라고",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "40K",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "도덕경",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "황금",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "옥좌",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "앉아야",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "사기꾼",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "장수",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "제국",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "원수",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아스타르테스",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "회계",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "장부",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "쥐새끼도",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "초월",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "수메르에서",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "학자인",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "보세요",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "도플갱어",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "사황",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "향한",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "위대한",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "여정",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "활성화할",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "대선",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "용기사",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "해적단",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "부선장",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "루피",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "치열하게",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "살면",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "해적왕",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "되겠어",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "시모츠키",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "검관",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "구미호",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "마리조아",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "얼떨결",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "능력자",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "첫칼",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "영령",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "소환",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "악마",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "코쵸우",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "시노부",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "종합",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "40년",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "지배자",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "손에",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "넣었다",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "영상",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "모두",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "신의",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "길에",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "오르다",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "어둠어둠",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "열매",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "선택하다니",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "속여서",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "시작하기",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "되기",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "반요",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "팔문둔갑",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "개문",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "지옥별",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "싸운다고",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아니라고",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "동시",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "눕방",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "찍었더니",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "종언이자",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "에이언즈",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "캄피오네",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "빚쟁",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "복제하여",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "테니스",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "왕자에",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "숙련도",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "망왕",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "몰천부",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "니타십마망구",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "스페이스",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "메이지",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "사육장",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "멜리시",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "돌연변",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "디안시",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "무우마",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "날개치는머리냐고",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "방금",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "체육관",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "관장",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "됐는데",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "신시아",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "나한테",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "청혼했어",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "만계로",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "수많",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "유산",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "물려받았다",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "남자",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "성우도",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "스폰",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "제안",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "받을",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "줄이야",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "세계관",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "야겜",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "노력",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "거면",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "구세주",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "혼혈",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "왕자",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "소설",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "톰은",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "어둠",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "군주",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아니야",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "레귤러스",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "별의",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "스탠드",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "시간",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "멈출",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "무한성장",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "얻는",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "천계",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "넘어서",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "오토바이",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "육신",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "거대한",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "용으로",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "채를",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "들고",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "다님",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "전민",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "포인트",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "분배",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "진화론",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "살점",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "뼈의",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "도보",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "20년간",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "조용히",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "살다",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "레이싱",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "소녀세계",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "신급",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "튜닝",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "옵션",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "여인",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "소모한",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "배로",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "돌려받는다",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "시퀀스",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "국민",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "D급",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "인원",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "시뮬레이터",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "얻다",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "베이스캠프",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "안에서",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "우아한",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "마법",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "정도밖",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "장점",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "없지만",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "현대",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "지식만",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "있으면",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "충분하겠지",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "귀여운",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "마두일",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "없잖아",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "조련사",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "현무",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "위에",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "집을",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "짓다",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "충격",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "거부",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "모시려",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "분신",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "거물",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "되어간다",
+      "genre": "퓨판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "환홍",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "이랑신",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "파밍",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "강해지다",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "호텔",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "같이",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "본방",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "사수",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "귀멸",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "그렇게",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "많다니",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "추가되면",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "크로노스",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "재창조",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "New",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "Life",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "미드",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "밴시",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "TV",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "드라마",
+      "genre": "패러디",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "두수",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "누소아개국취생쌍포태",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "보안과장",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "원을",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "사자개국",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "정복전원",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "월급루팡",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "제과",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "명장",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "워유일개호주",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "육류연합공장",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "도축공",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "간부",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "올라서",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "차개",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "방영원",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "상장",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "심보",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "산지피",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "이가역자",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "루립기공",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "가인태웅한중금상반",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "개국반주",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "중금마료",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "거리",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "영사원",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "빌딩",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "감독관",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "집단중포",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "수선자",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "처치",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "랜덤박스",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "과금하여",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "여섯",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "끔찍",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아끼다",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "한계",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "돌파",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "무도",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "등신",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "절세",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "미녀",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "처형",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "비보",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아가씨계",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "밑바닥",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "방송자",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "방송",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "끄는걸",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "잊었다",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "눈치채지",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "못한채",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "동업자",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "파산",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "직전",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "사천요리집",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "1960년대",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "북경",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "서북왕사",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "1979년",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "황금시대",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "1984년",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "상자",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "1990년",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "바다",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "산에서",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "보낸",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "어로",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "수렵",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "나날",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "80년대",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "작은",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "어촌으로",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "게살",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "생전보",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "천월60년대",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "아격활료저물계지",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "타임슬립",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "지식청년",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "승리자",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "야스",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "갑부",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "10위안",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
+      "source_type": "ngram",
+      "cjk_source": null
+    },
+    {
+      "keyword": "비급",
+      "genre": "현판",
+      "count": 1,
+      "purity": 1.0,
+      "suggested_weight": 7,
       "source_type": "ngram",
       "cjk_source": null
     }

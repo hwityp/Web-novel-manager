@@ -87,29 +87,55 @@ class FilenameNormalizerAdapter:
                     except Exception:
                         pass
 
-            # 제목 앵커 추출 (이미 title이 있으면 건너뜀)
-            if not task.title:
-                parse_result = self._extractor.extract(task.raw_name)
-                task.title = parse_result.title
-                task.author = parse_result.author or task.author
-                task.volume_info = parse_result.volume_info or task.volume_info
-                task.range_info = parse_result.range_info or task.range_info
-                task.is_completed = parse_result.is_completed or task.is_completed
-                task.side_story = parse_result.side_story or task.side_story
-                task.edition_info = parse_result.edition_info or task.edition_info
+            # 제목 앵커 추출 및 한국 vs 해외 소설 구분 전처리
+            if not task.title or not task.metadata.get('country_origin'):
+                parse_source = task.metadata.get('original_raw_name') or task.raw_name
+                parse_result = self._extractor.extract(parse_source)
+                if not task.title:
+                    task.title = parse_result.title
+                    task.author = parse_result.author or task.author
+                    task.volume_info = parse_result.volume_info or task.volume_info
+                    task.range_info = parse_result.range_info or task.range_info
+                    task.is_completed = parse_result.is_completed or task.is_completed
+                    task.side_story = parse_result.side_story or task.side_story
+                    task.edition_info = parse_result.edition_info or task.edition_info
                 
                 # 원본 한자/가나 제목 보존
                 if parse_result.original_foreign_title:
                     task.metadata['original_foreign_title'] = parse_result.original_foreign_title
                     task.metadata['has_space_before_foreign'] = parse_result.has_space_before_foreign
                 
+                if parse_result.phonetic_title:
+                    task.metadata['phonetic_title'] = parse_result.phonetic_title
+                if parse_result.translated_title:
+                    task.metadata['translated_title'] = parse_result.translated_title
+                if parse_result.foreign_title_type:
+                    task.metadata['foreign_title_type'] = parse_result.foreign_title_type
+
+                # [전처리 최적화] 한국 소설 vs 해외 소설 원산지 및 판정 근거 메타데이터 영구 보존
+                task.metadata['country_origin'] = parse_result.country_origin
+                task.metadata['is_foreign'] = parse_result.is_foreign
+                task.metadata['origin_reasons'] = parse_result.origin_reasons
+                task.metadata['is_preprocessed'] = True
+                
                 # [Fix] 원본 장르 보존 (추출된 장르가 없을 경우 파싱 결과의 original_genre 반영)
                 if not task.genre and parse_result.original_genre:
                     task.genre = parse_result.original_genre
                     task.confidence = 'high'
                     task.source = 'annotation'
+
+                # [중국 소설 언정 통일] 중국 소설의 경우 로판/로맨스는 언정으로 통일
+                if (task.metadata.get('country_origin') == 'CN' or parse_result.country_origin == 'CN') and task.genre and task.genre != '미분류':
+                    from core.utils.novel_trait_extractor import NovelTraitExtractor
+                    primary_g, traits = NovelTraitExtractor.parse_existing_tag(task.genre)
+                    if primary_g in ['로판', '로맨스', '로맨스판타지'] or '로판' in primary_g or '로맨스' in primary_g:
+                        task.genre = NovelTraitExtractor.format_genre_tag(
+                            primary_genre='언정',
+                            title=task.title or task.raw_name,
+                            existing_keywords=traits
+                        )
                     
-                self.logger.debug(f"메타데이터 추출 완료: {task.raw_name} -> {task.title}")
+                self.logger.debug(f"메타데이터 추출 및 국적 전처리 완료: {task.raw_name} -> {task.title} [{parse_result.country_origin}]")
         except Exception as e:
             self.logger.warning(f"메타데이터 추출 실패: {e}")
             
@@ -162,10 +188,32 @@ class FilenameNormalizerAdapter:
                 if parse_result.original_foreign_title:
                     task.metadata['original_foreign_title'] = parse_result.original_foreign_title
                     task.metadata['has_space_before_foreign'] = parse_result.has_space_before_foreign
+
+                if parse_result.phonetic_title:
+                    task.metadata['phonetic_title'] = parse_result.phonetic_title
+                if parse_result.translated_title:
+                    task.metadata['translated_title'] = parse_result.translated_title
+                if parse_result.foreign_title_type:
+                    task.metadata['foreign_title_type'] = parse_result.foreign_title_type
+                if parse_result.country_origin:
+                    task.metadata['country_origin'] = parse_result.country_origin
+                    task.metadata['is_foreign'] = parse_result.is_foreign
+                    task.metadata['origin_reasons'] = parse_result.origin_reasons
                 
                 # [Fix] 원본 장르 보존 (정규화 시점에서도 적용)
                 if not task.genre and parse_result.original_genre:
                     task.genre = parse_result.original_genre
+
+            # [중국 소설 언정 통일] 중국 소설의 경우 로판/로맨스는 언정으로 통일
+            if task.metadata.get('country_origin') == 'CN' and task.genre and task.genre != '미분류':
+                from core.utils.novel_trait_extractor import NovelTraitExtractor
+                primary_g, traits = NovelTraitExtractor.parse_existing_tag(task.genre)
+                if primary_g in ['로판', '로맨스', '로맨스판타지'] or '로판' in primary_g or '로맨스' in primary_g:
+                    task.genre = NovelTraitExtractor.format_genre_tag(
+                        primary_genre='언정',
+                        title=task.title or task.raw_name,
+                        existing_keywords=traits
+                    )
             
             # 2. 장르 화이트리스트 검증
             genre = self._validate_genre(task.genre)
@@ -246,6 +294,16 @@ class FilenameNormalizerAdapter:
         
         # 장르 결정 (task.genre 우선, 없으면 원본 장르 사용)
         genre_candidate = task.genre or original_genre
+        origin_val = task.metadata.get('country_origin') or (parse_result.country_origin if not task.title else '')
+        if origin_val == 'CN' and genre_candidate and genre_candidate != '미분류':
+            from core.utils.novel_trait_extractor import NovelTraitExtractor
+            primary_g, traits = NovelTraitExtractor.parse_existing_tag(genre_candidate)
+            if primary_g in ['로판', '로맨스', '로맨스판타지'] or '로판' in primary_g or '로맨스' in primary_g:
+                genre_candidate = NovelTraitExtractor.format_genre_tag(
+                    primary_genre='언정',
+                    title=title or task.raw_name,
+                    existing_keywords=traits
+                )
         genre = self._validate_genre(genre_candidate)
         
         normalized = self._build_normalized_name(

@@ -25,9 +25,10 @@ from typing import Dict, Optional
 def _get_base_path() -> Path:
     """PyInstaller 패키징 환경과 일반 실행 환경 모두에서 올바른 기본 경로 반환"""
     if getattr(sys, 'frozen', False):
-        return Path(sys._MEIPASS)
-    else:
-        return Path(__file__).parent.parent.parent
+        meipass = getattr(sys, '_MEIPASS', None)
+        if meipass:
+            return Path(meipass)
+    return Path(__file__).parent.parent.parent
 
 
 class GenreCache:

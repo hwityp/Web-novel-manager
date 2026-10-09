@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "장르 검색 결과 캐시",
-  "updated_at": "2026-09-27T16:50:31.719781",
+  "updated_at": "2026-10-09T22:59:51.465565",
   "entries": {
     "아포칼립스가 다운로드 됨": {
       "genre": "퓨판, 종말",
@@ -968,6 +968,1830 @@
       "confidence": "high",
       "source": "리디북스_jsonld",
       "cached_at": "2026-09-27T16:50:31.719781"
+    },
+    "스릴러 게임 공포의 주점 주인 납치 사건": {
+      "genre": "공포, 생존, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.180727"
+    },
+    "대사저는 치료를 포기했다": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.181109"
+    },
+    "삼랑이 오늘 청혼하러 온다": {
+      "genre": "언정, 여주",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.181769"
+    },
+    "선비 마마의 육아 일상": {
+      "genre": "언정, 여주",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.181973"
+    },
+    "연대문리가극품, 아란참타간활": {
+      "genre": "언정, 여주",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.182184"
+    },
+    "대착공간천칠령, 반공가리거하향": {
+      "genre": "언정, 연대물, 공간",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.189583"
+    },
+    "평민 출신 책략가였던 그는 초기에 원소에게 쫓겨났다": {
+      "genre": "역사, 삼국지",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.190586"
+    },
+    "청장미공주의 다시쓰는 혁명기": {
+      "genre": "판타지, 여주",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.190818"
+    },
+    "전생안으로 시작": {
+      "genre": "패러디, 나루토, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.190937"
+    },
+    "우치하 일족 최강의 의료 닌자": {
+      "genre": "패러디, 나루토",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.191065"
+    },
+    "원펀맨으로 정의를": {
+      "genre": "패러디, 다중, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.192239"
+    },
+    "드래곤볼로 시작하는 시간여행": {
+      "genre": "패러디, 다중, 하렘",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.193507"
+    },
+    "아！미래손오반，개국자재극의공(나 미래의 손오반, 울트라 인스팅트부터 시작한다)": {
+      "genre": "패러디, 드래곤볼, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.203006"
+    },
+    "나 미래의 손오반, 울트라 인스팅트부터 시작한다": {
+      "genre": "패러디, 드래곤볼, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.203006"
+    },
+    "아！미래손오반，개국자재극의공": {
+      "genre": "패러디, 드래곤볼, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.203006"
+    },
+    "내가 마블 세계에서 무한 진화한다": {
+      "genre": "패러디, 마블, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.203779"
+    },
+    "마블에서 DC히어로를 연기한다": {
+      "genre": "패러디, 마블, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.203916"
+    },
+    "나와 궤비세계의 신비의 여왕은 몸이 바꼈다": {
+      "genre": "패러디, 신비의 제왕, 해리포터",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.204066"
+    },
+    "나는 명사수 트라이나다": {
+      "genre": "패러디, 엘든링",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.204182"
+    },
+    "푸리나, 뒤돌아보지마, 나는 진짜 여행자야": {
+      "genre": "패러디, 원신, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.204319"
+    },
+    "100미터 거인 아가씨, 거프의 철권을 계승하다": {
+      "genre": "패러디, 원피스, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.204456"
+    },
+    "샹크스의 잘린 팔을 줍는다": {
+      "genre": "패러디, 원피스, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.204573"
+    },
+    "이클립스의 왕, 에이스": {
+      "genre": "패러디, 원피스",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.204676"
+    },
+    "문을 열어, 나는 경찰관이야": {
+      "genre": "패러디, 명탐정 코난",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.204782"
+    },
+    "포켓몬 번식 가이드": {
+      "genre": "패러디",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.204880"
+    },
+    "중생말세지쌍총": {
+      "genre": "퓨판, 말세, 여주",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.205178"
+    },
+    "문명 승급 심사부터 시작": {
+      "genre": "퓨판, 말세",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.205386"
+    },
+    "십일종언": {
+      "genre": "퓨판, 말세",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.205577"
+    },
+    "이세계 좀비 나와 야옹이": {
+      "genre": "퓨판, 생존, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.206766"
+    },
+    "월드 버전 업데이트": {
+      "genre": "퓨판, 세계관 교체, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.207916"
+    },
+    "말세에 다시 태어나 둘이 서로 총애하다": {
+      "genre": "퓨판, 여주, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.208116"
+    },
+    "탄서성공의 주재자": {
+      "genre": "퓨판, 탄서성공",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.209199"
+    },
+    "황금동": {
+      "genre": "현판, 감정안, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.210325"
+    },
+    "누가 실력파라는 거야": {
+      "genre": "현판, 배우물",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.211456"
+    },
+    "60년대, 나에게는 시스템 핵이 있다": {
+      "genre": "현판, 연대물, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.211675"
+    },
+    "사합원：구재압강창보위과흔서복": {
+      "genre": "현판",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.213026"
+    },
+    "회귀.한 마취.과 의사.는 모든 것이 쉽다": {
+      "genre": "현판",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.213170"
+    },
+    "아포칼립스 게임 시작하자마자 퀸카 여친을 처단한다": {
+      "genre": "겜판, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.214087"
+    },
+    "E급 재능의 탑의 마녀": {
+      "genre": "겜판, 여주, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.214281"
+    },
+    "겜공역전 세계의 게임천재가 되었다": {
+      "genre": "겜판",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.214401"
+    },
+    "꽃만 키우는데 너무 강함": {
+      "genre": "겜판, 연중",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.216912"
+    },
+    "전민유희：종상시말일개시괘기(좀비 아포칼립스에서 자동사냥 시작)": {
+      "genre": "겜판",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.222726"
+    },
+    "좀비 아포칼립스에서 자동사냥 시작": {
+      "genre": "겜판",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.222726"
+    },
+    "전민유희：종상시말일개시괘기": {
+      "genre": "겜판",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.222726"
+    },
+    "템빨": {
+      "genre": "겜판",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.222959"
+    },
+    "괴이게임에 오신 걸 환영합니다": {
+      "genre": "공포, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.223096"
+    },
+    "광둔으로 시작해, 닌자 세계 무적": {
+      "genre": "패러디, 나루토, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.223220"
+    },
+    "분가후, 아타렵포어양활일가칠구(사냥으로 생존하기)": {
+      "genre": "무협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.226792"
+    },
+    "사냥으로 생존하기": {
+      "genre": "무협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.226792"
+    },
+    "분가후, 아타렵포어양활일가칠구": {
+      "genre": "무협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.226792"
+    },
+    "강산운라": {
+      "genre": "무협",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.228217"
+    },
+    "나만 임신시킬 수 있는 무협 세계": {
+      "genre": "무협",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.229549"
+    },
+    "내 스킬이 좀 이상하다": {
+      "genre": "무협",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.229665"
+    },
+    "멸문의 밤, 나는 역근경을 대원만에 이르렀다!": {
+      "genre": "무협",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.229787"
+    },
+    "무림맹 망나니 감찰관": {
+      "genre": "무협",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.229884"
+    },
+    "무림에서 레벨업(미완)": {
+      "genre": "무협",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.232386"
+    },
+    "미완": {
+      "genre": "무협",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.232386"
+    },
+    "무림에서 레벨업": {
+      "genre": "무협",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.232386"
+    },
+    "무협지 안으로 들어와버렸다": {
+      "genre": "무협",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.233859"
+    },
+    "운룡회귀": {
+      "genre": "무협",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.233972"
+    },
+    "전생검신": {
+      "genre": "무협",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.234152"
+    },
+    "전속성무도": {
+      "genre": "무협",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.234237"
+    },
+    "절대회귀": {
+      "genre": "무협",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.236693"
+    },
+    "집필초심": {
+      "genre": "선협, 가족경영",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.237964"
+    },
+    "난무 무관에 입문하는 것부터 시작": {
+      "genre": "선협, 고무, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.239068"
+    },
+    "나의 천부는 무한히 중첩된다": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.239204"
+    },
+    "난 착실히 출석만 한다, 누가 나가서 나대겠느냐": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.239347"
+    },
+    "도관을 상속받으니, 시작부터 무미랑이 향을 피우러 왔다": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.239487"
+    },
+    "만배반환，아수도백무금기(만배반환, 제자는 가리지 않고 받는다)": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.248011"
+    },
+    "만배반환, 제자는 가리지 않고 받는다": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.248011"
+    },
+    "만배반환，아수도백무금기": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.248011"
+    },
+    "부비재능수선？ 아적종문전면비(유료 결제해야 신선이 된다고？내 종문은 전면 무료다)": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.258421"
+    },
+    "유료 결제해야 신선이 된다고？내 종문은 전면 무료다": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.258421"
+    },
+    "부비재능수선？ 아적종문전면비": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.258421"
+    },
+    "불후의 가문, 자손의 자질을 바꿀 수 있는 나": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.258725"
+    },
+    "사냥 아내를 맞이하고 스탯을 올려 무적이 되었다": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.258860"
+    },
+    "선부": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.260158"
+    },
+    "성로선종": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.260265"
+    },
+    "수선계에서 던전을 돌아 신선이 되다": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.260389"
+    },
+    "수선종청풍방시개시": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.260492"
+    },
+    "시뮬레이션 학살 범인에서 선제까지": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.260610"
+    },
+    "신농도군": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.261937"
+    },
+    "신여음을 가로채고, 만물을 복제하다": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.262182"
+    },
+    "아재수선세계개농장": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.263848"
+    },
+    "악역 ~ 내 남동생은 선택받은 자다": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.264019"
+    },
+    "악역 무적은 주인공의 스승을 하인으로 삼는 것부터 시작된다": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.264183"
+    },
+    "장생 ~ 농사지으며 특성 갱신부터 시작": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.264315"
+    },
+    "장생수선 부적 제작부터 시작하다": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.264435"
+    },
+    "종문을 멸망시키려 했을 뿐인데, 어째서 역천하여 신이 된 거지": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.264577"
+    },
+    "종영식사간성진선(영식사에서 진선으로)": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.268119"
+    },
+    "영식사에서 진선으로": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.268119"
+    },
+    "종영식사간성진선": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.268119"
+    },
+    "진옥무신, 관 속에서 시체가 일어나는 것부터 시작": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.268377"
+    },
+    "천도수근：일분경운백분수획": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.269703"
+    },
+    "첩자인 내가 문파 전체를 책임짐": {
+      "genre": "선협, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.269837"
+    },
+    "거절하지 않는다면 의부로 모시겠습니다": {
+      "genre": "선협, 여주, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.270192"
+    },
+    "영근없이 수선하는데，치트가 많은게 무슨 문제라도？": {
+      "genre": "선협, 여주, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.270364"
+    },
+    "일상적수선생활(일상의 수선생활)": {
+      "genre": "선협, 여주, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.273905"
+    },
+    "일상의 수선생활": {
+      "genre": "선협, 여주, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.273905"
+    },
+    "일상적수선생활": {
+      "genre": "선협, 여주, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.273905"
+    },
+    "풍령근가공간, 포회녀배소요선(풍령근에 공간, 포배 여주의 유유자적한 소요선)": {
+      "genre": "선협, 여주, 공간",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.282973"
+    },
+    "풍령근에 공간, 포배 여주의 유유자적한 소요선": {
+      "genre": "선협, 여주, 공간",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.282973"
+    },
+    "풍령근가공간, 포회녀배소요선": {
+      "genre": "선협, 여주, 공간",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.282973"
+    },
+    "인재합환종, 개국성위성녀도려(합환종에 들어온 나, 시작하자마자 성녀의 도려가 되다)": {
+      "genre": "선협, 하렘",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.294839"
+    },
+    "합환종에 들어온 나, 시작하자마자 성녀의 도려가 되다": {
+      "genre": "선협, 하렘",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.294839"
+    },
+    "인재합환종, 개국성위성녀도려": {
+      "genre": "선협, 하렘",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.294839"
+    },
+    "나는 마도조사다": {
+      "genre": "선협, 학사신공",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.296170"
+    },
+    "농구님, 감독이 하고 싶어요": {
+      "genre": "스포츠, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.296303"
+    },
+    "미국 씹어먹는 야구 천재": {
+      "genre": "스포츠",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.298840"
+    },
+    "방출된 외야수가 천재 투수": {
+      "genre": "스포츠",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.298965"
+    },
+    "천진학문고과거(가학 연애 언정소설에서 과거 시험에 응시하다)": {
+      "genre": "언정, 하렘, 남주",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.310000"
+    },
+    "가학 연애 언정소설에서 과거 시험에 응시하다": {
+      "genre": "언정, 하렘, 남주",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.310000"
+    },
+    "천진학문고과거": {
+      "genre": "언정, 하렘, 남주",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.310000"
+    },
+    "한가한 집안의 책 빙의 생활": {
+      "genre": "언정, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.310283"
+    },
+    "육령지동북래료개대미인(육십년대 동북에서 온 대미녀)": {
+      "genre": "언정, 여주",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.316242"
+    },
+    "육십년대 동북에서 온 대미녀": {
+      "genre": "언정, 여주",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.316242"
+    },
+    "육령지동북래료개대미인": {
+      "genre": "언정, 여주",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.316242"
+    },
+    "연대：종하향후개시적함어생활": {
+      "genre": "언정, 연대물",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.317767"
+    },
+    "칠십년대 나는 여주의 대조군인 불쌍한 아이가 되었다": {
+      "genre": "언정, 연대물",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.318004"
+    },
+    "청요": {
+      "genre": "역사, 블랙코미디",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.319226"
+    },
+    "마운트 앤 블레이드 마스터 여포봉선": {
+      "genre": "역사, 삼국지, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.320125"
+    },
+    "관우와 장비를 저지하다, 나는 진정한 황제의 삼촌이다!": {
+      "genre": "역사, 삼국지",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.321024"
+    },
+    "관우의 베기를 처음부터 제대로 맛보기": {
+      "genre": "역사, 삼국지",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.321918"
+    },
+    "손책을 죽이고 강동을 장악하다": {
+      "genre": "역사, 삼국지",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.322785"
+    },
+    "파종 내 초선은 어디에 있는가": {
+      "genre": "역사, 삼국지",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.323656"
+    },
+    "중세로 시작하는 십자군 원정": {
+      "genre": "역사, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.323777"
+    },
+    "고려에서 치트 없이 문명합니다": {
+      "genre": "역사",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.323898"
+    },
+    "고블린 중증 의존 검수": {
+      "genre": "판타지, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.324008"
+    },
+    "고블린에게 복수하는 소녀 영웅": {
+      "genre": "판타지, 여주, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.324239"
+    },
+    "네피림의 부활": {
+      "genre": "판타지, 여주, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.325652"
+    },
+    "수레국화 마녀": {
+      "genre": "판타지, 여주, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.325838"
+    },
+    "천사 양반, 내 집에 그만 좀 함부로 들어와요": {
+      "genre": "판타지, 여주",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.326008"
+    },
+    "흑무의 세계, 해바라기로 살아남기": {
+      "genre": "판타지, 여주",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.326160"
+    },
+    "약혼자를 버렸더니, 즐거운 마법학교 생활이 기다리고 있었다": {
+      "genre": "판타지, 학원물, 여주",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.327500"
+    },
+    "블리치 하늘에 서겠다": {
+      "genre": "패러디, 블리치, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.328221"
+    },
+    "XX급 호카게": {
+      "genre": "패러디, 나루토, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.328328"
+    },
+    "나루토 나뭇잎 마을에 있는 나, 시작부터 목둔을 각성": {
+      "genre": "패러디, 나루토, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.328469"
+    },
+    "닌자 세계에서 아이젠을 연기하는 내가 채팅방에 가입했다": {
+      "genre": "패러디, 나루토, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.328608"
+    },
+    "매년 치트 하나씩": {
+      "genre": "패러디, 나루토, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.328708"
+    },
+    "우치하의 광소 4인방": {
+      "genre": "패러디, 나루토, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.328814"
+    },
+    "일기를 썼더니 오오츠츠키 강림이 폭로되었다": {
+      "genre": "패러디, 나루토, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.328970"
+    },
+    "놀라운 우치하": {
+      "genre": "패러디, 나루토",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.329069"
+    },
+    "모래마을에서 태어나 수십 년간 나뭇잎을 들이받다": {
+      "genre": "패러디, 나루토",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.329200"
+    },
+    "쓰레기 처리장": {
+      "genre": "패러디, 나루토",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.329296"
+    },
+    "괴의(돌팔이 의사) 아가씨는 절대 오진하지 않아!": {
+      "genre": "패러디, 다중, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.334030"
+    },
+    "돌팔이 의사": {
+      "genre": "패러디, 다중, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.334030"
+    },
+    "괴의 아가씨는 절대 오진하지 않아!": {
+      "genre": "패러디, 다중, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.334030"
+    },
+    "던만추에서 시작하는 제천 여행": {
+      "genre": "패러디, 던만추, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.344086"
+    },
+    "야생 서바이벌, 하지만 이차원 미소녀": {
+      "genre": "패러디, 다중, 하렘",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.336594"
+    },
+    "천룡인으로 시작해 여인섬을 만들다": {
+      "genre": "패러디, 다중, 하렘",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.338976"
+    },
+    "추락, 그리고 미소녀와 함께 더 롱 다크부터 시작하는 생존!": {
+      "genre": "패러디, 다중, 하렘",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.340279"
+    },
+    "나, 지식의 사도, 채팅방에 가입하다": {
+      "genre": "패러디, 다중",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.341547"
+    },
+    "내 채팅방이 너무 이상하다": {
+      "genre": "패러디, 다중",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.342722"
+    },
+    "원신에 환생 그리고 채팅방": {
+      "genre": "패러디, 다중",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.343952"
+    },
+    "망했다, 던전의 여신들에게 둘러싸여 버렸다": {
+      "genre": "패러디, 던만추, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.344217"
+    },
+    "마블에 있는 나 S급 재능이 너무 많아서 다 쓸 수가 없다": {
+      "genre": "패러디, 마블, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.344386"
+    },
+    "스티브의 차원 이동 생존 가이드": {
+      "genre": "패러디, 마블, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.344509"
+    },
+    "시작부터 소우주를 각성하다": {
+      "genre": "패러디, 마블, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.344621"
+    },
+    "심비오트 내가 빙의한 모든것이 날아올랐다": {
+      "genre": "패러디, 마블, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.344746"
+    },
+    "얼티밋 바이오로지": {
+      "genre": "패러디, 마블, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.346131"
+    },
+    "원작 스파이더맨을 만난 후 가면라이더로 변신한다": {
+      "genre": "패러디, 마블, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.346290"
+    },
+    "게으른 크립토니안": {
+      "genre": "패러디, 마블",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.346417"
+    },
+    "마블에서 신비로운 부활을 시작했습니다": {
+      "genre": "패러디, 마블",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.346635"
+    },
+    "만위세계적유일완가": {
+      "genre": "패러디, 마블",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.348094"
+    },
+    "만위함어극성인": {
+      "genre": "패러디, 마블",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.349473"
+    },
+    "미만：해객지주협": {
+      "genre": "패러디, 마블, 스파이더맨",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.355335"
+    },
+    "난도아진유여성우은？": {
+      "genre": "패러디, 뱅드림",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.355451"
+    },
+    "채팅방 지식의 사도는 만계를 개척하고 싶다": {
+      "genre": "패러디, 붕괴 스타레일, 다중",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.356190"
+    },
+    "검도기아나종천궁류성개시(천궁에서 유성처럼 떨어진 키아나를 줍는 것부터 시작)": {
+      "genre": "패러디, 붕괴, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.368939"
+    },
+    "천궁에서 유성처럼 떨어진 키아나를 줍는 것부터 시작": {
+      "genre": "패러디, 붕괴, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.368939"
+    },
+    "검도기아나종천궁류성개시": {
+      "genre": "패러디, 붕괴, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.368939"
+    },
+    "내 능력은 종말을 보는 것？": {
+      "genre": "패러디, 붕괴 스타레일",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.369237"
+    },
+    "런어웨이 아스타": {
+      "genre": "패러디, 블랙클로버",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.369341"
+    },
+    "쿠치키 가문의 게으른 젊은 주인이 쓰는 8대 비술": {
+      "genre": "패러디, 블리치, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.369491"
+    },
+    "품격 시스템": {
+      "genre": "패러디, 블리치, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.369597"
+    },
+    "만약 공께서 버리지 않으신다면, 양아버지를 삼고자 하옵니다": {
+      "genre": "패러디, 서유기, 여주",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.369801"
+    },
+    "성궁철도：아재선주개발수유(붕괴 스타레일 선주 나부에서 모바일 게임을 개발합니다)": {
+      "genre": "패러디, 붕괴 스타레일, 붕괴",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.377023"
+    },
+    "붕괴 스타레일 선주 나부에서 모바일 게임을 개발합니다": {
+      "genre": "패러디, 붕괴 스타레일, 붕괴",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.377023"
+    },
+    "성궁철도：아재선주개발수유": {
+      "genre": "패러디, 붕괴 스타레일, 붕괴",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.377023"
+    },
+    "나루토의 비하인드 스토리 빅보스 시스템": {
+      "genre": "패러디, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.377332"
+    },
+    "아재만위흔기궤비복소": {
+      "genre": "패러디, 신비의 제왕, 마블",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.379465"
+    },
+    "나와 궤비세계의 신비의 여왕은 몸이바꼈다": {
+      "genre": "패러디, 신비의 제왕, 해리포터",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.379639"
+    },
+    "실교, 재부시실력지상, 시아군림천하달!": {
+      "genre": "패러디, 실력지상주의",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.384330"
+    },
+    "학원도시적온도제어(학원도시의 온도제어)": {
+      "genre": "패러디, 어과초, 여주",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.387952"
+    },
+    "학원도시의 온도제어": {
+      "genre": "패러디, 어과초, 여주",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.387952"
+    },
+    "학원도시적온도제어": {
+      "genre": "패러디, 어과초, 여주",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.387952"
+    },
+    "왕의 탄생을 맞이하라": {
+      "genre": "패러디, 오버로드",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.388198"
+    },
+    "수색, 타격, 탈출이 유행이다! 그런데 워해머 40ㅏ라고!": {
+      "genre": "패러디, 워해머, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.388358"
+    },
+    "40K 세계에서 도덕경을 수련하다": {
+      "genre": "패러디, 워해머",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.388473"
+    },
+    "나 황금 옥좌에 앉아야 해？": {
+      "genre": "패러디, 워해머",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.388578"
+    },
+    "사기꾼 약 장수에서 제국 원수까지": {
+      "genre": "패러디, 워해머",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.388688"
+    },
+    "아스타르테스 가문의 회계 장부": {
+      "genre": "패러디, 워해머",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.388796"
+    },
+    "쥐새끼도 초월을 원한다": {
+      "genre": "패러디, 워해머",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.388895"
+    },
+    "수메르에서는 학자인 척 해 보세요!": {
+      "genre": "패러디, 원신",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.389005"
+    },
+    "나, 해군 대장! 내 도플갱어의 사황을 향한 위대한 여정": {
+      "genre": "패러디, 원피스, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.389292"
+    },
+    "나는 만물을 활성화할 수 있다": {
+      "genre": "패러디, 원피스, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.389405"
+    },
+    "대선의 용기사": {
+      "genre": "패러디, 원피스, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.389493"
+    },
+    "록스 해적단 부선장부터 시작한다": {
+      "genre": "패러디, 원피스, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.389609"
+    },
+    "루피, 너 이렇게 안 치열하게 살면 어떻게 해적왕이 되겠어": {
+      "genre": "패러디, 원피스, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.389885"
+    },
+    "시모츠키 검관의 약탈자": {
+      "genre": "패러디, 원피스, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.389992"
+    },
+    "시작부터 구미호가 마리조아를 포격하다": {
+      "genre": "패러디, 원피스, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.390115"
+    },
+    "얼떨결에 능력자를 제압했다": {
+      "genre": "패러디, 원피스, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.390225"
+    },
+    "에이스를 첫칼에 베어버렸다": {
+      "genre": "패러디, 원피스, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.390336"
+    },
+    "영령을 소환": {
+      "genre": "패러디, 원피스, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.390433"
+    },
+    "하얀 악마": {
+      "genre": "패러디, 원피스, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.390527"
+    },
+    "내 아내는 코쵸우 시노부, 종합 애니 여신을 소환한다": {
+      "genre": "패러디, 원피스, 하렘",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.390744"
+    },
+    "40년 전, 그는 지배자 록스를 손에 넣었다": {
+      "genre": "패러디, 원피스",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.390861"
+    },
+    "내 영상이 모두를 놀라게 했다": {
+      "genre": "패러디, 원피스",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.390965"
+    },
+    "신의 길에 오르다": {
+      "genre": "패러디, 원피스",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.391061"
+    },
+    "어둠어둠 열매가, 나를 선택하다니": {
+      "genre": "패러디, 원피스",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.391175"
+    },
+    "에이스를 해군으로 속여서 시작하기": {
+      "genre": "패러디, 원피스",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.391285"
+    },
+    "해군 대장이 되기 위한 생존기": {
+      "genre": "패러디, 원피스",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.391388"
+    },
+    "해군본부신문발언인(해군 본부 대변인)": {
+      "genre": "패러디, 원피스",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.401104"
+    },
+    "해군 본부 대변인": {
+      "genre": "패러디, 원피스",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.396113"
+    },
+    "해군본부신문발언인": {
+      "genre": "패러디, 원피스",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.396113"
+    },
+    "해적좌망도, 구진일가타문진신료(9할의 진실과 1할의 거짓에 그들은 정말로 속아버렸다)": {
+      "genre": "패러디, 원피스",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.408237"
+    },
+    "9할의 진실과 1할의 거짓에 그들은 정말로 속아버렸다": {
+      "genre": "패러디, 원피스",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.408237"
+    },
+    "해적좌망도, 구진일가타문진신료": {
+      "genre": "패러디, 원피스",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.408237"
+    },
+    "반요？팔문둔갑 개문": {
+      "genre": "패러디, 이누야샤, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.408528"
+    },
+    "뭐？내가 지옥별과 싸운다고？": {
+      "genre": "패러디, 이토준지",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.408644"
+    },
+    "아포칼립스 난 진짜 약탈자가 아니라고": {
+      "genre": "패러디, 종말물",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.409932"
+    },
+    "동시 빙의 눕방 찍었더니, 종언이자 에이언즈가 됨": {
+      "genre": "패러디, 종합",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.411097"
+    },
+    "캄피오네의 채팅방": {
+      "genre": "패러디, 캄피오네, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.411214"
+    },
+    "가남세계적악마정탐사무소": {
+      "genre": "패러디, 명탐정 코난",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.411319"
+    },
+    "빚쟁이 마법사의 일기": {
+      "genre": "패러디, 타입문",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.411407"
+    },
+    "복제하여 신이 되다": {
+      "genre": "패러디, 탄서성공",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.412718"
+    },
+    "나의 테니스의 왕자에는 숙련도가 있다": {
+      "genre": "패러디, 테니스의 왕자",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.412952"
+    },
+    "망왕：몰천부，니타십마망구": {
+      "genre": "패러디, 테니스의 왕자",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.414393"
+    },
+    "스페이스 메이지": {
+      "genre": "패러디, 페어리테일",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.414508"
+    },
+    "사육장에 대한 모든 것": {
+      "genre": "패러디, 포켓몬, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.414628"
+    },
+    "시작은 멜리시, 돌연변이 디안시": {
+      "genre": "패러디, 포켓몬, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.414747"
+    },
+    "네 무우마는 왜 날개치는머리냐고!": {
+      "genre": "패러디, 포켓몬",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.414859"
+    },
+    "방금 체육관 관장이 됐는데 신시아가 나한테 청혼했어": {
+      "genre": "패러디, 포켓몬",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.415002"
+    },
+    "나는 만계로부터 수많은 유산을 물려받았다": {
+      "genre": "패러디, 하렘, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.416401"
+    },
+    "남자 성우도 스폰 제안을 받을 줄이야": {
+      "genre": "패러디, 하렘",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.418021"
+    },
+    "던만추 세계관의 야겜 시스템": {
+      "genre": "패러디, 하렘",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.419511"
+    },
+    "노력 안 할 거면 구세주는 왜 해": {
+      "genre": "패러디, 해리포터, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.419661"
+    },
+    "호그와트의 어느 혼혈 왕자 소설": {
+      "genre": "패러디, 해리포터, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.419789"
+    },
+    "나, 톰은 정말로 어둠의 군주가 아니야": {
+      "genre": "패러디, 해리포터",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.419913"
+    },
+    "레귤러스 별의 주인": {
+      "genre": "패러디, 해리포터",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.420013"
+    },
+    "호그와트부터 시작하는 룬 마법사": {
+      "genre": "패러디, 해리포터",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.420150"
+    },
+    "내 스탠드는 시간을 멈출 수 있다": {
+      "genre": "패러디, 헌터x헌터",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.420259"
+    },
+    "무한성장": {
+      "genre": "패러디, 헌터x헌터",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.420345"
+    },
+    "세계를 얻는 것부터 천계를 넘어서까지": {
+      "genre": "패러디, 헌터x헌터",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.420457"
+    },
+    "고속도로 생존 오토바이에서 육신 거대한 용으로": {
+      "genre": "퓨판, 괴이, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.421589"
+    },
+    "종말 집 한 채를 들고 다님": {
+      "genre": "퓨판, 먼치킨",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.422856"
+    },
+    "전민 공포 생존 나는 포인트 분배를 각성했다": {
+      "genre": "퓨판, 생존, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.424086"
+    },
+    "피난처 진화론：살점과 뼈의 피난처": {
+      "genre": "퓨판, 생존, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.425310"
+    },
+    "좀비 도보 여행 일기": {
+      "genre": "퓨판, 생존",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.426484"
+    },
+    "20년간 조용히 살다 시스템 각성 후 세상을 놀라게 하다": {
+      "genre": "퓨판, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.426644"
+    },
+    "레이싱 소녀세계 내겐 신급 튜닝 옵션이 있다!": {
+      "genre": "퓨판, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.427990"
+    },
+    "말세 여인이 소모한 물자는 만 배로 돌려받는다": {
+      "genre": "퓨판, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.429688"
+    },
+    "시퀀스 고속도로 생존기 나는 종말에서 물자를 업그레이드한다": {
+      "genre": "퓨판, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.429884"
+    },
+    "전 국민 생존, D급 인원 시뮬레이터를 얻다": {
+      "genre": "퓨판, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.430021"
+    },
+    "종말의 베이스캠프, 그 안에서의 우아한 생활": {
+      "genre": "퓨판, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.430153"
+    },
+    "탄서성공：수도만배반환(제자 육성 만 배 반환)": {
+      "genre": "퓨판, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.437384"
+    },
+    "제자 육성 만 배 반환": {
+      "genre": "퓨판, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.437384"
+    },
+    "탄서성공：수도만배반환": {
+      "genre": "퓨판, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.437384"
+    },
+    "물 마법 정도밖에 장점이 없지만 현대 지식만 있으면 충분하겠지": {
+      "genre": "퓨판, 여주",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.437751"
+    },
+    "이렇게 귀여운 내가 마두일 리 없잖아": {
+      "genre": "퓨판, 여주",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.437914"
+    },
+    "조련사 현무 등 위에 집을 짓다": {
+      "genre": "퓨판, 종말",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.438157"
+    },
+    "충격 거부가 나를 스승으로 모시려 한다": {
+      "genre": "퓨판, 탄서성공",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.439210"
+    },
+    "내 분신이 거물이 되어간다": {
+      "genre": "퓨판",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.439318"
+    },
+    "환홍": {
+      "genre": "현판, 하렘",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.441181"
+    },
+    "이랑신 재능 파밍으로 강해지다": {
+      "genre": "현판, 고무, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.442284"
+    },
+    "이세계 호텔": {
+      "genre": "현판, 괴이",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.443359"
+    },
+    "다 같이 애니 본방 사수 귀멸부터 시작": {
+      "genre": "패러디, 다중, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.443507"
+    },
+    "천재가 그렇게 많다니 나 하나 추가되면 뭐 어때": {
+      "genre": "패러디, 다중, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.443643"
+    },
+    "크로노스 재창조": {
+      "genre": "현판, 마블",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.443738"
+    },
+    "New Life": {
+      "genre": "현판, 모던패밀리",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.443834"
+    },
+    "나의 미드 밴시 마을에서 시작": {
+      "genre": "패러디, 미드, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.445189"
+    },
+    "미국 TV 드라마 속 일상": {
+      "genre": "패러디, 미드, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.445321"
+    },
+    "나는 두수의": {
+      "genre": "현판, 사합원, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.445426"
+    },
+    "누소아개국취생쌍포태": {
+      "genre": "현판, 사합원, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.445538"
+    },
+    "보안과장, 전 원을 진압하다": {
+      "genre": "현판, 사합원, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.445693"
+    },
+    "사자개국, 정복전원": {
+      "genre": "현판, 사합원, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.445856"
+    },
+    "사합원에서 월급루팡 하는 제과 명장": {
+      "genre": "현판, 사합원, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.446006"
+    },
+    "워유일개호주의": {
+      "genre": "현판, 사합원, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.446123"
+    },
+    "육류연합공장 도축공에서 시작해 간부로 올라서": {
+      "genre": "현판, 사합원, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.446314"
+    },
+    "차개 방영원 상장 심보 산지피": {
+      "genre": "현판, 사합원, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.446456"
+    },
+    "이가역자, 루립기공": {
+      "genre": "현판, 사합원, 하렘",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.446657"
+    },
+    "가인태웅한중금상반가": {
+      "genre": "현판, 사합원",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.446770"
+    },
+    "개국반주, 중금마료": {
+      "genre": "현판, 사합원",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.446872"
+    },
+    "거리의 영사원의 일상": {
+      "genre": "현판, 사합원",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.446973"
+    },
+    "무한 빌딩 시작부터 감독관이 되다": {
+      "genre": "현판, 생존, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.448452"
+    },
+    "집단중포로 수선자 처치": {
+      "genre": "현판, 수선",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.449558"
+    },
+    "60년대 랜덤박스 시스템. 쓰레기 아빠가 과금하여 여섯 아이를 끔찍이 아끼다": {
+      "genre": "현판, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.449737"
+    },
+    "한계 돌파 특성으로 시작하는 무도 등신": {
+      "genre": "현판, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.449854"
+    },
+    "환생, 시작부터 절세 미녀 처형을 구하다": {
+      "genre": "현판, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.449979"
+    },
+    "【비보】 아가씨계 밑바닥 던전 방송자, 방송 끄는걸 잊었다는 걸 눈치채지 못한채 동업자를 패버렸다": {
+      "genre": "현판, 여주, 비보",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.453801"
+    },
+    "1984 파산 직전의 사천요리집에서 시작하다": {
+      "genre": "현판, 연대물, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.454044"
+    },
+    "1960년대 북경으로 타임슬립하다": {
+      "genre": "현판, 연대물",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.454217"
+    },
+    "1979 서북왕사": {
+      "genre": "현판, 연대물",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.454366"
+    },
+    "1979년 황금시대": {
+      "genre": "현판, 연대물",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.454516"
+    },
+    "1984년 상자가 되었다": {
+      "genre": "현판, 연대물",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.454683"
+    },
+    "1990년 회귀 바다와 산에서 보낸 어로와 수렵의 나날": {
+      "genre": "현판, 연대물",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.454866"
+    },
+    "80년대 작은 어촌으로의 귀환 게살 생전보부터 시작하다": {
+      "genre": "현판, 연대물",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.455049"
+    },
+    "중생1972장백산지구속(환생 1972, 장백산의 구원)": {
+      "genre": "현판, 연대물",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.460907"
+    },
+    "환생 1972, 장백산의 구원": {
+      "genre": "현판, 연대물",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.460907"
+    },
+    "중생1972장백산지구속": {
+      "genre": "현판, 연대물",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.460907"
+    },
+    "천월60년대，아격활료저물계지": {
+      "genre": "현판, 연대물",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.462485"
+    },
+    "70년대 타임슬립, 지식청년에서 인생 승리자가 되다": {
+      "genre": "현판, 하렘, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.462756"
+    },
+    "사합원 야스 갑부": {
+      "genre": "현판, 하렘, 시스템",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.465156"
+    },
+    "10위안으로 산 합환종 비급": {
+      "genre": "현판, 하렘",
+      "confidence": "high",
+      "source": "manual",
+      "cached_at": "2026-10-09T22:59:51.465546"
     }
   }
 }

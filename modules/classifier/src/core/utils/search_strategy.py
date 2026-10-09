@@ -207,6 +207,14 @@ class SearchStrategy:
         for exception in self.CHINESE_TITLE_EXCEPTIONS:
             if exception in title:
                 return False
+
+        # 전각 문장부호 (：, ，, 、) 포함 확인
+        if re.search(r'[\uFF0C\uFF1A\u3001]', title):
+            return True
+            
+        # 중국 고유 클리셰 키워드 포함 확인
+        if any(kw in title for kw in ['사합원', '수선', '단총', '교처', '지청', '칠령', '팔령', '구령', '역습계통', '포회', '대승기', '쾌천', '괴렵', '화룡유특성']):
+            return True
         
         # 긴 어미 패턴 확인 (우선순위 높음)
         for ending in self.CHINESE_TITLE_ENDINGS:

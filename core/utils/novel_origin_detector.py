@@ -431,7 +431,9 @@ class NovelOriginDetector:
         foreign_title: str = "",
         file_path: Optional[Path] = None,
         header_result: Optional[ContentHeaderResult] = None,
-        genre: str = ""
+        genre: str = "",
+        phonetic_title: str = "",
+        translated_title: str = ""
     ) -> OriginResult:
         """
         다각적 단서를 결합하여 소설 원산지(국적) 판별
@@ -443,17 +445,34 @@ class NovelOriginDetector:
             file_path: 파일 경로 (인코딩 검사용)
             header_result: 본문 헤더 추출 결과
             genre: 현재까지 추론된 장르
+            phonetic_title: 한국식 독음 제목 (조합형 소설)
+            translated_title: 한국어 번역 제목 (조합형 소설)
             
         Returns:
             OriginResult(country, confidence, reasons, is_foreign)
         """
         result = OriginResult()
-        full_text = f"{raw_name} {title}".strip()
+        full_text = f"{raw_name} {title} {phonetic_title} {translated_title}".strip()
 
         cn_score = 0
         jp_score = 0
         kr_score = 0
         reasons = []
+
+        # -------------------------------------------------------------
+        # 0. 조합형 제목(독음 + 번역) 분석 가산
+        # -------------------------------------------------------------
+        if phonetic_title:
+            if cls.CHINESE_PUNCTUATION_REGEX.search(phonetic_title):
+                cn_score += 65
+                reasons.append(f"조합형 독음 제목('{phonetic_title}')에서 중국 전각 문장부호 감지")
+            clean_phonetic = re.sub(r'[^가-힣]', '', phonetic_title)
+            if len(clean_phonetic) >= 5 and cls.CN_PHONETIC_GRAMMAR_REGEX.search(clean_phonetic):
+                cn_score += 70
+                reasons.append(f"조합형 독음 제목('{clean_phonetic}')에서 중국 한자 독음 어휘 일치")
+            elif any(kw in phonetic_title for kw in ['사합원', '선협', '단총', '교처', '괴렵', '권유', '두라']):
+                cn_score += 65
+                reasons.append(f"조합형 독음 제목('{phonetic_title}')에서 중국 고유 클리셰 감지")
 
         # -------------------------------------------------------------
         # 1. 특정 출처/플랫폼 태그 검사 (최우선 확정)
@@ -583,7 +602,7 @@ class NovelOriginDetector:
         # -------------------------------------------------------------
         try:
             from core.utils.chinese_phonetic_analyzer import ChinesePhoneticAnalyzer
-            phonetic_res = ChinesePhoneticAnalyzer.analyze(full_text, title)
+            phonetic_res = ChinesePhoneticAnalyzer.analyze(full_text, title, phonetic_title=phonetic_title)
             if phonetic_res.is_detected:
                 # 한국 소설에도 흔한 일반적 게임/스포츠/공포/현대/전통무협 키워드 단독 출현 시 CN 오감지 방지
                 is_generic_trope = any(
@@ -593,7 +612,15 @@ class NovelOriginDetector:
                     cjk_kw in (phonetic_res.matched_pattern or "")
                     for cjk_kw in ["생존유희", "生存游戏", "유희", "游戏", "속성반", "공로구생", "도생", "계통", "系统", "골드핑거", "모의기", "고룡", "국술", "대종사", "횡추", "극도무성", "용상반약공"]
                 )
-                if not is_generic_trope:
+                # 글로벌/국내 서브컬처 패러디(드래곤볼, 포켓몬, 원피스 등) 키워드 단독 출현 시 CN 오감지 방지
+                is_generic_parody = (
+                    phonetic_res.genre == '패러디' and not (
+                        cls.CHINESE_PUNCTUATION_REGEX.search(full_text) or
+                        cjk_source or
+                        any(ckw in full_text for ckw in ['괴렵', '권유', '위새리사', '삼두룡', '두라', '커쉐', '인재', '종~', '탄서', '천월', '중생'])
+                    )
+                )
+                if not is_generic_trope and not is_generic_parody:
                     cn_score += 80
                     reasons.append(f"중국어 음독/클리셰 분석 일치: {phonetic_res.reason} (패턴: {phonetic_res.matched_pattern})")
         except Exception:

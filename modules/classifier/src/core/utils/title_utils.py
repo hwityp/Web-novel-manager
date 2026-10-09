@@ -21,7 +21,11 @@ def normalize_title(title: str) -> str:
     """
     # 1. 괄호 내용 제거 (단, 중요 정보는 유지)
     # (RM), (완), (19금) 등 제거
-    title = re.sub(r'\s*[\(\[](RM|완결?|단행본|연재중|개정판|합본|특별판|19[금Nn]|15금)[\)\]]\s*', ' ', title)
+    title = re.sub(r'\s*[\(\[（【［](?:RM|완결?|단행본|연재중|개정판|합본|특별판|19[금Nn]|15금)[\)\]）】］]\s*', ' ', title)
+    
+    # 권수/회차 범위(1-326, 1~500 등) 및 완결/외전 잔여 제거
+    title = re.sub(r'\s+\d+\s*[-~_〜～〰–—−]\s*\d+\s*[화권부편회장]?.*$', '', title)
+    title = re.sub(r'\s+\d+\s*[화권부편회장].*$', '', title)
     
     # 2. 특수문자 정규화
     # ㆍ → 공백
@@ -87,6 +91,22 @@ CHINESE_TITLE_EXCEPTIONS = [
 ]
 
 
+CN_PUNCTUATION_REGEX = re.compile(r'[\uFF0C\uFF1A\u3001]')
+
+CN_CLICHE_KEYWORDS = [
+    '사합원', '4합원', '수선', '대승기', '역습계통', '단총', '교처', '낭자', '복보', '천금',
+    '궁투', '택투', '시어머니', '시집', '포태', '소내포', '극본', '소복녀', '함어', '포회',
+    '괴렵', '권유', '두라', '삼두룡', '위새리사', '화룡유특성', '아진몰상', '풍비사숙', '풍료',
+    '저살', '전종화장장', '화장장', '수진', '천칠령', '칠령', '팔령', '구령', '지청', '공간물자',
+    '수신공간', '개시', '아시', '지력', '유특성', '불사우', '관선료', '붕료', '흔난',
+    '타적', '나저', '회리적', '니설', '저시', '척능', '항종', '커쉐', '영능자', '창화',
+    '쾌천', '표고양', '금욕불자', '앵앵괴', '소조종', '초시통고금', '허니만장', '첨우야',
+    '일근육', '인재동경', '전민령주', '전민진화', '전직법사', '저정류', '종예', '제천',
+    '종극화력', '중회', '금점층대보', '호림원', '장악최면지력', '초가전', '령원구', '항도',
+    '화오', '환불기방대', '매방료', '회당', '학신전', '타강산', '저조'
+]
+
+
 def is_chinese_novel_title(title: str) -> bool:
     """중국 소설 제목 패턴인지 확인
     
@@ -104,6 +124,14 @@ def is_chinese_novel_title(title: str) -> bool:
         if exception in title:
             return False
     
+    # 전각 문장부호 (：, ，, 、) 포함 확인
+    if CN_PUNCTUATION_REGEX.search(title):
+        return True
+        
+    # 중국 고유 클리셰 키워드 포함 확인
+    if any(kw in title for kw in CN_CLICHE_KEYWORDS):
+        return True
+
     # 긴 어미 패턴 확인 (우선순위 높음)
     for ending in CHINESE_TITLE_ENDINGS:
         if title.endswith(ending) and len(title) > len(ending) + 1:

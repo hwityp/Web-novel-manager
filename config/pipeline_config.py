@@ -35,10 +35,11 @@ def get_base_path() -> Path:
     if getattr(sys, 'frozen', False):
         # PyInstaller로 패키징된 EXE 실행 중
         # sys._MEIPASS는 임시 디렉토리 (내부 리소스)
-        return Path(sys._MEIPASS)
-    else:
-        # 일반 Python 실행
-        return Path(__file__).parent.parent
+        meipass = getattr(sys, '_MEIPASS', None)
+        if meipass:
+            return Path(meipass)
+    # 일반 Python 실행
+    return Path(__file__).parent.parent
 
 
 def get_config_path(filename: str = "pipeline_config.json") -> Path:

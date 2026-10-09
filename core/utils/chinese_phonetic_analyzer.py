@@ -87,7 +87,10 @@ class ChinesePhoneticAnalyzer:
                 '인계', '닌계', '키사메', '간시귀', '부주인료', '하지메', '원펀맨',
                 '새로운 흑황제', '흑황제의 강림', '신비의 제왕', '치신세계', '궤비：', '궤비지주',
                 '베이커가', '베이커', '사신은 순애', '인재탄서', '탄서',
-                '괴렵', '권유', '위새리사', '삼두룡', '항종', '타입문', '커쉐', '발짝만큼의 거리', '발짝만큼'
+                '괴렵', '권유', '위새리사', '삼두룡', '항종', '타입문', '커쉐', '발짝만큼의 거리', '발짝만큼',
+                '워해머', '원신', '던만추', '블랙클로버', '오버로드', '이누야샤', '이토준지', '캄피오네',
+                '페어리테일', '테니스의 왕자', '어과초', '실력지상주의', '뱅드림', '모던패밀리', '서유기',
+                '초사이어인', '손오공', '베지터', '드래곤볼'
             ],
             '패러디', 0.98, '애니/게임/서브컬처 패러디 고유 어휘'
         ),
@@ -112,7 +115,10 @@ class ChinesePhoneticAnalyzer:
                 '대겁주', '선옥', '도가선자', '참요무성', '헌제성신', '수설저정류전',
                 '흑백무제', '군성지자도혼록', '구신지전', '망장천', '선마녀',
                 '대황수야인', '노조', '홍황', '봉신', '로조', '老祖', '선경', '仙境',
-                '도과', '태일도과', '할편공법', '풍비사숙', '화장장', '희신', '아시선'
+                '도과', '태일도과', '할편공법', '풍비사숙', '화장장', '희신', '아시선',
+                '대사저', '수선자', '역근경', '사형제', '사자', '연기기', '축기기', '결단기',
+                '원영기', '화신기', '연허기', '합체기', '도겁기', '선계', '단강', '연단',
+                '법보', '영단', '곤륜', '촉산', '자소', '도주', '주명'
             ],
             '선협', 0.95, '선협/수선 고유 어휘'
         ),
@@ -365,13 +371,14 @@ class ChinesePhoneticAnalyzer:
     }
 
     @classmethod
-    def analyze(cls, text: str, pure_title: str = "") -> ChinesePhoneticResult:
+    def analyze(cls, text: str, pure_title: str = "", phonetic_title: str = "") -> ChinesePhoneticResult:
         """
         중국 웹소설 기계번역/음독 제목을 분석하여 장르 판정
         
         Args:
             text: 원본 파일명 또는 파싱된 텍스트
             pure_title: 순수 제목 (옵션)
+            phonetic_title: 한국식 독음 제목 (조합형에서 분해된 독음, 옵션)
             
         Returns:
             ChinesePhoneticResult
@@ -379,7 +386,7 @@ class ChinesePhoneticAnalyzer:
         result = ChinesePhoneticResult()
         
         # 1. 제목 정제
-        target_title = (pure_title or text).strip()
+        target_title = (phonetic_title or pure_title or text).strip()
         # 확장자 및 회차 제거
         cleaned = re.sub(r'\.[a-zA-Z0-9]+$', '', target_title)
         cleaned = re.sub(r'[\(\[\{].*?[\)\]\}]', '', cleaned).strip()
@@ -388,7 +395,7 @@ class ChinesePhoneticAnalyzer:
 
         # 2. 유명 작품 DB 직접 매칭
         for known_k, (genre, reason) in cls.KNOWN_TITLES.items():
-            if known_k in target_title or known_k in cleaned:
+            if known_k in target_title or known_k in cleaned or (phonetic_title and known_k in phonetic_title):
                 result.genre = genre
                 result.confidence = "high"
                 result.matched_pattern = known_k
@@ -400,12 +407,12 @@ class ChinesePhoneticAnalyzer:
         has_prefix = False
         prefix_desc = ""
         for pat, desc in cls.PREFIX_PATTERNS:
-            if re.search(pat, cleaned):
+            if re.search(pat, cleaned) or (phonetic_title and re.search(pat, phonetic_title)):
                 has_prefix = True
                 prefix_desc = desc
                 break
 
-        full_context = f"{text} {pure_title} {cleaned}".strip()
+        full_context = f"{text} {pure_title} {cleaned} {phonetic_title}".strip()
 
         # 4. 특별 클리셰: 사합원(四合院) 판정
         if any(kw in full_context for kw in ['사합원', '四合院', '4합원']):

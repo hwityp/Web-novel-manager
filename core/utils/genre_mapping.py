@@ -166,6 +166,21 @@ class GenreMappingLoader:
         """중국 로판/로맨스 소설인지 판단 (완결/권수 한자 完, 外 등 제외)"""
         import re
         full_text = f"{title} {text}"
+        # 일본어 가나(히라가나/카타카나)가 포함된 경우 일본 소설이므로 중국 언정(言情)이 아님
+        if re.search(r'[぀-ゟ゠-ヿ]', full_text):
+            return False
+
+        # 소설 국적 감지기(NovelOriginDetector)를 통한 선행 판별
+        try:
+            from core.utils.novel_origin_detector import NovelOriginDetector
+            origin_res = NovelOriginDetector.detect(title=title, raw_name=full_text)
+            if origin_res.country == 'JP':
+                return False
+            if origin_res.country == 'CN':
+                return True
+        except Exception:
+            pass
+
         # 완결/권수 한자 제외한 2글자 이상 CJK 검사
         cjk_chars = [c for c in full_text if ('\u4e00' <= c <= '\u9fff' or '\u3400' <= c <= '\u4dbf')]
         substantive_cjk = [c for c in cjk_chars if c not in ('完', '外', '全', '前', '後', '第', '話', '卷', '冊', '編', '篇', '章')]
@@ -177,7 +192,8 @@ class GenreMappingLoader:
             r'악독', r'종전', r'매매', r'사합원', r'농부', r'가속원래', r'독심', r'만급작정',
             r'궁투', r'후궁', r'태의', r'칠령', r'팔령', r'지청', r'부처천월', r'교연미인', r'농부가적',
             r'수모', r'단총', r'개가', r'계모', r'반공가산', r'시천당', r'소내포', r'복보',
-            r'교처', r'군관', r'극본'
+            r'교처', r'군관', r'극본', r'쾌천', r'리적', r'포회', r'중생', r'후비', r'독비',
+            r'녀주', r'여주', r'서녀', r'적녀', r'장공주', r'공간물자'
         ]
         for pat in sino_patterns:
             if re.search(pat, full_text):
@@ -213,7 +229,7 @@ class GenreMappingLoader:
         
         if mapped and mapped in self.whitelist:
             # 로판/로맨스의 경우 중국 웹소설 판단 시 '언정'으로 변경
-            if mapped in ['로판', '로맨스'] and self.is_chinese_romance(title, text):
+            if (mapped in ['로판', '로맨스', '로맨스판타지'] or '로판' in mapped or '로맨스' in mapped) and self.is_chinese_romance(title, text):
                 return '언정'
             return mapped
         

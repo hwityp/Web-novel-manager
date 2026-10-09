@@ -104,6 +104,24 @@ TRAIT_PATTERNS: List[Tuple[str, List[str]]] = [
     ("미드", [
         r"미드", r"미국\s*드라마", r"쉐임리스", r"shameless", r"브레이킹\s*배드", r"왕좌의\s*게임", r"워킹데드"
     ]),
+    ("워해머", [r"워해머", r"warhammer", r"스페이스\s*마린", r"황제폐하"]),
+    ("원신", [r"원신", r"티바트", r"푸리나", r"페이몬", r"原神"]),
+    ("던만추", [r"던만추", r"헤스티아", r"벨\s*크라넬", r"오라리오"]),
+    ("테니스의 왕자", [r"테니스의\s*왕자", r"테니스의왕자", r"에치젠\s*료마"]),
+    ("엘든링", [r"엘든링", r"elden\s*ring", r"틈새의\s*땅", r"빛바랜\s*자", r"트라이나"]),
+    ("뱅드림", [r"뱅드림", r"bang\s*dream"]),
+    ("블랙클로버", [r"블랙클로버", r"아스타"]),
+    ("서유기", [r"서유기", r"제천대성"]),
+    ("실력지상주의", [r"실력지상주의", r"어서오세요\s*실력지상주의", r"아야노코지"]),
+    ("어과초", [r"어과초", r"초전자포", r"어마금", r"미사카\s*미코토"]),
+    ("오버로드", [r"오버로드", r"아인즈", r"나자릭"]),
+    ("이누야샤", [r"이누야샤", r"사혼의\s*구슬", r"셋쇼마루"]),
+    ("이토준지", [r"이토준지", r"토미에", r"소이치"]),
+    ("캄피오네", [r"캄피오네"]),
+    ("타입문", [r"타입문", r"type-?moon", r"(?<!로열)(?<![가-힣])페이트(?![가-힣])", r"(?<![a-zA-Z])fate(?![a-zA-Z])", r"성배전쟁"]),
+    ("페어리테일", [r"페어리테일", r"fairy\s*tail", r"나츠"]),
+    ("몬스터 헌터", [r"몬스터\s*헌터", r"몬헌", r"괴렵", r"화룡", r"리오레우스", r"怪猎", r"monster\s*hunter"]),
+    ("모던패밀리", [r"모던패밀리", r"modern\s*family"]),
     ("종합", [
         r"(?<![가-힣])종합(?![가-힣])", r"종합물", r"종합\s*패러디",
         r"크로스\s*오버", r"crossover", r"쭝허",
@@ -163,7 +181,27 @@ PARODY_FANDOM_MAP = {
     "완미세계": "완미세계", "완미세계지": "완미세계",
     "붕괴: 스타레일": "붕괴 스타레일", "붕괴:스타레일": "붕괴 스타레일",
     "붕괴-스타레일": "붕괴 스타레일", "붕괴스타레일": "붕괴 스타레일",
-    "붕괴 스타레일": "붕괴 스타레일", "스타레일": "붕괴 스타레일"
+    "붕괴 스타레일": "붕괴 스타레일", "스타레일": "붕괴 스타레일",
+    "붕괴": "붕괴",
+    "워해머": "워해머", "워해머40k": "워해머", "워해머 40k": "워해머",
+    "원신": "원신", "티바트": "원신",
+    "던만추": "던만추",
+    "테니스의 왕자": "테니스의 왕자", "테니스의왕자": "테니스의 왕자",
+    "엘든링": "엘든링",
+    "뱅드림": "뱅드림",
+    "블랙클로버": "블랙클로버",
+    "서유기": "서유기",
+    "실력지상주의": "실력지상주의",
+    "어과초": "어과초", "어마금": "어과초",
+    "오버로드": "오버로드",
+    "이누야샤": "이누야샤",
+    "이토준지": "이토준지",
+    "캄피오네": "캄피오네",
+    "타입문": "타입문", "페이트": "타입문",
+    "페어리테일": "페어리테일",
+    "몬스터 헌터": "몬스터 헌터", "몬스터헌터": "몬스터 헌터", "몬헌": "몬스터 헌터", "괴렵": "몬스터 헌터",
+    "모던패밀리": "모던패밀리",
+    "신비의제왕": "신비의 제왕"
 }
 
 
@@ -199,7 +237,7 @@ class NovelTraitExtractor:
         ]
         
         # (2) 대괄호 태그 (전각 대괄호 지원)
-        brackets = re.findall(r'[\[【［]([^\]】］]+)[\]】］]', name)
+        brackets = re.findall(r'[\[【［]([^\]】］\}]+)[\]】］\}]', name)
         
         # (3) 소괄호 태그 (단순 숫자 범위, 완결 마커, 원문 한자 제목 제외, 전각 소괄호 지원)
         parens = re.findall(r'[\(（]([^\)）]+)[\)）]', name)
@@ -266,6 +304,29 @@ class NovelTraitExtractor:
             if token_lower in ANNOTATION_NOISE_WORDS:
                 continue
             if re.match(r'^(?:\d+.*|[Aa][Ii]번역|번역.*)$', token):
+                continue
+
+            # (A-0) 특수 복합 태그 정규화
+            if token in ["다중패러디", "다중 패러디"]:
+                primary_genre = "패러디"
+                add_trait("다중")
+                continue
+            if token in ["미드패러디", "미드 패러디"]:
+                primary_genre = "패러디"
+                add_trait("미드")
+                continue
+            if token == "패러디 블리치":
+                primary_genre = "패러디"
+                add_trait("블리치")
+                continue
+            if token == "붕괴 스타레일 및 다중":
+                add_trait("붕괴 스타레일")
+                add_trait("다중")
+                continue
+            if token == "현판 하렘":
+                if not primary_genre:
+                    primary_genre = "현판"
+                add_trait("하렘")
                 continue
 
             # (A) 복합어 확인 1: ~패러디 (예: "나루토패러디" -> 주 장르: 패러디, 특성: 나루토)
@@ -509,12 +570,16 @@ class NovelTraitExtractor:
                 if primary_genre in ['언정', '로판', '로맨스', '역사', '미분류']:
                     primary_genre = "현판"
 
-        # 로판/로맨스의 경우 중국 웹소설 판단 시 '언정'으로 전환 (사합원 제외)
-        elif primary_genre in ['로판', '로맨스', '로맨스판타지']:
-            from core.utils.genre_mapping import GenreMappingLoader
-            text_ctx = f"{web_snippet} {' '.join(web_tags or [])}"
-            if GenreMappingLoader.is_chinese_romance(title, text_ctx):
-                primary_genre = "언정"
+        # 로판/로맨스의 경우 중국 웹소설 판단 시 '언정'으로 전환 (사합원 및 일본 소설 제외)
+        elif primary_genre in ['로판', '로맨스', '로맨스판타지'] or '로판' in primary_genre or '로맨스' in primary_genre:
+            has_japanese = bool(re.search(r'[぀-ゟ゠-ヿ]', f"{title} {all_text_ctx}"))
+            if not has_japanese:
+                from core.utils.genre_mapping import GenreMappingLoader
+                from core.utils.novel_origin_detector import NovelOriginDetector
+                text_ctx = f"{web_snippet} {' '.join(web_tags or [])}"
+                origin_res = NovelOriginDetector.detect(title=title, raw_name=all_text_ctx)
+                if origin_res.country == 'CN' or GenreMappingLoader.is_chinese_romance(title, text_ctx):
+                    primary_genre = "언정"
 
         traits = cls.extract_traits(
             primary_genre=primary_genre,

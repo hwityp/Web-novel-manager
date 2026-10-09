@@ -102,20 +102,6 @@ class KeywordSyncer:
             return '.'.join(parts)
         return version_str + ".1"
 
-    def merge_and_sync(
-        self,
-        candidates: List[GenreCandidate],
-        run_regression_test: bool = True,
-        max_weight_cap: int = 8
-    ) -> SyncResult:
-        """
-        후보군 키워드를 통합 사전에 병합하고 모든 대상 파일에 원자적으로 동기화.
-        
-        Args:
-            candidates: 병합할 후보 키워드 목록
-            run_regression_test: 동기화 후 pytest 단위 테스트 실행 여부
-            max_weight_cap: 신규 키워드 가중치 상한선 (기본 8)
-        """
     def load_master_data(self) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
         """기본 사전 파일 로드"""
         primary_path = self.target_paths[0]
@@ -176,7 +162,7 @@ class KeywordSyncer:
         if not genre:
             return SyncResult(False, 0, 0, 0, [], [], error_message="장르를 지정해야 합니다.")
 
-        weight = max(1, min(10, int(weight)))
+        weight = max(1, min(10, weight))
 
         master_data, err = self.load_master_data()
         if not master_data:

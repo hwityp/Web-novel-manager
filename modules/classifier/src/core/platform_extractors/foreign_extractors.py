@@ -36,9 +36,11 @@ class QidianExtractor(BasePlatformExtractor):
         '奇幻': '판타지',
         '都市': '현판',
         '诸天无限': '현판',
+        '诸天': '현판',
         '无限流': '현판',
         '仙侠': '선협',
         '修真': '선협',
+        '都市修仙': '선협',
         '历史': '역사',
         '军事': '역사',
         '同人': '패러디',
@@ -48,6 +50,12 @@ class QidianExtractor(BasePlatformExtractor):
         '武侠': '무협',
         '悬疑': '공포',
         '体育': '스포츠',
+        '短篇': '소설',
+        '现实': '소설',
+        '古言': '언정',
+        '现言': '언정',
+        '言情': '언정',
+        '女生网': '언정',
     }
 
     def extract_genre(self, links: List[Any], title: str, author: Optional[str] = None) -> Optional[Dict[str, Any]]:
@@ -147,6 +155,33 @@ class JJWXCExtractor(BasePlatformExtractor):
                             'raw_genre': type_str,
                             'url': href
                         }
+                    elif any(kw in type_str for kw in ['仙侠', '修仙', '修真', '武侠']):
+                        print(f"  [{self.platform_name}] 선협/무협 감지: '{type_str}' → '선협'")
+                        return {
+                            'genre': '선협',
+                            'confidence': self.confidence,
+                            'source': f"{self.platform_name}_meta",
+                            'raw_genre': type_str,
+                            'url': href
+                        }
+                    elif any(kw in type_str for kw in ['科幻', '未来', '末世']):
+                        print(f"  [{self.platform_name}] SF/퓨판 감지: '{type_str}' → '퓨판'")
+                        return {
+                            'genre': '퓨판',
+                            'confidence': self.confidence,
+                            'source': f"{self.platform_name}_meta",
+                            'raw_genre': type_str,
+                            'url': href
+                        }
+                    elif any(kw in type_str for kw in ['悬疑', '恐怖']):
+                        print(f"  [{self.platform_name}] 공포 감지: '{type_str}' → '공포'")
+                        return {
+                            'genre': '공포',
+                            'confidence': self.confidence,
+                            'source': f"{self.platform_name}_meta",
+                            'raw_genre': type_str,
+                            'url': href
+                        }
 
             # 기본적으로 진장은 거의 모든 인기작이 '언정' (여성향)
             if '言情' in full_text[:3000] or '古言' in full_text[:3000] or '现言' in full_text[:3000]:
@@ -181,22 +216,48 @@ class BaiduBaikeExtractor(BasePlatformExtractor):
         '古代言情': '언정',
         '现代言情': '언정',
         '言情': '언정',
+        '古言': '언정',
+        '现言': '언정',
+        '都市言情': '언정',
+        '宫廷贵族': '언정',
+        '豪门世家': '언정',
+        '穿书': '언정',
+        '重生言情': '언정',
         '仙侠': '선협',
         '修仙': '선협',
         '修真': '선협',
+        '古典仙侠': '선협',
+        '玄幻修真': '선협',
+        '修真仙侠': '선협',
+        '现代修真': '선협',
+        '都市修真': '선협',
         '玄幻': '판타지',
+        '东方玄幻': '판타지',
+        '异世大陆': '판타지',
+        '异界大陆': '판타지',
         '奇幻': '판타지',
         '都市': '현판',
         '都市生活': '현판',
+        '都市异能': '현판',
+        '诸天无限': '현판',
+        '无限流': '현판',
         '历史': '역사',
         '军事': '역사',
         '架空历史': '역사',
         '游戏': '겜판',
         '科幻': '퓨판',
         '末世': '퓨판',
+        '未来世界': '퓨판',
+        '星际文明': '퓨판',
+        '进化变异': '퓨판',
         '武侠': '무협',
         '同人': '패러디',
         '衍生': '패러디',
+        '体育': '스포츠',
+        '竞技': '스포츠',
+        '悬疑': '공포',
+        '恐怖': '공포',
+        '惊悚': '공포',
     }
 
     def extract_genre(self, links: List[Any], title: str, author: Optional[str] = None) -> Optional[Dict[str, Any]]:
@@ -211,10 +272,28 @@ class BaiduBaikeExtractor(BasePlatformExtractor):
             if not soup:
                 continue
 
+            # 1. 바이두 백과 인포박스(.basic-info) dt/dd 매칭
+            for dt in soup.find_all(['dt', 'th']):
+                dt_text = dt.get_text().strip()
+                if any(k in dt_text for k in ['类型', '题材', '体裁', '标签']):
+                    dd = dt.find_next_sibling(['dd', 'td'])
+                    if dd:
+                        val = dd.get_text().strip()
+                        for cn_k, mapped in self.BAIKE_GENRE_MAP.items():
+                            if cn_k in val:
+                                print(f"  [{self.platform_name}] 인포박스 장르 발견: '{val}' → '{mapped}'")
+                                return {
+                                    'genre': mapped,
+                                    'confidence': self.confidence,
+                                    'source': f"{self.platform_name}_infobox",
+                                    'raw_genre': val,
+                                    'url': href
+                                }
+
             full_text = soup.get_text()
 
-            # 作品类型 / 题材 탐색
-            m = re.search(r'(?:作品类型|小说类型|题材|类型)[：:]\s*([^\n\r]+)', full_text)
+            # 2. 作品类型 / 题材 탐색 (정규식)
+            m = re.search(r'(?:作品类型|小说类型|文学体裁|作品体裁|作品题材|小说题材|题材|类型|标签)[：:]\s*([^\n\r]+)', full_text)
             if m:
                 type_line = m.group(1).strip()
                 for cn_k, mapped in self.BAIKE_GENRE_MAP.items():
@@ -228,7 +307,7 @@ class BaiduBaikeExtractor(BasePlatformExtractor):
                             'url': href
                         }
 
-            # 본문 내 장르 키워드
+            # 3. 본문 내 장르 키워드
             for cn_k, mapped in self.BAIKE_GENRE_MAP.items():
                 if f"这是一部{cn_k}" in full_text[:3000] or f"网络小说，属于{cn_k}" in full_text[:3000]:
                     print(f"  [{self.platform_name}] 본문 장르 매칭: '{cn_k}' → '{mapped}'")
@@ -358,10 +437,16 @@ class SyosetuExtractor(BasePlatformExtractor):
                         101: '로판', 102: '로판',
                         201: '판타지', 202: '현판',
                         301: '소설', 302: '소설', 303: '역사', 304: '소설', 305: '공포', 306: '판타지', 307: '소설',
-                        401: '겜판', 402: 'SF', 403: 'SF', 404: 'SF'
+                        401: '겜판', 402: 'SF', 403: 'SF', 404: 'SF',
+                        9901: '로판', 9902: '판타지', 9903: '판타지', 9904: '소설', 9999: '소설'
                     }
-                    if raw_genre_code in code_map:
-                        mapped = code_map[raw_genre_code]
+                    try:
+                        genre_int = int(raw_genre_code)
+                    except (ValueError, TypeError):
+                        genre_int = None
+
+                    if genre_int in code_map:
+                        mapped = code_map[genre_int]
                         print(f"  [{self.platform_name} API] 장르 코드 {raw_genre_code} 감지 → '{mapped}'")
                         return {
                             'genre': mapped,

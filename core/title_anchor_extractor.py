@@ -21,7 +21,7 @@
 """
 import re
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Tuple, Optional, List
 
 
@@ -123,18 +123,75 @@ def compose_korean_jamo(text: str) -> str:
 CJK_CHAR_REGEX = re.compile(r'[\u4e00-\u9fff\u3400-\u4dbf\u3040-\u30ff]')
 
 
+# 중국어 고유 전각 문장부호 및 독음 클리셰 어휘 정규식
+CN_PUNCTUATION_REGEX = re.compile(r'[\uFF0C\uFF1A\u3001]')
+CN_CLICHE_KEYWORDS = [
+    '사합원', '4합원', '수선', '대승기', '역습계통', '단총', '교처', '낭자', '복보', '천금',
+    '궁투', '택투', '시어머니', '시집', '포태', '소내포', '극본', '소복녀', '함어', '포회',
+    '괴렵', '권유', '두라', '삼두룡', '위새리사', '화룡유특성', '아진몰상', '풍비사숙', '풍료',
+    '저살', '전종화장장', '화장장', '수진', '천칠령', '칠령', '팔령', '구령', '지청', '공간물자',
+    '수신공간', '개시', '아시', '종~', '지력', '유특성', '불사우', '관선료', '붕료', '흔난',
+    '타적', '나저', '회리적', '니설', '저시', '척능', '항종', '커쉐', '영능자', '창화',
+    '항마신장', '언가군림', '인주란', '군림', '검혼기행', '종무', '국술', '대종사', '횡추',
+    '극도무성', '용상반약공', '고룡세계', '장생요도', '자소도주', '주명승도', '주선', '차천',
+    '태일도과', '할편공법', '희신', '아시선', '신비지겁', '흑야지주', '치신세계', '활재만명',
+    '만명', '장안호', '판도충', '만반도', '출룡', '포화호선', '명령여징복', '화의금화',
+    '쾌천', '표고양', '금욕불자', '앵앵괴', '소조종', '초시통고금', '허니만장', '첨우야',
+    '여배각성후', '해상구생', '저유희야태진실료', '천도도서관', '구일음락가', '해도왕권', '희랍대악인',
+    '일근육', '인재동경', '전민령주', '전민진화', '전직법사', '저정류', '종예', '제천',
+    '종극화력', '중회', '금점층대보', '호림원', '장악최면지력', '초가전', '령원구', '항도',
+    '화오', '환불기방대', '매방료', '회당', '학신전', '타강산', '저조'
+]
+
+PARTICLE_REGEX = re.compile(
+    r'(?:가|이|은|는|을|를|의|에|에서|로|으로|와|과|도|만|한|적|하는|받는다|다|부터|까지|하고|했다|했더니|버려서|된다|되는|되었다)(?:\s|:|$)'
+)
+
+
+def is_sino_korean_text(text: str) -> bool:
+    """중국/일본식 한자 독음 제목인지 판별"""
+    if not text:
+        return False
+    if CN_PUNCTUATION_REGEX.search(text):
+        return True
+    if any(kw in text for kw in CN_CLICHE_KEYWORDS):
+        return True
+    clean = re.sub(r'[^가-힣]', '', text)
+    if len(clean) >= 6 and not PARTICLE_REGEX.search(text):
+        return True
+    return False
+
+
+def is_translated_korean_text(text: str) -> bool:
+    """자연스러운 한국어 번역 제목인지 판별"""
+    if not text:
+        return False
+    if PARTICLE_REGEX.search(text):
+        return True
+    natural_korean_words = [
+        '미친', '죽여버려서', '문파 전체가', '애교쟁이', '거친 사내', '마음', '흔들다',
+        '내가', '다시 태어날', '생각 없었어', '몬스터 헌터', '사위', '여사장', '보디가드',
+        '익애', '영애의', '하렘을', '시작하는', '출석 체크', '배로', '돌려받는다', '천월'
+    ]
+    if any(w in text for w in natural_korean_words):
+        return True
+    return False
+
+
 def parse_foreign_title_info(text: str) -> dict:
     """
-    해외(중/일) 웹소설 제목 분석 및 3가지 유형 구분
+    해외(중/일) 웹소설 제목 분석 및 3가지 유형(독음, 번역, 독음+번역 조합) 구분
     """
     result = {
         'clean_title': '',
         'original_foreign_title': '',
         'foreign_type': '',  # 'sino_korean', 'translation', 'parallel'
         'has_space_before_foreign': True,
+        'phonetic_title': '',    # 한국식 독음 제목
+        'translated_title': '',  # 한국어 번역 제목
     }
     
-    if not text or not CJK_CHAR_REGEX.search(text):
+    if not text:
         return result
 
     CJK_MARKER_CHARS = set("完外番全卷部編篇結終上下中0123456789一二三四五六七八九十백천만")
@@ -164,37 +221,95 @@ def parse_foreign_title_info(text: str) -> dict:
         found_paren = True
         break
 
-    if not found_paren:
+    if not found_paren and CJK_CHAR_REGEX.search(text):
         # 괄호 없이 한자가 포함된 경우
         cjk_match = re.search(r'([\u4e00-\u9fff\u3400-\u4dbf\u3040-\u30ff]{2,}[\u4e00-\u9fff\u3400-\u4dbf\u3040-\u30ff\s：:，,！!？?·]*)', text)
         if cjk_match:
-            cjk_title = cjk_match.group(1).strip()
-            korean_part = (text[:cjk_match.start()] + " " + text[cjk_match.end():]).strip()
-            korean_part = re.sub(r'^\s*[-–—:]\s*|\s*[-–—:]\s*$', '', korean_part).strip()
-
-    if not cjk_title or all(c in CJK_MARKER_CHARS or c.isspace() or c in "+-~,.:/[]()_·" for c in cjk_title):
-        return result
+            candidate = cjk_match.group(1).strip()
+            if not all(c in CJK_MARKER_CHARS or c.isspace() or c in "+-~,.:/[]()_·" for c in candidate):
+                cjk_title = candidate
+                korean_part = (text[:cjk_match.start()] + " " + text[cjk_match.end():]).strip()
+                korean_part = re.sub(r'^\s*[-–—:]\s*|\s*[-–—:]\s*$', '', korean_part).strip()
 
     result['original_foreign_title'] = cjk_title
     result['has_space_before_foreign'] = has_space_before
-    korean_part_clean = re.sub(r'[\s_]+', ' ', korean_part).strip()
-    
-    # 2. 유형 판단 (sino_korean, translation, parallel)
-    has_particles = bool(re.search(r'(?:가|이|은|는|을|를|의|에|에서|로|으로|와|과|도|만|한|적|하는|받는다|다)(?:\s|:|$)', korean_part_clean))
-    
-    # 병기(parallel)는 한자음 제목과 번역문 제목이 구분자('-', '[ ]', '/')로 조합된 형태
-    is_parallel = False
-    if '-' in korean_part_clean or ('[' in korean_part_clean and ']' in korean_part_clean) or '/' in korean_part_clean:
-        is_parallel = True
+    korean_part_clean = re.sub(r'\s+', ' ', korean_part).strip()
+    result['clean_title'] = korean_part_clean or text
 
-    if is_parallel:
-        result['foreign_type'] = 'parallel'
-    elif has_particles:
-        result['foreign_type'] = 'translation'
+    # 2. 조합형(Parallel) 분해 시도: 독음 vs 번역
+    cand1, cand2 = "", ""
+    # 2-A. 하이픈 또는 슬래시 구분자
+    for sep in [' - ', ' – ', ' — ', ' / ']:
+        if sep in korean_part_clean:
+            parts = korean_part_clean.split(sep, 1)
+            cand1, cand2 = parts[0].strip(), parts[1].strip()
+            break
+
+    # 2-B. 괄호 구분자 (예: 독음(번역) 또는 번역(독음))
+    if not cand1 and not cand2:
+        paren_hangul = re.search(
+            r'([\(\[\{（【〔［《〈｛])\s*([^\(\)\[\]\{\}（）【】〔〕［］《》〈〉｛\}]+?)\s*([\)\]\}）】〕］》〉｝])',
+            korean_part_clean
+        )
+        if paren_hangul:
+            c2_candidate = paren_hangul.group(2).strip()
+            c1_candidate = (korean_part_clean[:paren_hangul.start()] + " " + korean_part_clean[paren_hangul.end():]).strip()
+            # 단순 권수/범위/완결 마커 제거
+            c1_candidate = re.sub(r'\s*\d+[-~]\d+.*$', '', c1_candidate).strip()
+            c1_candidate = re.sub(r'\s*\(완\).*$', '', c1_candidate).strip()
+            if re.search(r'[가-힣]', c1_candidate) and re.search(r'[가-힣]', c2_candidate):
+                if not re.search(r'^\d+[-~]\d+|완$|외전|完$', c2_candidate):
+                    cand1, cand2 = c1_candidate, c2_candidate
+
+    if cand1 and cand2:
+        cand1 = re.sub(r'\s*\d+[-~]\d+.*$', '', cand1).strip()
+        cand2 = re.sub(r'\s*\d+[-~]\d+.*$', '', cand2).strip()
+        cand1 = re.sub(r'\s*[\(\[\{]?(?:완|完|완결|외전|完結)[\)\]\}]?$', '', cand1).strip()
+        cand2 = re.sub(r'\s*[\(\[\{]?(?:완|完|완결|외전|完結)[\)\]\}]?$', '', cand2).strip()
+
+        c1_sino = is_sino_korean_text(cand1)
+        c2_sino = is_sino_korean_text(cand2)
+        c1_trans = is_translated_korean_text(cand1)
+        c2_trans = is_translated_korean_text(cand2)
+
+        if c1_sino and not c2_sino:
+            result['phonetic_title'] = cand1
+            result['translated_title'] = cand2
+            result['foreign_type'] = 'parallel'
+        elif c2_sino and not c1_sino:
+            result['phonetic_title'] = cand2
+            result['translated_title'] = cand1
+            result['foreign_type'] = 'parallel'
+        elif c2_trans and not c1_trans:
+            result['phonetic_title'] = cand1
+            result['translated_title'] = cand2
+            result['foreign_type'] = 'parallel'
+        elif c1_trans and not c2_trans:
+            result['phonetic_title'] = cand2
+            result['translated_title'] = cand1
+            result['foreign_type'] = 'parallel'
+        else:
+            result['phonetic_title'] = cand1
+            result['translated_title'] = cand2
+            result['foreign_type'] = 'parallel'
     else:
-        result['foreign_type'] = 'sino_korean'
+        # 단일 제목인 경우
+        has_particles = bool(PARTICLE_REGEX.search(korean_part_clean))
+        if cjk_title:
+            if has_particles:
+                result['foreign_type'] = 'translation'
+                result['translated_title'] = korean_part_clean
+            else:
+                result['foreign_type'] = 'sino_korean'
+                result['phonetic_title'] = korean_part_clean
+        else:
+            if is_sino_korean_text(korean_part_clean):
+                result['foreign_type'] = 'sino_korean'
+                result['phonetic_title'] = korean_part_clean
+            elif is_translated_korean_text(korean_part_clean):
+                result['foreign_type'] = 'translation'
+                result['translated_title'] = korean_part_clean
 
-    result['clean_title'] = korean_part_clean
     return result
 
 
@@ -213,6 +328,11 @@ class TitleParseResult:
     original_foreign_title: str = ""  # 원문 제목 (예: "我家娘子打江山" 또는 "末世：女人消耗的物资万倍返还")
     foreign_title_type: str = ""      # "sino_korean", "translation", "parallel", ""
     has_space_before_foreign: bool = True  # 원문 제목 앞 공백 여부
+    phonetic_title: str = ""          # 한국식 한자 독음 제목 (예: "단총교처：아대공간물자천칠령")
+    translated_title: str = ""        # 한국어 번역 제목 (예: "70년대로 천월")
+    country_origin: str = "UNKNOWN"   # 원산지 국적 ('KR', 'CN', 'JP', 'US', 'UNKNOWN')
+    is_foreign: bool = False          # 해외 소설 여부
+    origin_reasons: List[str] = field(default_factory=list)  # 국적 판별 근거
     
     def to_normalized_filename(self, genre: str = "") -> str:
         """
@@ -488,10 +608,12 @@ class TitleAnchorExtractor:
         # 2. 노이즈 제거 및 장르/판본 추출
         cleaned, author, original_genre, edition_info = self._remove_noise(name)
         
-        # [NEW] 해외(중/일) 소설 제목 파싱 (원문 한자 제목 및 3가지 유형 추출)
+        # [NEW] 해외(중/일) 소설 제목 파싱 (원문 한자 제목, 독음 및 번역 제목 분해)
         foreign_info = parse_foreign_title_info(cleaned)
         original_foreign_title = foreign_info['original_foreign_title']
         foreign_title_type = foreign_info['foreign_type']
+        phonetic_title = foreign_info.get('phonetic_title', '')
+        translated_title = foreign_info.get('translated_title', '')
         if foreign_info['clean_title']:
             cleaned = foreign_info['clean_title']
         
@@ -503,6 +625,28 @@ class TitleAnchorExtractor:
         
         final_author = author or author_from_res
         
+        # 5. [전처리 최적화] 한국 소설 vs 해외(중/일/영미) 소설 원산지 및 유형 자동 판별
+        from core.utils.novel_origin_detector import NovelOriginDetector
+        origin_res = NovelOriginDetector.detect(
+            title=title.strip(),
+            raw_name=raw_name,
+            foreign_title=original_foreign_title,
+            genre=original_genre,
+            phonetic_title=phonetic_title,
+            translated_title=translated_title
+        )
+
+        # [중국 소설 언정 통일] 중국 소설의 경우 로판/로맨스 장르는 언정으로 통일
+        if origin_res.country == 'CN' and original_genre:
+            from core.utils.novel_trait_extractor import NovelTraitExtractor
+            primary_g, traits = NovelTraitExtractor.parse_existing_tag(original_genre)
+            if primary_g in ['로판', '로맨스', '로맨스판타지'] or '로판' in primary_g or '로맨스' in primary_g:
+                original_genre = NovelTraitExtractor.format_genre_tag(
+                    primary_genre='언정',
+                    title=title.strip(),
+                    existing_keywords=traits
+                )
+
         return TitleParseResult(
             title=title.strip(),
             author=final_author.strip(),
@@ -515,7 +659,12 @@ class TitleAnchorExtractor:
             edition_info=edition_info,
             original_foreign_title=original_foreign_title,
             foreign_title_type=foreign_title_type,
-            has_space_before_foreign=foreign_info.get('has_space_before_foreign', True)
+            has_space_before_foreign=foreign_info.get('has_space_before_foreign', True),
+            phonetic_title=phonetic_title,
+            translated_title=translated_title,
+            country_origin=origin_res.country,
+            is_foreign=origin_res.is_foreign,
+            origin_reasons=origin_res.reasons
         )
     
     def _split_extension(self, filename: str) -> Tuple[str, str]:
@@ -664,6 +813,18 @@ class TitleAnchorExtractor:
             if exception in name:
                 return False
         
+        # 중국 고유 전각 문장부호 (：, ，, 、) 포함 확인
+        if CN_PUNCTUATION_REGEX.search(name):
+            return True
+            
+        # 중국 고유 클리셰 키워드 포함 확인
+        if any(kw in name for kw in CN_CLICHE_KEYWORDS):
+            return True
+
+        # 중국/일본식 한자 독음 제목 패턴 확인
+        if is_sino_korean_text(name):
+            return True
+
         # 제목 끝이 중국 소설 특유의 패턴인지 확인
         # 패턴: 한글제목 + 중국식 어미 + 공백/숫자 (제목 시작 부분에서만)
         for ending in self.CHINESE_TITLE_ENDINGS:
@@ -707,7 +868,7 @@ class TitleAnchorExtractor:
         
         # 0. 다중 부 패턴 (예: 1부133 完 2부100完, 1부 133 2부 100)
         multi_vol_match = re.search(
-            rf'(?:[\s_]|(?<=[.!?？!！])|(?<=[가-힣a-zA-Z\u4e00-\u9fff\)\]）】］]))\s*(\d+\s*부)\s*(\d+)(?:\s*(?:完|완|완결))?\s*(\d+\s*부)\s*(\d+)',
+            rf'(?:[\s_]|(?<=[.!?？!！\uFF0C\uFF1A\u3001])|(?<=[가-힣a-zA-Z\u4e00-\u9fff\u3040-\u30ff\)\]）】］]))\s*(\d+\s*부)\s*(\d+)(?:\s*(?:完|완|완결))?\s*(\d+\s*부)\s*(\d+)',
             name
         )
         if multi_vol_match:
@@ -716,7 +877,7 @@ class TitleAnchorExtractor:
         # 1. 단위 패턴 (1화, 50권, 1부, 165본편 등)
         # 단, \d+부가 나오고 그 뒤에 범위(1-225 등)가 따라오는 경우,
         # 부제목(예: 2부 귀호 1-225)이나 본 범위의 시작을 위해 unit_match로 제목을 조기 절단하지 않음
-        unit_match = re.search(r'(?:[\s_]|(?<=[.!?？!！])|(?<=[가-힣a-zA-Z\u4e00-\u9fff\)\]）】］]))\s*\d+\s*(?:[화권부편회장]|본편)(?:\s|$|[,\(\[\+])', name)
+        unit_match = re.search(r'(?:[\s_]|(?<=[.!?？!！\uFF0C\uFF1A\u3001])|(?<=[가-힣a-zA-Z\u4e00-\u9fff\u3040-\u30ff\)\]）】］]))\s*\d+\s*(?:[화권부편회장]|본편)(?:\s|$|[,\(\[\+])', name)
         if unit_match:
             is_volume_preceding_range = False
             if '부' in unit_match.group(0):
@@ -727,7 +888,7 @@ class TitleAnchorExtractor:
                 candidates.append(unit_match)
             
         # 2. 숫자 범위 패턴 (1-536, 1~100, 1〜1353, _1_222 등 - 공백 없이 붙은 경우 포함)
-        range_match = re.search(rf'(?:[\s_]|(?<=[.!?？!！])|(?<=[가-힣a-zA-Z\u4e00-\u9fff\)\]）】］]))\s*\d+\s*{self.RANGE_DASHES}\s*\d+', name)
+        range_match = re.search(rf'(?:[\s_]|(?<=[.!?？!！\uFF0C\uFF1A\u3001])|(?<=[가-힣a-zA-Z\u4e00-\u9fff\u3040-\u30ff\)\]）】］]))\s*\d+\s*{self.RANGE_DASHES}\s*\d+', name)
         if range_match:
             candidates.append(range_match)
             

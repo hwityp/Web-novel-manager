@@ -430,7 +430,10 @@ class GoogleGenreExtractor:
             elif score == max_score and count > counts.get(best_genre, 0):
                 best_genre = genre
                 total_count = count
-        
+
+        if country == 'CN' and best_genre in ['로맨스판타지', '로맨스', '로판']:
+            best_genre = '언정'
+
         return best_genre, total_count
 
     def _scrape_url(self, url: str) -> List[str]:
