@@ -148,6 +148,7 @@ GENRE_ALIAS_MAP = {
     "퓨전판타지": "퓨판", "퓨전 판타지": "퓨판", "퓨판": "퓨판",
     "게임판타지": "겜판", "게임 판타지": "겜판", "겜판": "겜판",
     "로맨스판타지": "로판", "로맨스 판타지": "로판", "로판": "로판",
+    "로맨스": "로판", "순정": "로판",
     "퓨전무협": "무협", "퓨전 무협": "무협", "신무협": "무협", "무협": "무협",
     "판타지": "판타지", "선협": "선협", "언정": "언정", "스포츠": "스포츠",
     "패러디": "패러디", "역사": "역사", "SF": "퓨판", "SF판타지": "퓨판", "공상과학": "퓨판", "공포": "공포",
@@ -342,6 +343,8 @@ class NovelTraitExtractor:
             if token in GENRE_ALIAS_MAP:
                 if not primary_genre:
                     primary_genre = GENRE_ALIAS_MAP[token]
+                elif token in explicit_bracket_tokens:
+                    add_trait(token)
                 continue
 
             # (C) 팬덤 키워드인 경우 (해리포터, 나루토, 붕괴 스타레일 등) -> 해당 팬덤 특성 추가

@@ -129,6 +129,12 @@ TOOLTIP_TEXTS = {
     "source_folder": "정리할 웹소설 파일들이 있는 폴더를 선택하세요.",
     "target_folder": "정리된 파일들이 저장될 폴더입니다.\n비워두면 소스폴더/정리완료 에 저장됩니다.",
     "manage_dict": "장르 사전 관리: 중국 웹소설 음독 패턴 및 통합 장르 키워드 사전을 최적화/동기화합니다.",
+    "btn_folder": "1단계 [폴더 스캔]: 소스 폴더 내의 소설 파일들을 탐색하고 스캔합니다.",
+    "btn_normalize": "2단계 [제목/국적 전처리]: 불필요한 태그를 제거하고 제목, 작가, 판본, 국적을 전처리(파싱)합니다.\n(실제 파일 변경 없이 인메모리 프리뷰로 생성)",
+    "btn_apply_source": "현재 전처리/추론 결과를 원본 소스 폴더 내 파일명에 즉시 반영합니다.",
+    "btn_genre": "3단계 [장르 추론]: 키워드, 사전, 웹 검색을 활용하여 장르를 정밀 추론하고 최종 정규화 미리보기를 생성합니다.\n추론 완료 후 [▶️ 4. 정규화 실행] 버튼으로 전환됩니다.",
+    "btn_batch": "원클릭 일괄 처리: [폴더 스캔 ➔ 제목/국적 전처리 ➔ 장르 추론 ➔ 최종 정규화 실행]의 로직 2 전체 흐름을 순차적으로 진행합니다.",
+    "btn_reset": "현재 작업 목록 및 진행 상태를 초기화합니다.",
 }
 
 
@@ -948,7 +954,7 @@ class WNAPMainWindow(ctk.CTk):
         )
     
     def _create_action_buttons(self):
-        """실행 버튼 섹션 생성 - 5단계 버튼 (WNAP v1.3.0)"""
+        """실행 버튼 섹션 생성 - 직관적 단계별 버튼 (로직 2: 전처리 ➔ 장르 추론 ➔ 파일명 정규화)"""
         button_frame = ctk.CTkFrame(
             self,
             fg_color=THEME["bg_card"],
@@ -963,9 +969,9 @@ class WNAPMainWindow(ctk.CTk):
         # 버튼 높이 1.5배 (약 68px)
         BTN_H = int(BUTTON_HEIGHT * 1.5)
         
-        # 1. 폴더 정리
+        # 1. 폴더 스캔
         self.btn_folder = ctk.CTkButton(
-            button_frame, text="1. 폴더 정리",
+            button_frame, text="1. 폴더 스캔",
             font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_MEDIUM, weight="bold"),
             height=BTN_H, corner_radius=BUTTON_CORNER_RADIUS,
             fg_color=THEME["accent_gray"], hover_color=THEME["accent_gray_hover"],
@@ -973,9 +979,9 @@ class WNAPMainWindow(ctk.CTk):
         )
         self.btn_folder.grid(row=0, column=0, padx=(PADDING_LARGE, PADDING_SMALL), pady=PADDING_LARGE, sticky="ew")
         
-        # 2. 파일명 정규화
+        # 2. 제목/국적 전처리
         self.btn_normalize = ctk.CTkButton(
-            button_frame, text="2. 파일명 정규화",
+            button_frame, text="2. 제목/국적 전처리",
             font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_MEDIUM, weight="bold"),
             height=BTN_H, corner_radius=BUTTON_CORNER_RADIUS,
             fg_color=THEME["accent_gray"], hover_color=THEME["accent_gray_hover"],
@@ -985,9 +991,9 @@ class WNAPMainWindow(ctk.CTk):
         )
         self.btn_normalize.grid(row=0, column=1, padx=PADDING_SMALL, pady=PADDING_LARGE, sticky="ew")
         
-        # [NEW] 소스 폴더 즉시 적용 버튼 (동일 라인 배치)
+        # [옵션] 소스 폴더 즉시 반영 버튼
         self.btn_apply_source = ctk.CTkButton(
-            button_frame, text="소스 폴더에 저장",
+            button_frame, text="소스에 즉시 반영",
             font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_MEDIUM, weight="bold"),
             height=BTN_H, corner_radius=BUTTON_CORNER_RADIUS,
             fg_color=THEME["accent_green"], hover_color="#2ECC71",
@@ -1001,9 +1007,9 @@ class WNAPMainWindow(ctk.CTk):
         # 비활성화 목록에 버튼 추가
         self.disable_on_run.append(self.btn_apply_source)
         
-        # 3. 장르 추론 및 실행 (Glow Effect)
+        # 3. 장르 추론 (Glow Effect - 완료 시 4. 정규화 실행으로 전환)
         self.btn_genre = ctk.CTkButton(
-            button_frame, text="3. 장르 추론/실행",
+            button_frame, text="3. 장르 추론",
             font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_MEDIUM, weight="bold"),
             height=BTN_H, corner_radius=BUTTON_CORNER_RADIUS,
             fg_color=THEME["accent_blue"], hover_color=THEME["accent_blue_hover"],
@@ -1037,6 +1043,16 @@ class WNAPMainWindow(ctk.CTk):
             command=self._on_btn_reset_click
         )
         self.btn_reset.grid(row=0, column=5, padx=(PADDING_SMALL, PADDING_LARGE), pady=PADDING_LARGE, sticky="ew")
+
+        # 툴팁 연결
+        self.tooltips.extend([
+            create_tooltip(self.btn_folder, TOOLTIP_TEXTS["btn_folder"]),
+            create_tooltip(self.btn_normalize, TOOLTIP_TEXTS["btn_normalize"]),
+            create_tooltip(self.btn_apply_source, TOOLTIP_TEXTS["btn_apply_source"]),
+            create_tooltip(self.btn_genre, TOOLTIP_TEXTS["btn_genre"]),
+            create_tooltip(self.btn_batch, TOOLTIP_TEXTS["btn_batch"]),
+            create_tooltip(self.btn_reset, TOOLTIP_TEXTS["btn_reset"]),
+        ])
 
         # 실행 중 비활성화할 버튼 목록 업데이트
         self.disable_on_run.extend([
@@ -1476,27 +1492,26 @@ class WNAPMainWindow(ctk.CTk):
         return True
 
     def _update_button_states(self):
-        """단계별 버튼 활성화/비활성화 상태 업데이트"""
+        """단계별 버튼 활성화/비활성화 상태 업데이트 (로직 2: 전처리 ➔ 장르 추론 ➔ 파일명 정규화)"""
         # 버튼이 생성되지 않았거나 앱 종료 시점이면 패스
         if not hasattr(self, 'btn_normalize'): 
             return
 
-        # 1단계 완료 -> 2단계 활성화
+        # 1단계(스캔) 완료 -> 2단계(전처리) 활성화
         if self.step_folder_done:
             self.btn_normalize.configure(state="normal")
         else:
             self.btn_normalize.configure(state="disabled")
             
-        # 2단계 완료 -> 정규화 즉시 적용 활성화, 3단계 활성화
+        # 2단계(전처리) 완료 -> 소스 즉시 반영 활성화, 3단계(장르 추론) 활성화
         if self.step_normalize_done:
             self.btn_apply_source.configure(state="normal")
             self.btn_genre.configure(state="normal")
             
             # 장르 추론 완료 여부에 따른 버튼 상태 변경 (One Button Two Actions)
-            # 장르 추론 완료 여부에 따른 버튼 상태 변경 (One Button Two Actions)
             if self.step_genre_done:
                 self.btn_genre.configure(
-                    text="▶️ 실행 (Rename)", 
+                    text="▶️ 4. 정규화 실행 (이동/저장)", 
                     fg_color="#27AE60", # Green
                     hover_color="#2ECC71",
                     text_color="#FFFFFF",
@@ -1510,63 +1525,71 @@ class WNAPMainWindow(ctk.CTk):
                     text_color="#FFFFFF"
                 )
         else:
-            self.btn_genre.configure(state="disabled")
+            self.btn_genre.configure(
+                text="3. 장르 추론",
+                state="disabled",
+                fg_color=THEME["accent_blue"],
+                hover_color=THEME["accent_blue_hover"],
+                text_color="#FFFFFF"
+            )
             if hasattr(self, 'btn_apply_source'):
                 self.btn_apply_source.configure(state="disabled")
 
     # ========================================================================
-    # 새 버튼 핸들러 (WNAP v1.3.0)
+    # 버튼 핸들러 (로직 2)
     # ========================================================================
 
     def _on_btn_folder_click(self):
-        """1. 폴더 정리 버튼 클릭"""
+        """1. 폴더 스캔 버튼 클릭"""
         if not self._validate_inputs(): return
         self._run_async_task(self._execute_stage1, "Stage 1: 폴더 스캔")
 
     def _on_btn_normalize_click(self):
-        """2. 파일명 정규화 버튼 클릭"""
+        """2. 제목/국적 전처리 버튼 클릭"""
         if not self.step_folder_done: 
-            messagebox.showwarning("순서 오류", "먼저 [1. 폴더 정리]를 실행해주세요.")
+            messagebox.showwarning("순서 오류", "먼저 [1. 폴더 스캔]을 실행해주세요.")
             return
-        self._run_async_task(self._execute_stage1_5, "Stage 1.5: 제목 정규화")
+        self._run_async_task(self._execute_stage1_5, "Stage 1.5: 제목/국적 전처리")
 
     def _on_btn_apply_source_click(self):
-        """정규화 결과 내보내기 버튼 클릭"""
+        """정규화 결과 소스 즉시 반영 버튼 클릭"""
         if not getattr(self, "step_normalize_done", False):
             return
             
-        if not messagebox.askyesno("저장 확인", f"현재 미리보기 중인 {len(self.tasks_cache)}개의 정규화된 이름을 원본 소스 폴더의 실제 파일에 그대로 적용하시겠습니까?"):
+        if not messagebox.askyesno("소스 즉시 반영 확인", f"현재 미리보기 중인 {len(self.tasks_cache)}개의 정규화된 파일명을 원본 소스 폴더의 실제 파일에 그대로 적용하시겠습니까?"):
             return
             
-        self._run_async_task(self._execute_apply_source, "파일 이름 변경 (In-place)")
+        self._run_async_task(self._execute_apply_source, "소스 파일명 변경 (In-place)")
 
     def _on_btn_genre_click(self):
-        """3. 장르 추론/실행 버튼 클릭"""
+        """3. 장르 추론 / 4. 정규화 실행 버튼 클릭"""
         if not self.step_normalize_done:
-            messagebox.showwarning("순서 오류", "먼저 [2. 파일명 정규화]를 실행해주세요.")
+            messagebox.showwarning("순서 오류", "먼저 [2. 제목/국적 전처리]를 실행해주세요.")
             return
 
         # [상태 분기]
-        # State 1: 아직 추론 안함 -> [추론] 실행
+        # State 1: 아직 추론 전 -> [3. 장르 추론] 실행
         if not self.step_genre_done:
-            self._run_async_task(self._execute_stage2, "Stage 2: 장르 추론 (검색)")
+            self._run_async_task(self._execute_stage2, "Stage 2: 장르 추론 (키워드/사전/웹검색)")
             return
 
-        # State 2: 추론 완료 -> [실행] (Rename)
-        if not messagebox.askyesno("실행 확인", f"총 {len(self.tasks_cache)}개의 파일 이름을 실제로 변경하시겠습니까?"):
+        # State 2: 추론 완료 -> [4. 정규화 실행] (Rename & Move)
+        if not messagebox.askyesno("최종 정규화 실행 확인", f"총 {len(self.tasks_cache)}개의 파일명을 최종 정규화하고 타겟 폴더로 이동/저장하시겠습니까?"):
             return
             
-        self._run_async_task(self._execute_stage3, "Stage 3: 파일명 변경 및 이동")
+        self._run_async_task(self._execute_stage3, "Stage 3: 파일명 정규화 및 이동")
 
     def _on_btn_batch_click(self):
-        """일괄 처리 버튼 클릭"""
+        """일괄 처리 버튼 클릭 (로직 2: 전처리 ➔ 장르 추론 ➔ 파일명 정규화)"""
         if not self._validate_inputs(): return
         
-        if not messagebox.askyesno("일괄 처리", "폴더 스캔부터 실행까지 모든 단계를 자동으로 진행하시겠습니까?"):
+        if not messagebox.askyesno(
+            "일괄 처리 (로직 2)", 
+            "로직 2 흐름(폴더 스캔 ➔ 제목/국적 전처리 ➔ 장르 추론 ➔ 최종 파일명 정규화)으로 일괄 진행하시겠습니까?"
+        ):
             return
             
-        self._run_async_task(self._execute_batch, "일괄 처리 (All Stages)")
-
+        self._run_async_task(self._execute_batch, "일괄 처리 (전처리 ➔ 장르 추론 ➔ 파일명 정규화)")
 
     def _on_btn_reset_click(self):
         """초기화 버튼 클릭"""
@@ -1582,6 +1605,7 @@ class WNAPMainWindow(ctk.CTk):
         # 상태 리셋
         self.step_folder_done = False
         self.step_normalize_done = False
+        self.step_genre_done = False
         self._update_button_states()
         
         self._reset_summary()
@@ -1637,7 +1661,7 @@ class WNAPMainWindow(ctk.CTk):
             self._finish_task()
 
     def _execute_stage1_5(self):
-        """Stage 1.5 실행 로직"""
+        """Stage 1.5 실행 로직 (제목/국적 전처리 - In-Memory Parse Only)"""
         try:
             # 이전 단계 결과 사용
             current_tasks = self.tasks_cache
@@ -1646,7 +1670,7 @@ class WNAPMainWindow(ctk.CTk):
                 progress_callback=self._on_progress
             )
             
-            # Run Stage 1.5 (Parse Only)
+            # Run Stage 1.5 (Parse Only - 디스크 파일은 건드리지 않고 메모리에서 전처리)
             tasks = orchestrator.run_stage1_5(current_tasks)
             
             # 결과 갱신
@@ -1657,7 +1681,7 @@ class WNAPMainWindow(ctk.CTk):
             result = PipelineResult(total_files=len(tasks), tasks=tasks)
             self.last_result = result
 
-            self.after(0, lambda: self._show_stage_result(result, "Stage 1.5 완료"))
+            self.after(0, lambda: self._show_stage_result(result, "Stage 1.5 전처리 완료"))
             
         except Exception as e:
             self._handle_error(e)
@@ -1691,7 +1715,7 @@ class WNAPMainWindow(ctk.CTk):
             self._finish_task()
 
     def _execute_stage2(self):
-        """Stage 2 실행 로직 (장르 추론 - Search Only)"""
+        """Stage 2 실행 로직 (장르 추론 - 키워드/사전/웹검색 및 최종 프리뷰 생성)"""
         try:
             current_tasks = self.tasks_cache
             orchestrator = PipelineOrchestrator(
@@ -1700,7 +1724,7 @@ class WNAPMainWindow(ctk.CTk):
                 genre_confirm_callback=self._on_genre_confirm # Smart Filter 사용 시 동작
             )
             
-            # Run Stage 2 (Search)
+            # Run Stage 2 (Search & Classify)
             tasks = orchestrator.run_stage2(current_tasks)
             
             # 결과 갱신
@@ -1711,11 +1735,11 @@ class WNAPMainWindow(ctk.CTk):
             result = PipelineResult(total_files=len(tasks), tasks=tasks)
             self.last_result = result
             
-            self.after(0, lambda: self._show_stage_result(result, "Stage 2 완료"))
+            self.after(0, lambda: self._show_stage_result(result, "Stage 2 장르 추론 완료"))
             
-            # 버튼 텍스트 변경 (Main Thread에서 실행해야 함, after 사용)
+            # 버튼 텍스트 변경: 이제 4단계(정규화 실행 및 이동)로 전환
             self.after(0, lambda: self.btn_genre.configure(
-                text="▶️ 실행 (Rename)", 
+                text="▶️ 4. 정규화 실행 (이동/저장)", 
                 fg_color=THEME["status_success"],
                 hover_color=THEME["status_success"]
             ))
@@ -1726,7 +1750,7 @@ class WNAPMainWindow(ctk.CTk):
             self._finish_task()
 
     def _execute_stage3(self):
-        """Stage 3 실행 로직 (실행 및 이동 - Execute Only)"""
+        """Stage 3 실행 로직 (정규화 실행 및 이동 - Execute Only)"""
         try:
             current_tasks = self.tasks_cache
             source_folder = Path(self.pipeline_config.source_folder)
@@ -1752,60 +1776,45 @@ class WNAPMainWindow(ctk.CTk):
             self._finish_task()
 
     def _execute_batch(self):
-        """일괄 처리 로직 (Stage 1 -> 1.5 -> 2 -> Popup -> 3)"""
+        """일괄 처리 로직 (로직 2: 1.스캔 ➔ 2.전처리 ➔ 3.장르추론 ➔ 확인 ➔ 4.정규화실행)"""
         try:
             source_folder = Path(self.pipeline_config.source_folder)
             
-            # Orchestrator 인스턴스 생성 (로컬)
             orchestrator = PipelineOrchestrator(
                 self.pipeline_config, 
                 progress_callback=self._on_progress
             )
             
-            # --- Stage 1: Folder Organizer ---
-            self._log_to_file("=== [일괄 처리] Stage 1 시작 ===")
+            # --- 1단계: 폴더 스캔 ---
+            self._log_to_file("=== [일괄 처리] 1단계: 폴더 스캔 시작 ===")
             tasks = orchestrator.run_stage1(source_folder)
             if not tasks:
                 self.after(0, lambda: messagebox.showinfo("완료", "처리할 파일이 없습니다."))
                 return
 
-            self.tasks_cache = tasks # Update Cache
-            self._populate_result_table(tasks) # Initial Table
-            
-            # --- Stage 1.5: Normalize ---
-            self._log_to_file("=== [일괄 처리] Stage 1.5 시작 ===")
-            tasks = orchestrator.run_stage1_5(tasks)
-            self.tasks_cache = tasks
-            self._populate_result_table(tasks) # Update Table
-            
-            # --- Stage 1.5 (Apply to Source): 정규화 결과 즉시 소스에 저장 적용 ---
-            self._log_to_file("=== [일괄 처리] 정규화 결과 소스 폴더에 즉시 저장 ===")
-            tasks = orchestrator.apply_normalization_to_source(tasks)
             self.tasks_cache = tasks
             self._populate_result_table(tasks)
             
-            # --- Stage 2: Genre Search ---
-            self._log_to_file("=== [일괄 처리] Stage 2 시작 ===")
+            # --- 2단계: 제목/국적 전처리 (인메모리 파싱) ---
+            self._log_to_file("=== [일괄 처리] 2단계: 제목/국적 전처리 시작 ===")
+            tasks = orchestrator.run_stage1_5(tasks)
+            self.tasks_cache = tasks
+            self._populate_result_table(tasks)
+            
+            # --- 3단계: 장르 추론 (키워드/사전/웹검색 및 최종 정규화 미리보기 생성) ---
+            self._log_to_file("=== [일괄 처리] 3단계: 장르 추론 시작 ===")
             tasks = orchestrator.run_stage2(tasks)
             self.tasks_cache = tasks
+            self._populate_result_table(tasks)
             
-            # --- Safety Popup (Main Thread) ---
-            # Using queue or direct invoke if thread-safe enough (CTK/Tkinter usually requires main thread)
-            # But since we are in a thread, we must block here.
-            # We can use a trick: `self.after` with a threading.Event?
-            # Or simplified: use messagebox directly. On Windows it usually works from threads but risking freeze.
-            # Safer: split function? No, complex.
-            # Let's try direct messagebox, heavily used in python-tkinter apps, often works if simple.
-            # If not, we'd need a queue-based confirmation. 
-            # Given constraints, and "tkinter not thread safe", strict way is to pause thread via Event.
-            
+            # --- 최종 실행 안전 확인 팝업 (메인 스레드 연동) ---
             confirm_event = threading.Event()
             confirm_result = {}
             
             def show_confirm():
                 confirm_result['ok'] = messagebox.askyesno(
-                    "최종 실행 확인", 
-                    f"총 {len(tasks)}개의 파일 변경을 진행하시겠습니까?\n(취소 시 여기서 중단됩니다)"
+                    "최종 정규화 실행 확인", 
+                    f"장르 추론이 완료되었습니다.\n총 {len(tasks)}개의 파일명을 최종 정규화하여 타겟 폴더로 이동/저장하시겠습니까?\n(취소 시 파일 변경 없이 중단됩니다)"
                 )
                 confirm_event.set()
                 
@@ -1813,14 +1822,18 @@ class WNAPMainWindow(ctk.CTk):
             confirm_event.wait()
             
             if not confirm_result.get('ok'):
-                self._log_to_file("사용자가 일괄 처리를 중단하였습니다.")
+                self._log_to_file("사용자가 최종 파일명 정규화 실행을 취소하였습니다.")
+                self.step_folder_done = True
+                self.step_normalize_done = True
+                self.step_genre_done = True
+                self.after(0, self._update_button_states)
                 return
 
-            # --- Stage 3: Execution ---
-            self._log_to_file("=== [일괄 처리] Stage 3 시작 ===")
+            # --- 4단계: 최종 파일명 정규화 및 이동 실행 ---
+            self._log_to_file("=== [일괄 처리] 4단계: 파일명 정규화 및 이동 시작 ===")
             result = orchestrator.run_stage3(tasks, source_folder)
             
-            # Finalize
+            # 완료 처리
             self.last_result = result
             self.tasks_cache = result.tasks
             
@@ -1829,6 +1842,7 @@ class WNAPMainWindow(ctk.CTk):
             
             self.step_folder_done = True
             self.step_normalize_done = True
+            self.step_genre_done = True
             
             self.after(0, lambda: self._show_final_result(result))
             
