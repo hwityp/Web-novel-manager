@@ -51,25 +51,27 @@ class KeywordSyncer:
         """사전의 장르별 키워드 통계 조회"""
         path = target_path or self.target_paths[0]
         if not path.exists():
-            return {"total": 0, "genres": {}, "version": "unknown", "last_updated": "unknown"}
+            return {"total": 0, "genres": {}, "auto_learned_count": 0, "version": "unknown", "last_updated": "unknown"}
 
         try:
             with open(path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             
             single_keywords = data.get("single_keywords", {})
+            auto_learned = data.get("auto_learned_keywords", {})
             genre_counts = {genre: len(kw_dict) for genre, kw_dict in single_keywords.items()}
             total = sum(genre_counts.values())
 
             return {
                 "total": total,
                 "genres": genre_counts,
+                "auto_learned_count": len(auto_learned),
                 "version": data.get("version", "1.0.0"),
                 "last_updated": data.get("last_updated", "unknown"),
                 "description": data.get("description", "")
             }
         except Exception as e:
-            return {"total": 0, "genres": {}, "error": str(e)}
+            return {"total": 0, "genres": {}, "auto_learned_count": 0, "error": str(e)}
 
     def backup_files(self) -> List[Path]:
         """대상 파일들을 .bak 확장자로 백업"""
@@ -113,32 +115,47 @@ class KeywordSyncer:
         except Exception as e:
             return None, f"사전 파싱 실패: {e}"
 
-    def get_keywords(self, genre: Optional[str] = None, search: Optional[str] = None) -> List[Dict[str, Any]]:
+    def get_keywords(
+        self,
+        genre: Optional[str] = None,
+        search: Optional[str] = None,
+        auto_learned_only: bool = False
+    ) -> List[Dict[str, Any]]:
         """
-        사전 내 등록된 키워드 목록 조회 (장르 필터 및 검색 지원)
+        사전 내 등록된 키워드 목록 조회 (장르 필터, 자동학습 필터 및 검색 지원)
         
         Returns:
-            List[Dict[str, Any]]: [{"keyword": ..., "genre": ..., "weight": ...}, ...]
+            List[Dict[str, Any]]: [{"keyword": ..., "genre": ..., "weight": ..., "is_auto_learned": ...}, ...]
         """
         master_data, err = self.load_master_data()
         if not master_data or err:
             return []
 
         single_keywords = master_data.get("single_keywords", {})
+        auto_learned = master_data.get("auto_learned_keywords", {})
         results: List[Dict[str, Any]] = []
 
         search_lower = search.strip().lower() if search else None
 
         for g, kw_dict in single_keywords.items():
-            if genre and genre != "전체" and g != genre:
+            if genre and genre != "전체" and genre != "자동학습" and g != genre:
                 continue
             for kw, weight in kw_dict.items():
+                is_auto = kw in auto_learned
+                if auto_learned_only and not is_auto:
+                    continue
+                if genre == "자동학습" and not is_auto:
+                    continue
                 if search_lower and (search_lower not in kw.lower() and search_lower not in g.lower()):
                     continue
+                learned_meta = auto_learned.get(kw, {})
                 results.append({
                     "keyword": kw,
                     "genre": g,
-                    "weight": int(weight)
+                    "weight": int(weight),
+                    "is_auto_learned": is_auto,
+                    "learned_at": learned_meta.get("learned_at", ""),
+                    "source_title": learned_meta.get("title", "")
                 })
 
         # 키워드명 기준 오름차순 정렬
@@ -210,6 +227,9 @@ class KeywordSyncer:
 
         backup_files = self.backup_files()
         del single_keywords[genre][kw]
+        auto_learned = master_data.get("auto_learned_keywords", {})
+        if kw in auto_learned:
+            del auto_learned[kw]
 
         master_data["last_updated"] = datetime.now().strftime("%Y-%m-%d")
         master_data["version"] = self._bump_version(master_data.get("version", "1.6.0"))
@@ -239,6 +259,7 @@ class KeywordSyncer:
 
         backup_files = self.backup_files()
         single_keywords = master_data.get("single_keywords", {})
+        auto_learned = master_data.get("auto_learned_keywords", {})
         deleted_count = 0
 
         for kw, genre in items:
@@ -246,6 +267,8 @@ class KeywordSyncer:
             genre_clean = genre.strip()
             if genre_clean in single_keywords and kw_clean in single_keywords[genre_clean]:
                 del single_keywords[genre_clean][kw_clean]
+                if kw_clean in auto_learned:
+                    del auto_learned[kw_clean]
                 deleted_count += 1
 
         if deleted_count == 0:

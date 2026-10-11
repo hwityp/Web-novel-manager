@@ -250,6 +250,25 @@ class PipelineOrchestrator:
             processed_tasks.append(task)
         return processed_tasks
 
+    def run_stage_normalize_preview(self, tasks: List[NovelTask]) -> List[NovelTask]:
+        """Stage 3: 파일명 정규화 미리보기 생성 (장르 추론 결과 반영)"""
+        self._record_stage(self.STAGE_FILENAME_NORMALIZER)
+        processed_tasks = []
+        for idx, task in enumerate(tasks):
+            try:
+                if not task.metadata.get('user_edited'):
+                    preview_name = self.filename_normalizer.preview_normalized_name(task)
+                    task.metadata['normalized_name'] = preview_name
+            except Exception as e:
+                self.logger.warning(f"정규화 미리보기 생성 실패: {task.raw_name} - {e}")
+            processed_tasks.append(task)
+            if self.progress_callback:
+                try:
+                    self.progress_callback(idx + 1, len(tasks), task.raw_name, task)
+                except TypeError:
+                    self.progress_callback(idx + 1, len(tasks), task.raw_name)
+        return processed_tasks
+
     def apply_normalization_to_source(self, tasks: List[NovelTask]) -> List[NovelTask]:
         """[NEW] 소스 폴더의 원본 파일 이름을 정규화된 이름으로 즉시 교체"""
         processed_tasks = []

@@ -251,8 +251,7 @@ class GoogleGenreExtractor:
                         import importlib
                         mod = importlib.import_module(mod_path)
                         extractor_cls = getattr(mod, cls_name)
-                        extractor = extractor_cls({}, {})
-                        f_res = extractor.extract_genre([link], query)
+                        f_res = extractor.extract_genre([{'link': link, 'snippet': snippet}], query)
                         if f_res and f_res.get('genre'):
                             print(f"  [{source_prefix} Foreign Direct] {pname}: {f_res['genre']}")
                             return {

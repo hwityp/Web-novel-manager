@@ -1,6 +1,6 @@
 {
-  "version": "1.6.6",
-  "last_updated": "2026-10-09",
+  "version": "1.6.46",
+  "last_updated": "2026-10-11",
   "description": "통합 장르 키워드 데이터베이스 - 모든 분류 모듈이 이 파일을 참조",
   "single_keywords": {
     "무협": {
@@ -147,7 +147,18 @@
       "운룡회귀": 7,
       "전생검신": 7,
       "전속성무도": 7,
-      "절대회귀": 7
+      "절대회귀": 7,
+      "천운얼해": 1,
+      "귀농한": 1,
+      "황족": 1,
+      "혈통": 1,
+      "딸은": 1,
+      "백련성선": 1,
+      "검은": 1,
+      "여우": 1,
+      "독심호리": 1,
+      "귀호": 1,
+      "인생모": 1
     },
     "현판": {
       "헌터": 10,
@@ -505,7 +516,34 @@
       "야스": 7,
       "갑부": 7,
       "10위안": 7,
-      "비급": 7
+      "비급": 7,
+      "음악재벌": 1,
+      "난이도": 1,
+      "쉴게요": 1,
+      "돈많": 1,
+      "취미": 1,
+      "연예인합니다": 1,
+      "종간": 2,
+      "쌍천월": 2,
+      "1V1": 2,
+      "분투": 2,
+      "치부": 2,
+      "가벼움": 2,
+      "달달물": 2,
+      "키잡": 2,
+      "잉어신": 2,
+      "사이다": 2,
+      "가문사정": 2,
+      "따뜻함": 2,
+      "악역적음": 2,
+      "시스템없음": 2,
+      "사남": 1,
+      "골대": 1,
+      "거미손": 1,
+      "경험치": 1,
+      "SSS급": 1,
+      "길들이기": 1,
+      "막내아": 1
     },
     "퓨판": {
       "귀환": 10,
@@ -677,7 +715,11 @@
       "모시려": 7,
       "분신": 7,
       "거물": 7,
-      "되어간다": 7
+      "되어간다": 7,
+      "악당": 1,
+      "환생한": 1,
+      "만화": 1,
+      "환생빌런": 1
     },
     "판타지": {
       "마법": 8,
@@ -856,7 +898,13 @@
       "버렸더니": 7,
       "즐거운": 7,
       "기다리고": 7,
-      "있었다": 7
+      "있었다": 7,
+      "異世界転生": 2,
+      "자의": 1,
+      "올마스터": 1,
+      "당전": 1,
+      "삼촌": 1,
+      "정점": 1
     },
     "겜판": {
       "망겜": 10,
@@ -941,7 +989,9 @@
       "꽃만": 7,
       "키우는데": 7,
       "강함": 7,
-      "템빨": 7
+      "템빨": 7,
+      "달빛조각사": 1,
+      "개발": 1
     },
     "로판": {
       "악녀": 10,
@@ -1015,7 +1065,12 @@
       "도망여주": 9,
       "집착남": 9,
       "육아물": 8,
-      "로판": 10
+      "로판": 10,
+      "부캐야": 1,
+      "뮤리에라": 1,
+      "정령에게": 1,
+      "사랑받는다": 1,
+      "문향식미인": 1
     },
     "역사": {
       "15세기": 10,
@@ -1183,7 +1238,9 @@
       "십자군": 7,
       "원정": 7,
       "없이": 7,
-      "문명합니다": 7
+      "문명합니다": 7,
+      "후회": 1,
+      "진공": 1
     },
     "선협": {
       "선인": 10,
@@ -1424,7 +1481,8 @@
       "많은게": 7,
       "무슨": 7,
       "문제라도": 7,
-      "마도조사다": 7
+      "마도조사다": 7,
+      "백년수선": 1
     },
     "SF": {
       "우주": 10,
@@ -2003,7 +2061,12 @@
       "미드": 7,
       "밴시": 7,
       "TV": 7,
-      "드라마": 7
+      "드라마": 7,
+      "불사신": 1,
+      "보가몽": 1,
+      "아재시진대사": 1,
+      "업적": 1,
+      "엑스트라": 1
     },
     "밀리터리": {
       "밀리터리": 10,
@@ -2267,7 +2330,12 @@
       "연대": 7,
       "칠십년대": 7,
       "대조군인": 7,
-      "불쌍한": 7
+      "불쌍한": 7,
+      "궁중후작": 2,
+      "시공초월": 2,
+      "궁중암투": 2,
+      "아욕위후": 1,
+      "궁위화": 1
     },
     "공포": {
       "괴담": 10,
@@ -3128,5 +3196,483 @@
       "음악",
       "카메라"
     ]
+  },
+  "auto_learned_keywords": {
+    "백년수선": {
+      "genre": "선협",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "백년수선",
+      "learned_at": "2026-10-11"
+    },
+    "異世界転生": {
+      "genre": "판타지",
+      "weight": 2,
+      "source_type": "web_tag",
+      "title": "追放勇者のスローライフ",
+      "learned_at": "2026-10-11"
+    },
+    "자의": {
+      "genre": "판타지",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "追放勇者のスローライフ",
+      "learned_at": "2026-10-11"
+    },
+    "올마스터": {
+      "genre": "판타지",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "100층의 올마스터 120 ",
+      "learned_at": "2026-10-11"
+    },
+    "달빛조각사": {
+      "genre": "겜판",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "달빛조각사 58권",
+      "learned_at": "2026-10-11"
+    },
+    "부캐야": {
+      "genre": "로판",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "S급이 내 부캐야",
+      "learned_at": "2026-10-11"
+    },
+    "궁중후작": {
+      "genre": "언정",
+      "weight": 2,
+      "source_type": "web_tag",
+      "title": "아욕위후",
+      "learned_at": "2026-10-11"
+    },
+    "시공초월": {
+      "genre": "언정",
+      "weight": 2,
+      "source_type": "web_tag",
+      "title": "아욕위후",
+      "learned_at": "2026-10-11"
+    },
+    "궁중암투": {
+      "genre": "언정",
+      "weight": 2,
+      "source_type": "web_tag",
+      "title": "아욕위후",
+      "learned_at": "2026-10-11"
+    },
+    "아욕위후": {
+      "genre": "언정",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "아욕위후",
+      "learned_at": "2026-10-11"
+    },
+    "당전": {
+      "genre": "판타지",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "당전",
+      "learned_at": "2026-10-11"
+    },
+    "천운얼해": {
+      "genre": "무협",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "천운얼해",
+      "learned_at": "2026-10-11"
+    },
+    "귀농한": {
+      "genre": "무협",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "귀농한 천재 황족은 혈통을 숨김",
+      "learned_at": "2026-10-11"
+    },
+    "황족": {
+      "genre": "무협",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "귀농한 천재 황족은 혈통을 숨김",
+      "learned_at": "2026-10-11"
+    },
+    "혈통": {
+      "genre": "무협",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "귀농한 천재 황족은 혈통을 숨김",
+      "learned_at": "2026-10-11"
+    },
+    "딸은": {
+      "genre": "무협",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "내 딸은 무공 천재",
+      "learned_at": "2026-10-11"
+    },
+    "악당": {
+      "genre": "퓨판",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "2회차 악당",
+      "learned_at": "2026-10-11"
+    },
+    "불사신": {
+      "genre": "패러디",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "각성 후 불사신이 되었다",
+      "learned_at": "2026-10-11"
+    },
+    "음악재벌": {
+      "genre": "현판",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "회귀해서 음악재벌",
+      "learned_at": "2026-10-11"
+    },
+    "난이도": {
+      "genre": "현판",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "헬 난이도에서 쉴게요",
+      "learned_at": "2026-10-11"
+    },
+    "쉴게요": {
+      "genre": "현판",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "헬 난이도에서 쉴게요",
+      "learned_at": "2026-10-11"
+    },
+    "후회": {
+      "genre": "역사",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "후회는 알아서들 하세요",
+      "learned_at": "2026-10-11"
+    },
+    "환생한": {
+      "genre": "퓨판",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "환생한 만화의 신",
+      "learned_at": "2026-10-11"
+    },
+    "만화": {
+      "genre": "퓨판",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "환생한 만화의 신",
+      "learned_at": "2026-10-11"
+    },
+    "뮤리에라": {
+      "genre": "로판",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "뮤리에라 〜악역 영애는 어둠의 정령에게 사랑받는다〜",
+      "learned_at": "2026-10-11"
+    },
+    "정령에게": {
+      "genre": "로판",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "뮤리에라 〜악역 영애는 어둠의 정령에게 사랑받는다〜",
+      "learned_at": "2026-10-11"
+    },
+    "사랑받는다": {
+      "genre": "로판",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "뮤리에라 〜악역 영애는 어둠의 정령에게 사랑받는다〜",
+      "learned_at": "2026-10-11"
+    },
+    "돈많": {
+      "genre": "현판",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "돈많은 취미로 연예인합니다",
+      "learned_at": "2026-10-11"
+    },
+    "취미": {
+      "genre": "현판",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "돈많은 취미로 연예인합니다",
+      "learned_at": "2026-10-11"
+    },
+    "연예인합니다": {
+      "genre": "현판",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "돈많은 취미로 연예인합니다",
+      "learned_at": "2026-10-11"
+    },
+    "백련성선": {
+      "genre": "무협",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "백련성선",
+      "learned_at": "2026-10-11"
+    },
+    "궁위화": {
+      "genre": "언정",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "궁위화",
+      "learned_at": "2026-10-11"
+    },
+    "종간": {
+      "genre": "현판",
+      "weight": 2,
+      "source_type": "web_tag",
+      "title": "농문상공시금리",
+      "learned_at": "2026-10-11"
+    },
+    "쌍천월": {
+      "genre": "현판",
+      "weight": 2,
+      "source_type": "web_tag",
+      "title": "농문상공시금리",
+      "learned_at": "2026-10-11"
+    },
+    "1V1": {
+      "genre": "현판",
+      "weight": 2,
+      "source_type": "web_tag",
+      "title": "농문상공시금리",
+      "learned_at": "2026-10-11"
+    },
+    "분투": {
+      "genre": "현판",
+      "weight": 2,
+      "source_type": "web_tag",
+      "title": "농문상공시금리",
+      "learned_at": "2026-10-11"
+    },
+    "치부": {
+      "genre": "현판",
+      "weight": 2,
+      "source_type": "web_tag",
+      "title": "농문상공시금리",
+      "learned_at": "2026-10-11"
+    },
+    "가벼움": {
+      "genre": "현판",
+      "weight": 2,
+      "source_type": "web_tag",
+      "title": "농문상공시금리",
+      "learned_at": "2026-10-11"
+    },
+    "달달물": {
+      "genre": "현판",
+      "weight": 2,
+      "source_type": "web_tag",
+      "title": "농문상공시금리",
+      "learned_at": "2026-10-11"
+    },
+    "키잡": {
+      "genre": "현판",
+      "weight": 2,
+      "source_type": "web_tag",
+      "title": "농문상공시금리",
+      "learned_at": "2026-10-11"
+    },
+    "잉어신": {
+      "genre": "현판",
+      "weight": 2,
+      "source_type": "web_tag",
+      "title": "농문상공시금리",
+      "learned_at": "2026-10-11"
+    },
+    "사이다": {
+      "genre": "현판",
+      "weight": 2,
+      "source_type": "web_tag",
+      "title": "농문상공시금리",
+      "learned_at": "2026-10-11"
+    },
+    "가문사정": {
+      "genre": "현판",
+      "weight": 2,
+      "source_type": "web_tag",
+      "title": "농문상공시금리",
+      "learned_at": "2026-10-11"
+    },
+    "따뜻함": {
+      "genre": "현판",
+      "weight": 2,
+      "source_type": "web_tag",
+      "title": "농문상공시금리",
+      "learned_at": "2026-10-11"
+    },
+    "악역적음": {
+      "genre": "현판",
+      "weight": 2,
+      "source_type": "web_tag",
+      "title": "농문상공시금리",
+      "learned_at": "2026-10-11"
+    },
+    "시스템없음": {
+      "genre": "현판",
+      "weight": 2,
+      "source_type": "web_tag",
+      "title": "농문상공시금리",
+      "learned_at": "2026-10-11"
+    },
+    "환생빌런": {
+      "genre": "퓨판",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "환생빌런",
+      "learned_at": "2026-10-11"
+    },
+    "보가몽": {
+      "genre": "패러디",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "보가몽：개국일장초몽요청함",
+      "learned_at": "2026-10-11"
+    },
+    "검은": {
+      "genre": "무협",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "검은 여우 독심호리 2부 귀호",
+      "learned_at": "2026-10-11"
+    },
+    "여우": {
+      "genre": "무협",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "검은 여우 독심호리 2부 귀호",
+      "learned_at": "2026-10-11"
+    },
+    "독심호리": {
+      "genre": "무협",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "검은 여우 독심호리 2부 귀호",
+      "learned_at": "2026-10-11"
+    },
+    "귀호": {
+      "genre": "무협",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "검은 여우 독심호리 2부 귀호",
+      "learned_at": "2026-10-11"
+    },
+    "사남": {
+      "genre": "현판",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "사남",
+      "learned_at": "2026-10-11"
+    },
+    "삼촌": {
+      "genre": "판타지",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "돌아온 삼촌이 마왕이라는데요？",
+      "learned_at": "2026-10-11"
+    },
+    "골대": {
+      "genre": "현판",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "골대 앞의 거미손",
+      "learned_at": "2026-10-11"
+    },
+    "거미손": {
+      "genre": "현판",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "골대 앞의 거미손",
+      "learned_at": "2026-10-11"
+    },
+    "정점": {
+      "genre": "판타지",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "히든클래스로 정점까지",
+      "learned_at": "2026-10-11"
+    },
+    "경험치": {
+      "genre": "현판",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "이혼 후 경험치 1000배",
+      "learned_at": "2026-10-11"
+    },
+    "문향식미인": {
+      "genre": "로판",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "문향식미인",
+      "learned_at": "2026-10-11"
+    },
+    "진공": {
+      "genre": "역사",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "진공",
+      "learned_at": "2026-10-11"
+    },
+    "SSS급": {
+      "genre": "현판",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "SSS급 에스퍼 길들이기",
+      "learned_at": "2026-10-11"
+    },
+    "길들이기": {
+      "genre": "현판",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "SSS급 에스퍼 길들이기",
+      "learned_at": "2026-10-11"
+    },
+    "개발": {
+      "genre": "겜판",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "회귀해서 갓겜 개발!",
+      "learned_at": "2026-10-11"
+    },
+    "아재시진대사": {
+      "genre": "패러디",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "두라：아재시진대사",
+      "learned_at": "2026-10-11"
+    },
+    "업적": {
+      "genre": "패러디",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "업적을 다시 쓰는 엑스트라",
+      "learned_at": "2026-10-11"
+    },
+    "엑스트라": {
+      "genre": "패러디",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "업적을 다시 쓰는 엑스트라",
+      "learned_at": "2026-10-11"
+    },
+    "인생모": {
+      "genre": "무협",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "인생모의：양녀검선포감종신",
+      "learned_at": "2026-10-11"
+    },
+    "막내아": {
+      "genre": "현판",
+      "weight": 1,
+      "source_type": "ngram",
+      "title": "재벌가 막내아들",
+      "learned_at": "2026-10-11"
+    }
   }
 }

@@ -262,14 +262,60 @@ class BaiduBaikeExtractor(BasePlatformExtractor):
 
     def extract_genre(self, links: List[Any], title: str, author: Optional[str] = None) -> Optional[Dict[str, Any]]:
         print(f"  [{self.platform_name}] 추출 시작 (링크 {len(links)}개)")
-        urls = [link.get('href', '') if hasattr(link, 'get') else str(link) for link in links]
+        
+        for link_item in links:
+            if isinstance(link_item, dict):
+                href = link_item.get('href') or link_item.get('link', '')
+                snippet_text = link_item.get('snippet', '')
+            else:
+                href = getattr(link_item, 'href', str(link_item))
+                snippet_text = getattr(link_item, 'snippet', '')
 
-        for href in urls:
             if not href or not ('baike.baidu.com' in href):
                 continue
 
+            # [안전망 1] 구글 색인 스니펫 직접 분석 (Baidu WAF 403 차단 우회 보장)
+            if snippet_text:
+                # 1-1. '是一部...小说' 또는 '类型/题材' 매칭
+                m = re.search(r'(?:作品类型|小说类型|文学体裁|作品体裁|作品题材|小说题材|题材|类型|标签)[：:]\s*([^\n\r]+)', snippet_text)
+                if m:
+                    type_line = m.group(1).strip()
+                    for cn_k, mapped in self.BAIKE_GENRE_MAP.items():
+                        if cn_k in type_line:
+                            print(f"  [{self.platform_name}] 구글 스니펫 유형 발견: '{type_line}' → '{mapped}'")
+                            return {
+                                'genre': mapped,
+                                'confidence': self.confidence,
+                                'source': f"{self.platform_name}_snippet",
+                                'raw_genre': type_line,
+                                'url': href
+                            }
+                # 1-2. 바이두 백과 주요 서술 패턴 매칭
+                for cn_k, mapped in self.BAIKE_GENRE_MAP.items():
+                    if any(pat in snippet_text for pat in [f"是一部{cn_k}", f"属于{cn_k}", f"{cn_k}小说", f"{cn_k}类"]):
+                        print(f"  [{self.platform_name}] 구글 스니펫 서술 매칭: '{cn_k}' → '{mapped}'")
+                        return {
+                            'genre': mapped,
+                            'confidence': self.confidence,
+                            'source': f"{self.platform_name}_snippet",
+                            'raw_genre': cn_k,
+                            'url': href
+                        }
+
             soup = self.fetch_page(href)
             if not soup:
+                # 페이지 fetch 실패 시 스니펫에서 일반 키워드 매칭 최종 시도
+                if snippet_text:
+                    for cn_k, mapped in self.BAIKE_GENRE_MAP.items():
+                        if cn_k in snippet_text:
+                            print(f"  [{self.platform_name}] 스니펫 폴백 장르 매칭: '{cn_k}' → '{mapped}'")
+                            return {
+                                'genre': mapped,
+                                'confidence': 0.88,
+                                'source': f"{self.platform_name}_snippet_fallback",
+                                'raw_genre': cn_k,
+                                'url': href
+                            }
                 continue
 
             # 1. 바이두 백과 인포박스(.basic-info) dt/dd 매칭

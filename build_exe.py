@@ -122,6 +122,8 @@ def build_exe(debug: bool = False):
         '--hidden-import', 'core.utils.chinese_phonetic_analyzer',
         '--hidden-import', 'core.utils.genre_cache_miner',
         '--hidden-import', 'core.utils.keyword_syncer',
+        '--hidden-import', 'core.utils.auto_keyword_learner',
+        '--hidden-import', 'core.utils.chinese_char_converter',
         '--hidden-import', 'gui.genre_dictionary_dialog',
         '--hidden-import', 'PIL._tkinter_finder',
         '--hidden-import', 'dotenv',

@@ -428,8 +428,8 @@ class GenreDictionaryDialog(ctk.CTkToplevel):
 
         self.filter_genre = ctk.CTkOptionMenu(
             toolbar,
-            values=["전체"] + GENRE_LIST,
-            width=110, height=32,
+            values=["전체", "🤖 자동학습만"] + GENRE_LIST,
+            width=135, height=32,
             font=ctk.CTkFont(family=FONT_FAMILY, size=12),
             fg_color=THEME["bg_input"],
             button_color=THEME["accent_blue"],
@@ -566,7 +566,14 @@ class GenreDictionaryDialog(ctk.CTkToplevel):
         genre = self.filter_genre.get().strip()
         search = self.search_entry.get().strip()
 
-        kws = self.syncer.get_keywords(genre=genre if genre != "전체" else None, search=search if search else None)
+        auto_only = "자동학습" in genre
+        target_genre = None if (genre == "전체" or auto_only) else genre
+
+        kws = self.syncer.get_keywords(
+            genre=target_genre,
+            search=search if search else None,
+            auto_learned_only=auto_only
+        )
         self.current_keywords = kws
 
         for item in self.tree_kw.get_children():
@@ -574,7 +581,11 @@ class GenreDictionaryDialog(ctk.CTkToplevel):
 
         for i, item in enumerate(kws, 1):
             w = item["weight"]
-            tier_str = "⭐ 핵심 (10)" if w == 10 else ("🔷 주요 (7-9)" if w >= 7 else ("🔸 보조 (4-6)" if w >= 4 else "▫️ 일반 (1-3)"))
+            is_auto = item.get("is_auto_learned", False)
+            if is_auto:
+                tier_str = f"🤖 자동학습 ({w})"
+            else:
+                tier_str = "⭐ 핵심 (10)" if w == 10 else ("🔷 주요 (7-9)" if w >= 7 else ("🔸 보조 (4-6)" if w >= 4 else "▫️ 일반 (1-3)"))
             self.tree_kw.insert("", "end", values=(i, item["keyword"], item["genre"], w, tier_str))
 
         self.lbl_kw_count.configure(text=f"조회: {len(kws):,}건")
@@ -984,11 +995,13 @@ class GenreDictionaryDialog(ctk.CTkToplevel):
         cache_entries = self.miner.load_cache_entries()
 
         total = dict_stats.get("total", 0)
+        auto_count = dict_stats.get("auto_learned_count", 0)
         version = dict_stats.get("version", "1.6.0")
         last_updated = dict_stats.get("last_updated", "-")
         genre_count = len(dict_stats.get("genres", {}))
 
-        self.card_total_kw.configure(text=f"{total:,}개")
+        auto_info = f" (자동 {auto_count}개)" if auto_count > 0 else ""
+        self.card_total_kw.configure(text=f"{total:,}개{auto_info}")
         self.card_version.configure(text=f"v{version} ({last_updated})")
         self.card_genres.configure(text=f"{genre_count}개 장르")
         self.card_cache.configure(text=f"{len(cache_entries):,}건 / {len(self.candidates)}개")

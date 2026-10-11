@@ -29,7 +29,7 @@ import sys
 import json
 import re
 from pathlib import Path
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Any
 
 # 기존 모듈 경로 추가
 _classifier_path = Path(__file__).parent.parent.parent / 'modules' / 'classifier'
@@ -77,6 +77,7 @@ class GenreClassifierAdapter:
         
         # 키워드 분류기 (지연 초기화)
         self._keyword_classifier = None
+        self._keyword_learner = None
         self._initialized = False
         
         self.logger.info("[GenreClassifierAdapter] Search-First 모드로 초기화")
@@ -354,6 +355,9 @@ class GenreClassifierAdapter:
                 self.cache.set(phonetic_title, task.genre, 'high', '본문헤더')
             if translated_title and translated_title != pure_title:
                 self.cache.set(translated_title, task.genre, 'high', '본문헤더')
+
+            # [사전 자동 동기화] 고신뢰도 헤더 기반 키워드 학습
+            self._auto_learn_keywords(task, header_result)
             
             self.logger.debug(f"  [결과] {task.genre} (confidence: {task.confidence}, source: 본문헤더)")
             print(f"  [결과] {task.genre} (confidence: {task.confidence}, source: 본문헤더)")
@@ -459,6 +463,9 @@ class GenreClassifierAdapter:
                     self.cache.set(phonetic_title, task.genre, 'high', source)
                 if translated_title and translated_title != pure_title:
                     self.cache.set(translated_title, task.genre, 'high', source)
+
+                # [사전 자동 동기화] 인터넷 검색 성공 기반 안전 가드레일 키워드 사전 자동 학습
+                self._auto_learn_keywords(task, search_result)
                 
                 self.logger.debug(f"  [결과] {task.genre} (confidence: {task.confidence}, source: {source})")
                 print(f"  [결과] {task.genre} (confidence: {task.confidence}, source: {source})")
@@ -688,35 +695,60 @@ class GenreClassifierAdapter:
                 return None
 
             # =========================================================================
-            # 전략 B: 중국 소설 (CN) 전용 검색 라우팅 (Google CN -> Naver 정발 폴백)
+            # 전략 B: 중국/대만 소설 (CN) 전용 검색 라우팅 (Google 바이두/치뎬 타깃 -> Naver 정발 폴백)
             # =========================================================================
             if has_chinese:
-                # 1. Google 중국어/치뎬/바이두 백과 특화 검색 (원문 한자 또는 순수 독음 우선)
-                if self._google_extractor:
-                    if original_foreign_title:
-                        cn_query = f"{original_foreign_title} 小说"
-                    elif phonetic_title:
-                        cn_query = f"{phonetic_title} 小说"
-                    else:
-                        cn_query = f"{search_title} 中国小说"
+                from core.utils.chinese_char_converter import to_simplified_chinese
+                
+                raw_cn = original_foreign_title or ""
+                if not raw_cn:
+                    cn_match = re.findall(r'[\u4e00-\u9fff\u3400-\u4dbf]+', search_title)
+                    if cn_match:
+                        raw_cn = max(cn_match, key=len)
+                
+                # 대만/홍콩 번체자 -> 간체자 자동 정규화
+                simp_cn = to_simplified_chinese(raw_cn).strip() if raw_cn else ""
 
-                    google_result = self._google_extractor.extract_genre(cn_query, country='CN')
-                    if google_result and google_result.get('genre') and google_result.get('genre') != '미분류':
-                        return google_result
-                    
-                    # 2차 쿼리 (원문 한자 단독 또는 독음 단독)
-                    fallback_cn = original_foreign_title or phonetic_title
-                    if fallback_cn and cn_query != fallback_cn:
-                        google_result = self._google_extractor.extract_genre(fallback_cn, country='CN')
+                # 1. Google 중국어/바이두 백과/치뎬/진장 타깃형 검색
+                if self._google_extractor:
+                    # 1-1. 한자 원문이 존재하는 경우: 바이두 백과 및 공식 플랫폼 타깃 질의 (최우선)
+                    if simp_cn and len(simp_cn) >= 2:
+                        # (1) 바이두 백과 직접 타깃
+                        baike_query = f'"{simp_cn}" site:baike.baidu.com'
+                        google_result = self._google_extractor.extract_genre(baike_query, country='CN')
+                        if google_result and google_result.get('genre') and google_result.get('genre') != '미분류':
+                            self.logger.info(f"  [Google 바이두백과 타깃 성공] {google_result['genre']}")
+                            return google_result
+
+                        # (2) 중화권 공식 웹소설 플랫폼(치뎬, 진장, 바이두백과) 통합 타깃
+                        platform_query = f'"{simp_cn}" (site:qidian.com OR site:jjwxc.net OR site:baike.baidu.com)'
+                        google_result = self._google_extractor.extract_genre(platform_query, country='CN')
+                        if google_result and google_result.get('genre') and google_result.get('genre') != '미분류':
+                            self.logger.info(f"  [Google 중화권 공식 플랫폼 타깃 성공] {google_result['genre']}")
+                            return google_result
+
+                        # (3) 바이두백과 키워드 포함 일반 질의
+                        general_cn_query = f'"{simp_cn}" 小说 百度百科'
+                        google_result = self._google_extractor.extract_genre(general_cn_query, country='CN')
                         if google_result and google_result.get('genre') and google_result.get('genre') != '미분류':
                             return google_result
 
-                # 2. 국내 정발(시리즈/카카오) 확인용 Naver 검색 (번역제목 우선)
-                if self._naver_extractor:
-                    naver_query = translated_title or search_title
-                    naver_res = self._naver_extractor.extract_genre_from_title(naver_query, country='CN')
-                    if (not naver_res or not naver_res.get('genre') or naver_res.get('genre') == '미분류') and original_foreign_title:
-                        naver_res = self._naver_extractor.extract_genre_from_title(f"{search_title} {original_foreign_title}", country='CN')
+                    # 1-2. 한자 원문이 없고 음독 제목인 경우
+                    elif phonetic_title:
+                        cn_query = f"{phonetic_title} 중국 소설"
+                        google_result = self._google_extractor.extract_genre(cn_query, country='CN')
+                        if google_result and google_result.get('genre') and google_result.get('genre') != '미분류':
+                            return google_result
+
+                    else:
+                        cn_query = f"{search_title} 中国小说"
+                        google_result = self._google_extractor.extract_genre(cn_query, country='CN')
+                        if google_result and google_result.get('genre') and google_result.get('genre') != '미분류':
+                            return google_result
+
+                # 2. 국내 정발(시리즈/카카오/리디북스) 확인용 Naver 검색 (유효한 한글 번역명이 있을 때만 제한적 호출)
+                if self._naver_extractor and translated_title and translated_title != search_title:
+                    naver_res = self._naver_extractor.extract_genre_from_title(translated_title, country='CN')
                     if naver_res and naver_res.get('genre') and naver_res.get('genre') != '미분류':
                         return {
                             'genre': naver_res['genre'],
@@ -889,6 +921,28 @@ class GenreClassifierAdapter:
                 return '판타지'
                 
         return mapped_genre
+
+    def _auto_learn_keywords(self, task: NovelTask, search_result: Optional[Dict[str, Any]] = None):
+        """
+        인터넷 검색/고신뢰도 결과로부터 사전에 신규 키워드 자동 학습 (오류 격리)
+        
+        Args:
+            task: 장르 추론 완료된 NovelTask
+            search_result: 검색/헤더 결과 딕셔너리
+        """
+        try:
+            if not self._keyword_learner:
+                from core.utils.auto_keyword_learner import AutoKeywordLearner
+                self._keyword_learner = AutoKeywordLearner()
+            
+            learned = self._keyword_learner.learn_from_task(task, search_result)
+            if learned:
+                primary_genre = task.genre.split(',')[0].strip()
+                log_msg = f"[사전 자동 학습] '{task.title or task.raw_name}'에서 신규 키워드 {learned} -> [{primary_genre}] 사전에 자동 등록 완료"
+                self.logger.info(log_msg)
+                print(f"  ⚡ {log_msg}")
+        except Exception as e:
+            self.logger.debug(f"사전 자동 학습 중 예외 (격리됨): {e}")
 
     def _finalize_task_genre(self, task: NovelTask, raw_text: str = "") -> NovelTask:
         """
