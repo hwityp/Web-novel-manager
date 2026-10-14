@@ -234,17 +234,11 @@ class PipelineOrchestrator:
         return tasks
 
     def run_stage1_5(self, tasks: List[NovelTask]) -> List[NovelTask]:
-        """Stage 1.5: 제목 정규화 (Parse Only)"""
+        """Stage 1.5: 제목 파싱 (Parse Only)"""
         processed_tasks = []
         for idx, task in enumerate(tasks):
             try:
                 task = self.filename_normalizer.parse_only(task)
-                
-                # 정규화된 이름 미리보기 생성 (장르는 아직 모를 수 있음)
-                # 장르가 없으면 '미분류' 상태로 미리보기
-                preview_name = self.filename_normalizer.preview_normalized_name(task)
-                task.metadata['normalized_name'] = preview_name
-                
             except Exception as e:
                 self.logger.warning(f"Stage 1.5 실패: {task.raw_name} - {e}")
             processed_tasks.append(task)
@@ -313,15 +307,13 @@ class PipelineOrchestrator:
                         pass 
                     except: pass
                 
-                # Run Genre Classifier
+                # Run Genre Classifier (장르 및 국적 추론만 수행)
                 task = self._run_stage2(task)
                 
-                # 정규화 파일명 미리보기 갱신 (추론된 장르 태그 반영)
-                try:
-                    preview_name = self.filename_normalizer.preview_normalized_name(task)
-                    task.metadata['normalized_name'] = preview_name
-                except Exception as ne:
-                    self.logger.debug(f"Stage 2 미리보기 갱신 실패: {ne}")
+                # [독립성 보장] Stage 2에서는 파일명 정규화(preview_normalized_name)를 자동 실행하지 않음.
+                # 새로 추론된 장르와 이전 정규화 이름 간의 불일치를 방지하기 위해, 수동 편집이 아닌 경우 기존 정규화 파일명은 초기화.
+                if not task.metadata.get('user_edited'):
+                    task.metadata.pop('normalized_name', None)
                 
                 # Callback AFTER update
                 if self.progress_callback:

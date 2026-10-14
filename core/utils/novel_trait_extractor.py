@@ -39,15 +39,16 @@ TRAIT_PATTERNS: List[Tuple[str, List[str]]] = [
     ("여주", [r"여주물", r"여주", r"여성주인공", r"여주인공", r"女主"]),
     ("하렘", [r"하렘", r"역하렘", r"남주", r"男主", r"后宫"]),
     ("남주", [r"남주물", r"남주", r"남성주인공", r"남주인공", r"男主"]),
-    # 1. 연대물 (70년대, 80년대, 칠령, 지청 등)
+    # 1. 연대물 (60~90년대, 칠령, 지청 등)
     ("연대물", [
-        r"연대물", r"연대", r"70년대", r"80년대", r"90년대", r"칠령", r"팔령", r"구령",
-        r"1970", r"1980", r"1990", r"지청", r"年代", r"七零", r"八零", r"九零", r"知青"
+        r"연대물", r"연대", r"60년대", r"70년대", r"80년대", r"90년대",
+        r"육령", r"칠령", r"칠영", r"팔령", r"팔영", r"구령", r"구영",
+        r"1960", r"1970", r"1980", r"1990", r"지청", r"年代", r"六零", r"七零", r"八零", r"九零", r"知青"
     ]),
     # 2. 공간 (수신공간, 공간물자)
-    ("공간", [r"공간물자", r"수신공간", r"차원공간", r"공간물", r"공간", r"随身空间", r"空间"]),
+    ("공간", [r"공간물자", r"수신공간", r"차원공간", r"공간물", r"공간", r"유공간", r"随身空间", r"空间"]),
     # 3. 농촌 (농가, 농문, 귀농)
-    ("농촌", [r"농촌", r"농가복매", r"농문", r"농사", r"귀농", r"农家", r"农门", r"种田"]),
+    ("농촌", [r"농촌", r"농가복매", r"농가", r"농문", r"종전", r"농사", r"귀농", r"农家", r"农门", r"种田"]),
     # 4. 종말 / 말세
     ("종말", [r"종말", r"무한열차", r"아포칼립스", r"멸망", r"재앙"]),
     ("말세", [r"말세", r"말일", r"末世", r"末日", r"도계시"]),
@@ -55,12 +56,12 @@ TRAIT_PATTERNS: List[Tuple[str, List[str]]] = [
     ("책빙의", [r"책빙의", r"소설빙의", r"책\s*속", r"소설\s*속", r"천서후", r"천서", r"穿书", r"穿書"]),
     ("빙의", [r"빙의물", r"빙의", r"악역", r"천월", r"당태의", r"穿越", r"附身"]),
     # 6. 궁투 / 궁정
-    ("궁투", [r"궁투극", r"궁투", r"후궁", r"宫斗", r"后宫"]),
-    ("궁정", [r"궁정", r"궁궐", r"황궁", r"왕궁", r"조정", r"귀비", r"태의", r"군성귀위자", r"宫廷", r"皇宫"]),
+    ("궁투", [r"궁투극", r"궁투", r"후궁", r"택투", r"궁녀", r"적녀", r"서녀", r"계방", r"계실", r"귀첩", r"외실", r"宫斗", r"后宫", r"宅斗", r"嫡女", r"庶女", r"继房", r"继室"]),
+    ("궁정", [r"궁정", r"궁궐", r"황궁", r"왕궁", r"조정", r"귀비", r"황후", r"귀인", r"태의", r"본궁", r"소화", r"군성귀위자", r"宫廷", r"皇宫", r"皇后", r"贵妃", r"贵人"]),
     # 7. 재테크
     ("재테크", [r"재테크", r"주식", r"투자", r"재벌", r"건물주", r"자산", r"창업", r"돈벌기", r"가가1990", r"1990", r"致富", r"炒股"]),
     # 9. 가족
-    ("가족", [r"복보유량전", r"단총소내포", r"복보", r"소내포", r"가족물", r"육아물", r"가족", r"육아", r"团宠", r"育儿"]),
+    ("가족", [r"복보유량전", r"단총소내포", r"단총", r"복보", r"소내포", r"복처", r"가족물", r"육아물", r"가족", r"육아", r"团宠", r"育儿"]),
     # 10. 이세계
     ("이세계", [r"이세계", r"이계", r"차원", r"이차원", r"异界", r"异세계"]),
     # 11. 군사 / 첩보
@@ -500,7 +501,7 @@ class NovelTraitExtractor:
         메인 장르와 콘텍스트(제목, 웹 스니펫, 웹 태그 등)로부터 특징 키워드 추출 (최대 2개)
         """
         # 1. 기존 원본 태그 키워드가 지정되어 있으면 그대로 보존 (최우선)
-        if existing_keywords is not None:
+        if existing_keywords:
             return existing_keywords[:2]
 
         selected_traits: List[str] = []
@@ -582,7 +583,8 @@ class NovelTraitExtractor:
         title: str = "",
         web_snippet: str = "",
         web_tags: Optional[List[str]] = None,
-        existing_keywords: Optional[List[str]] = None
+        existing_keywords: Optional[List[str]] = None,
+        country: Optional[str] = None
     ) -> str:
         """
         메인 장르와 추출된 특징 키워드를 포맷팅된 장르 문자열로 반환
@@ -627,14 +629,16 @@ class NovelTraitExtractor:
 
         # 로판/로맨스의 경우 중국 웹소설 판단 시 '언정'으로 전환 (사합원 및 일본 소설 제외)
         elif primary_genre in ['로판', '로맨스', '로맨스판타지'] or '로판' in primary_genre or '로맨스' in primary_genre:
-            has_japanese = bool(re.search(r'[぀-ゟ゠-ヿ]', f"{title} {all_text_ctx}"))
-            if not has_japanese:
-                from core.utils.genre_mapping import GenreMappingLoader
-                from core.utils.novel_origin_detector import NovelOriginDetector
-                text_ctx = f"{web_snippet} {' '.join(web_tags or [])}"
-                origin_res = NovelOriginDetector.detect(title=title, raw_name=all_text_ctx)
-                if origin_res.country == 'CN' or GenreMappingLoader.is_chinese_romance(title, text_ctx):
-                    primary_genre = "언정"
+            if country == 'CN':
+                primary_genre = "언정"
+            elif country not in ('KR', 'JP'):
+                has_japanese = bool(re.search(r'[぀-ゟ゠-ヿ]', f"{title} {all_text_ctx}"))
+                if not has_japanese:
+                    from core.utils.genre_mapping import GenreMappingLoader
+                    from core.utils.novel_origin_detector import NovelOriginDetector
+                    origin_res = NovelOriginDetector.detect(title=title, raw_name=title)
+                    if origin_res.country == 'CN' or GenreMappingLoader.is_chinese_romance(title, title):
+                        primary_genre = "언정"
 
         traits = cls.extract_traits(
             primary_genre=primary_genre,

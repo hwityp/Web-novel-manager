@@ -179,6 +179,8 @@ class GenreMappingLoader:
         try:
             from core.utils.novel_origin_detector import NovelOriginDetector
             origin_res = NovelOriginDetector.detect(title=title, raw_name=full_text)
+            if origin_res.country in ('JP', 'KR') and origin_res.confidence == 'high':
+                return False
             if origin_res.country == 'JP':
                 return False
             if origin_res.country == 'CN':

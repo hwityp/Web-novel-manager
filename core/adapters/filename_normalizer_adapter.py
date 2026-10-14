@@ -281,6 +281,7 @@ class FilenameNormalizerAdapter:
             original_genre = parse_result.original_genre # [Fix]
             original_foreign_title = parse_result.original_foreign_title
             has_space_before_foreign = parse_result.has_space_before_foreign
+            country_origin = parse_result.country_origin
         else:
             title = task.title
             volume_info = task.volume_info
@@ -291,10 +292,11 @@ class FilenameNormalizerAdapter:
             original_genre = ""
             original_foreign_title = task.metadata.get('original_foreign_title', '')
             has_space_before_foreign = task.metadata.get('has_space_before_foreign', True)
+            country_origin = ""
         
         # 장르 결정 (task.genre 우선, 없으면 원본 장르 사용)
         genre_candidate = task.genre or original_genre
-        origin_val = task.metadata.get('country_origin') or (parse_result.country_origin if not task.title else '')
+        origin_val = task.metadata.get('country_origin') or country_origin
         if origin_val == 'CN' and genre_candidate and genre_candidate != '미분류':
             from core.utils.novel_trait_extractor import NovelTraitExtractor
             primary_g, traits = NovelTraitExtractor.parse_existing_tag(genre_candidate)

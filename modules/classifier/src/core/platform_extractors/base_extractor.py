@@ -13,15 +13,19 @@ from modules.classifier.src.core.utils.fuzzy_match import is_similar_title, calc
 class BasePlatformExtractor(ABC):
     """플랫폼별 장르 추출기 기본 클래스"""
     
-    def __init__(self, genre_mapping: Dict[str, str], headers: Dict[str, str]):
+    def __init__(self, genre_mapping: Optional[Dict[str, str]] = None, headers: Optional[Dict[str, str]] = None):
         """
         Args:
             genre_mapping: 플랫폼 장르 → 내부 장르 매핑
             headers: HTTP 요청 헤더
         """
-        self.genre_mapping = genre_mapping
-        self.headers = headers
-        self.last_request_time = 0
+        self.genre_mapping = genre_mapping or {}
+        self.headers = headers or {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8'
+        }
+        self.last_request_time: float = 0.0
     
     @property
     @abstractmethod

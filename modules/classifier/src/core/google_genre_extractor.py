@@ -251,7 +251,8 @@ class GoogleGenreExtractor:
                         import importlib
                         mod = importlib.import_module(mod_path)
                         extractor_cls = getattr(mod, cls_name)
-                        f_res = extractor.extract_genre([{'link': link, 'snippet': snippet}], query)
+                        extractor = extractor_cls()
+                        f_res = extractor.extract_genre([{'href': link, 'link': link, 'snippet': snippet}], query)
                         if f_res and f_res.get('genre'):
                             print(f"  [{source_prefix} Foreign Direct] {pname}: {f_res['genre']}")
                             return {
@@ -307,10 +308,24 @@ class GoogleGenreExtractor:
                 }
 
         if not all_found_genres:
+            if combined_snippets.strip():
+                return {
+                    'genre': '미분류',
+                    'confidence': 0.0,
+                    'source': f'{source_prefix}_Search',
+                    'snippet': combined_snippets
+                }
             return None
         
         best_genre, score = self._resolve_genre_priority(all_found_genres, country=country)
         if not best_genre:
+            if combined_snippets.strip():
+                return {
+                    'genre': '미분류',
+                    'confidence': 0.0,
+                    'source': f'{source_prefix}_Search',
+                    'snippet': combined_snippets
+                }
             return None
         
         confidence = 0.75 + (min(score, 5) * 0.04)

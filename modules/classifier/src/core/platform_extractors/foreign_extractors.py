@@ -60,7 +60,7 @@ class QidianExtractor(BasePlatformExtractor):
 
     def extract_genre(self, links: List[Any], title: str, author: Optional[str] = None) -> Optional[Dict[str, Any]]:
         print(f"  [{self.platform_name}] 추출 시작 (링크 {len(links)}개)")
-        urls = [link.get('href', '') if hasattr(link, 'get') else str(link) for link in links]
+        urls = [(link.get('href') or link.get('link') or '') if hasattr(link, 'get') else str(link) for link in links]
 
         for href in urls:
             if not href or not ('qidian.com' in href):
@@ -121,7 +121,7 @@ class JJWXCExtractor(BasePlatformExtractor):
 
     def extract_genre(self, links: List[Any], title: str, author: Optional[str] = None) -> Optional[Dict[str, Any]]:
         print(f"  [{self.platform_name}] 추출 시작 (링크 {len(links)}개)")
-        urls = [link.get('href', '') if hasattr(link, 'get') else str(link) for link in links]
+        urls = [(link.get('href') or link.get('link') or '') if hasattr(link, 'get') else str(link) for link in links]
 
         for href in urls:
             if not href or not ('jjwxc.net' in href or 'jjwxc.com' in href):
@@ -401,7 +401,7 @@ class SyosetuExtractor(BasePlatformExtractor):
 
     def extract_genre(self, links: List[Any], title: str, author: Optional[str] = None) -> Optional[Dict[str, Any]]:
         print(f"  [{self.platform_name}] 추출 시작 (링크 {len(links)}개)")
-        urls = [link.get('href', '') if hasattr(link, 'get') else str(link) for link in links]
+        urls = [(link.get('href') or link.get('link') or '') if hasattr(link, 'get') else str(link) for link in links]
 
         for href in urls:
             if not href:
@@ -538,7 +538,7 @@ class KakuyomuExtractor(BasePlatformExtractor):
 
     def extract_genre(self, links: List[Any], title: str, author: Optional[str] = None) -> Optional[Dict[str, Any]]:
         print(f"  [{self.platform_name}] 추출 시작 (링크 {len(links)}개)")
-        urls = [link.get('href', '') if hasattr(link, 'get') else str(link) for link in links]
+        urls = [(link.get('href') or link.get('link') or '') if hasattr(link, 'get') else str(link) for link in links]
 
         for href in urls:
             if not href or not ('kakuyomu.jp' in href):

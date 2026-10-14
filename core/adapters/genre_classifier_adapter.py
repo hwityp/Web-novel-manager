@@ -222,50 +222,48 @@ class GenreClassifierAdapter:
             task.metadata['origin_reasons'] = origin_res.reasons
             task.metadata['is_foreign'] = origin_res.is_foreign
 
-        # [Fix] 이미 유효한 장르가 설정되어 있는 경우 (예: 파일명 태그 추출 결과)
-        # 검색이나 추가 추론 없이 기존 장르 유지
+        # [단일 장르 vs 복합 장르 태그 분기]
+        initial_genre_str = None
+        initial_source = 'tag'
         if task.genre and task.genre != '미분류':
-            primary_genre, existing_kws = NovelTraitExtractor.parse_existing_tag(task.genre)
+            initial_genre_str = task.genre
+            initial_source = 'tag'
+        else:
+            annotation_genre = NovelTraitExtractor.extract_from_annotations(parse_source)
+            if annotation_genre:
+                initial_genre_str = annotation_genre
+                initial_source = 'annotation'
+
+        base_primary_genre = None
+
+        if initial_genre_str:
+            primary_genre, existing_kws = NovelTraitExtractor.parse_existing_tag(initial_genre_str)
             mapped_genre = self.mapping_loader.map_genre(primary_genre, task.title or raw_text, parse_source)
             mapped_genre = self._apply_origin_specific_rules(mapped_genre, task, raw_text)
             
-            if mapped_genre in GENRE_WHITELIST:
-                task.genre = NovelTraitExtractor.format_genre_tag(
-                    primary_genre=mapped_genre,
-                    title=task.title or raw_text,
-                    existing_keywords=existing_kws
-                )
-                if not task.confidence or task.confidence == 'low':
+            # [기본 장르 보존] 중국 소설의 경우 언정/로판은 언정으로 고정하며, 원본에 언정이 지정되어 있었으면 현판 등으로 임의 변질 방지
+            if primary_genre == '언정' or (origin_res.country == 'CN' and primary_genre in ['로판', '로맨스', '로맨스판타지']):
+                mapped_genre = '언정'
+
+            if mapped_genre in GENRE_WHITELIST and mapped_genre != '미분류':
+                if len(existing_kws) >= 1:
+                    # 1) 이미 부 장르/특성 키워드가 1개 이상 포함된 복합 태그인 경우: 즉시 유지 및 반환
+                    task.genre = NovelTraitExtractor.format_genre_tag(
+                        primary_genre=mapped_genre,
+                        title=task.title or raw_text,
+                        existing_keywords=existing_kws
+                    )
                     task.confidence = 'high'
-                if not task.source or task.source == '-':
-                    task.source = 'tag'
-                
-                self.logger.debug(f"  [기존 장르 유지] {task.genre} (API 검색 건너뜀)")
-                print(f"  [기존 장르 유지] {task.genre} (API 검색 건너뜀)")
-                return self._finalize_task_genre(task, raw_text)
-            
-        # [첨언 우선 추출] 파일명의 앞 접두사([태그]) 또는 뒤 첨언(#해시태그 등)에서 장르 추출 (웹 검색보다 최우선)
-        annotation_genre = NovelTraitExtractor.extract_from_annotations(parse_source)
-        if annotation_genre:
-            primary_genre, existing_kws = NovelTraitExtractor.parse_existing_tag(annotation_genre)
-            mapped_genre = self.mapping_loader.map_genre(primary_genre)
-            mapped_genre = self._apply_origin_specific_rules(mapped_genre, task, raw_text)
-            if mapped_genre in GENRE_WHITELIST:
-                task.genre = NovelTraitExtractor.format_genre_tag(
-                    primary_genre=mapped_genre,
-                    title=task.title or raw_text,
-                    existing_keywords=existing_kws
-                )
-                task.confidence = 'high'
-                task.source = 'annotation'
-                task.status = 'processing'
-                
-                self.logger.debug(f"  [첨언 태그 감지] 파일명 첨언에서 장르 확정: {task.genre} (웹 검색 건너뜀)")
-                print(f"  [첨언 태그 감지] {task.genre} (웹 검색 건너뜀)")
-                
-                # 캐시에도 저장
-                self.cache.set(pure_title, task.genre, 'high', 'annotation')
-                return task
+                    task.source = initial_source
+                    self.logger.debug(f"  [기존 복합 장르 유지] {task.genre} (API 검색 건너뜀)")
+                    print(f"  [기존 복합 장르 유지] {task.genre} (API 검색 건너뜀)")
+                    return self._finalize_task_genre(task, raw_text)
+                else:
+                    # 2) 단지 1개의 장르(주 장르)만 있는 경우: 주 장르를 보존하고, 부 장르 조사를 위해 인터넷 검색 계속 진행
+                    base_primary_genre = mapped_genre
+                    task.metadata['base_primary_genre'] = base_primary_genre
+                    self.logger.debug(f"  [단일 기본 장르 확인: '{base_primary_genre}'] 부 장르(추가 정보) 조사를 위해 인터넷 검색 계속 진행")
+                    print(f"  [단일 기본 장르 확인: '{base_primary_genre}'] 부 장르(추가 정보) 조사를 위해 인터넷 검색 계속 진행")
         
         self.logger.debug(f"장르 분류 시작: {raw_text}")
         print(f"\n{'='*80}")
@@ -305,11 +303,14 @@ class GenreClassifierAdapter:
         if cached:
             cached_genre = cached['genre']
             cached_conf = cached.get('confidence', 'medium')
+            primary_genre, existing_kws = NovelTraitExtractor.parse_existing_tag(cached_genre)
             
             # 고신뢰도(high) 캐시는 즉시 확정 반환
-            if cached_conf == 'high':
-                primary_genre, existing_kws = NovelTraitExtractor.parse_existing_tag(cached_genre)
-                corrected_genre = self._apply_origin_specific_rules(primary_genre, task, raw_text)
+            # 단, 단일 기본 장르가 있어 부 장르 조사가 필요한 경우, 캐시에 부 장르가 없으면 인터넷 검색 계속 진행
+            if base_primary_genre and len(existing_kws) == 0:
+                pass
+            elif cached_conf == 'high':
+                corrected_genre = self._apply_origin_specific_rules(base_primary_genre or primary_genre, task, raw_text)
                 if corrected_genre != '미분류':
                     task.genre = NovelTraitExtractor.format_genre_tag(
                         primary_genre=corrected_genre,
@@ -335,7 +336,7 @@ class GenreClassifierAdapter:
         header_result = self._extract_from_content_header(task)
         if header_result:
             mapped_genre = header_result['genre']
-            mapped_genre = self._apply_origin_specific_rules(mapped_genre, task, raw_text)
+            mapped_genre = self._apply_origin_specific_rules(base_primary_genre or mapped_genre, task, raw_text)
             web_snippet = header_result.get('snippet', '')
             web_tags = header_result.get('tags', [])
             
@@ -366,61 +367,67 @@ class GenreClassifierAdapter:
         # Step 2.8: 로컬 고신뢰도 사전/분석기 패스트패스 (High-Confidence Local Fast-Path)
         # 특히 해외 소설(중국/일본)의 경우 불필요하고 실패율 높은 국내 검색(네이버) 지연을 건너뛰고,
         # 고신뢰도 음독 분석기, Syosetu 공식 API, 고가중치 장르 키워드로 즉시 확정하여 속도 및 정확도 극대화
-        fast_res = self._fast_local_inference(
-            task, pure_title, raw_text, foreign_title, origin_res,
-            phonetic_title=phonetic_title, translated_title=translated_title
-        )
-        if fast_res and fast_res.get('genre') in GENRE_WHITELIST and fast_res.get('genre') != '미분류':
-            mapped_genre = fast_res['genre']
-            mapped_genre = self._apply_origin_specific_rules(mapped_genre, task, raw_text)
-            if mapped_genre in GENRE_WHITELIST and mapped_genre != '미분류':
-                task.genre = NovelTraitExtractor.format_genre_tag(
-                    primary_genre=mapped_genre,
-                    title=f"{raw_text} {phonetic_title} {translated_title}".strip(),
-                    web_snippet=fast_res.get('snippet', ''),
-                    web_tags=fast_res.get('tags', [])
-                )
-                task.confidence = fast_res.get('confidence', 'high')
-                task.source = self._format_source(fast_res.get('source', '로컬패스트패스'))
-                task.status = 'processing'
-                
-                # 캐시에 저장하여 이후 중복 처리 0ms 보장 (pure_title, phonetic_title, translated_title 모두 동시 인덱싱)
-                self.cache.set(pure_title, task.genre, task.confidence, fast_res.get('source', 'fast_path'))
-                if phonetic_title and phonetic_title != pure_title:
-                    self.cache.set(phonetic_title, task.genre, task.confidence, fast_res.get('source', 'fast_path'))
-                if translated_title and translated_title != pure_title:
-                    self.cache.set(translated_title, task.genre, task.confidence, fast_res.get('source', 'fast_path'))
-                
-                self.logger.debug(f"  [로컬 패스트패스 확정] {task.genre} (confidence: {task.confidence}, source: {task.source})")
-                print(f"  [로컬 패스트패스 확정] {task.genre} (confidence: {task.confidence}, source: {task.source})")
-                return self._finalize_task_genre(task, raw_text)
+        # 단, base_primary_genre가 있는 경우(단일 기본 장르가 있어 부 장르 조사가 필요한 경우)는 건너뛰고 인터넷 검색 진행
+        if not base_primary_genre:
+            fast_res = self._fast_local_inference(
+                task, pure_title, raw_text, foreign_title, origin_res,
+                phonetic_title=phonetic_title, translated_title=translated_title
+            )
+            if fast_res and fast_res.get('genre') in GENRE_WHITELIST and fast_res.get('genre') != '미분류':
+                mapped_genre = fast_res['genre']
+                mapped_genre = self._apply_origin_specific_rules(mapped_genre, task, raw_text)
+                if mapped_genre in GENRE_WHITELIST and mapped_genre != '미분류':
+                    task.genre = NovelTraitExtractor.format_genre_tag(
+                        primary_genre=mapped_genre,
+                        title=f"{raw_text} {phonetic_title} {translated_title}".strip(),
+                        web_snippet=fast_res.get('snippet', ''),
+                        web_tags=fast_res.get('tags', [])
+                    )
+                    task.confidence = fast_res.get('confidence', 'high')
+                    task.source = self._format_source(fast_res.get('source', '로컬패스트패스'))
+                    task.status = 'processing'
+                    
+                    # 캐시에 저장하여 이후 중복 처리 0ms 보장 (pure_title, phonetic_title, translated_title 모두 동시 인덱싱)
+                    self.cache.set(pure_title, task.genre, task.confidence, fast_res.get('source', 'fast_path'))
+                    if phonetic_title and phonetic_title != pure_title:
+                        self.cache.set(phonetic_title, task.genre, task.confidence, fast_res.get('source', 'fast_path'))
+                    if translated_title and translated_title != pure_title:
+                        self.cache.set(translated_title, task.genre, task.confidence, fast_res.get('source', 'fast_path'))
+                    
+                    self.logger.debug(f"  [로컬 패스트패스 확정] {task.genre} (confidence: {task.confidence}, source: {task.source})")
+                    print(f"  [로컬 패스트패스 확정] {task.genre} (confidence: {task.confidence}, source: {task.source})")
+                    return self._finalize_task_genre(task, raw_text)
 
         # 만약 고신뢰도 헤더/패스트패스에 해당하지 않지만, 기존 medium/low 캐시가 있는 경우
         # 불필요한 인터넷 검색을 방지하기 위해 캐시된 결과 적용
+        # 단, base_primary_genre가 있는데 캐시에 부 장르가 없는 경우는 인터넷 검색 계속 진행
         if cached:
             cached_genre = cached['genre']
             primary_genre, existing_kws = NovelTraitExtractor.parse_existing_tag(cached_genre)
-            corrected_genre = self._apply_origin_specific_rules(primary_genre, task, raw_text)
-            if corrected_genre != '미분류':
-                task.genre = NovelTraitExtractor.format_genre_tag(
-                    primary_genre=corrected_genre,
-                    title=raw_text,
-                    existing_keywords=existing_kws if corrected_genre == primary_genre else None
-                )
-                if task.genre != cached_genre:
-                    self.cache.set(pure_title, task.genre, cached['confidence'], cached.get('source', 'cache'))
-                    if phonetic_title and phonetic_title != pure_title:
-                        self.cache.set(phonetic_title, task.genre, cached['confidence'], cached.get('source', 'cache'))
-                    if translated_title and translated_title != pure_title:
-                        self.cache.set(translated_title, task.genre, cached['confidence'], cached.get('source', 'cache'))
-                    self.logger.debug(f"  [캐시 갱신] '{pure_title}': {cached_genre} → {task.genre}")
+            if base_primary_genre and len(existing_kws) == 0:
+                pass
+            else:
+                corrected_genre = self._apply_origin_specific_rules(base_primary_genre or primary_genre, task, raw_text)
+                if corrected_genre != '미분류':
+                    task.genre = NovelTraitExtractor.format_genre_tag(
+                        primary_genre=corrected_genre,
+                        title=raw_text,
+                        existing_keywords=existing_kws if corrected_genre == primary_genre else None
+                    )
+                    if task.genre != cached_genre:
+                        self.cache.set(pure_title, task.genre, cached['confidence'], cached.get('source', 'cache'))
+                        if phonetic_title and phonetic_title != pure_title:
+                            self.cache.set(phonetic_title, task.genre, cached['confidence'], cached.get('source', 'cache'))
+                        if translated_title and translated_title != pure_title:
+                            self.cache.set(translated_title, task.genre, cached['confidence'], cached.get('source', 'cache'))
+                        self.logger.debug(f"  [캐시 갱신] '{pure_title}': {cached_genre} → {task.genre}")
 
-                task.confidence = cached['confidence']
-                task.source = self._format_source(cached.get('source', 'cache'))
-                task.status = 'processing'
-                self.logger.debug(f"  [결과] {task.genre} (confidence: {task.confidence}, source: cache)")
-                print(f"  [결과] {task.genre} (confidence: {task.confidence}, source: cache)")
-                return self._finalize_task_genre(task, raw_text)
+                    task.confidence = cached['confidence']
+                    task.source = self._format_source(cached.get('source', 'cache'))
+                    task.status = 'processing'
+                    self.logger.debug(f"  [결과] {task.genre} (confidence: {task.confidence}, source: cache)")
+                    print(f"  [결과] {task.genre} (confidence: {task.confidence}, source: cache)")
+                    return self._finalize_task_genre(task, raw_text)
 
         # Step 3: Stage 1 - 인터넷 검색 (Search-First) - Naver / Google / 해외플랫폼 웹 검색 우선 시도
         try:
@@ -445,18 +452,24 @@ class GenreClassifierAdapter:
                 web_snippet = search_result.get('snippet', '')
                 web_tags = search_result.get('tags', [])
                 
+                # base_primary_genre가 있으면 기존 기본 주 장르 우선 유지
+                effective_primary = base_primary_genre or mapped_genre
+                if base_primary_genre == '언정':
+                    effective_primary = '언정'
+
                 # 메인 장르 + 특징 키워드 조합 (최대 3개 항목)
                 task.genre = NovelTraitExtractor.format_genre_tag(
-                    primary_genre=mapped_genre,
+                    primary_genre=effective_primary,
                     title=f"{raw_text} {phonetic_title} {translated_title}".strip(),
                     web_snippet=web_snippet,
-                    web_tags=web_tags
+                    web_tags=web_tags,
+                    country=origin_res.country
                 )
                 task.confidence = 'high'  # 검색 성공 = high
                 task.status = 'processing'
                 
                 # 캐시에 저장
-                source = search_result.get('source', 'search')
+                source = search_result.get('source', 'search') if not base_primary_genre else f"{initial_source}+검색"
                 task.source = self._format_source(source)
                 self.cache.set(pure_title, task.genre, 'high', source)
                 if phonetic_title and phonetic_title != pure_title:
@@ -470,6 +483,32 @@ class GenreClassifierAdapter:
                 self.logger.debug(f"  [결과] {task.genre} (confidence: {task.confidence}, source: {source})")
                 print(f"  [결과] {task.genre} (confidence: {task.confidence}, source: {source})")
                 return self._finalize_task_genre(task, raw_text)
+
+        # base_primary_genre가 설정되어 있는 경우 (단일 주 장르 태그 보유작):
+        # 인터넷 검색을 마친 후 검색 스니펫 및 제목 맥락에서 부 장르(추가 정보)를 조사하여 포맷팅
+        if base_primary_genre:
+            web_snippet = search_result.get('snippet', '') if search_result else ''
+            web_tags = search_result.get('tags', []) if search_result else []
+            task.genre = NovelTraitExtractor.format_genre_tag(
+                primary_genre=base_primary_genre,
+                title=f"{raw_text} {phonetic_title} {translated_title}".strip(),
+                web_snippet=web_snippet,
+                web_tags=web_tags,
+                country=origin_res.country
+            )
+            task.confidence = 'high'
+            task.source = initial_source
+            task.status = 'processing'
+            
+            self.cache.set(pure_title, task.genre, 'high', initial_source)
+            if phonetic_title and phonetic_title != pure_title:
+                self.cache.set(phonetic_title, task.genre, 'high', initial_source)
+            if translated_title and translated_title != pure_title:
+                self.cache.set(translated_title, task.genre, 'high', initial_source)
+
+            self.logger.debug(f"  [결과(기본장르+부장르조사)] {task.genre} (confidence: {task.confidence}, source: {initial_source})")
+            print(f"  [결과(기본장르+부장르조사)] {task.genre} (confidence: {task.confidence}, source: {initial_source})")
+            return self._finalize_task_genre(task, raw_text)
         
         # Step 4: Stage 3 - 키워드 및 음독 분석기 폴백 (검색 실패 시에만 안전망으로 실행)
         self.logger.debug(f"  [폴백] 검색 실패, 키워드/음독 매칭 시도")
@@ -700,14 +739,15 @@ class GenreClassifierAdapter:
             if has_chinese:
                 from core.utils.chinese_char_converter import to_simplified_chinese
                 
-                raw_cn = original_foreign_title or ""
+                raw_cn: str = original_foreign_title or ""
                 if not raw_cn:
                     cn_match = re.findall(r'[\u4e00-\u9fff\u3400-\u4dbf]+', search_title)
                     if cn_match:
-                        raw_cn = max(cn_match, key=len)
+                        raw_cn = str(max(cn_match, key=len))
                 
                 # 대만/홍콩 번체자 -> 간체자 자동 정규화
                 simp_cn = to_simplified_chinese(raw_cn).strip() if raw_cn else ""
+                last_snippet_res: Optional[Dict[str, Any]] = None
 
                 # 1. Google 중국어/바이두 백과/치뎬/진장 타깃형 검색
                 if self._google_extractor:
@@ -719,6 +759,8 @@ class GenreClassifierAdapter:
                         if google_result and google_result.get('genre') and google_result.get('genre') != '미분류':
                             self.logger.info(f"  [Google 바이두백과 타깃 성공] {google_result['genre']}")
                             return google_result
+                        elif google_result and google_result.get('snippet'):
+                            last_snippet_res = google_result
 
                         # (2) 중화권 공식 웹소설 플랫폼(치뎬, 진장, 바이두백과) 통합 타깃
                         platform_query = f'"{simp_cn}" (site:qidian.com OR site:jjwxc.net OR site:baike.baidu.com)'
@@ -726,12 +768,16 @@ class GenreClassifierAdapter:
                         if google_result and google_result.get('genre') and google_result.get('genre') != '미분류':
                             self.logger.info(f"  [Google 중화권 공식 플랫폼 타깃 성공] {google_result['genre']}")
                             return google_result
+                        elif google_result and google_result.get('snippet'):
+                            last_snippet_res = google_result
 
                         # (3) 바이두백과 키워드 포함 일반 질의
                         general_cn_query = f'"{simp_cn}" 小说 百度百科'
                         google_result = self._google_extractor.extract_genre(general_cn_query, country='CN')
                         if google_result and google_result.get('genre') and google_result.get('genre') != '미분류':
                             return google_result
+                        elif google_result and google_result.get('snippet'):
+                            last_snippet_res = google_result
 
                     # 1-2. 한자 원문이 없고 음독 제목인 경우
                     elif phonetic_title:
@@ -739,16 +785,25 @@ class GenreClassifierAdapter:
                         google_result = self._google_extractor.extract_genre(cn_query, country='CN')
                         if google_result and google_result.get('genre') and google_result.get('genre') != '미분류':
                             return google_result
+                        elif google_result and google_result.get('snippet'):
+                            last_snippet_res = google_result
 
                     else:
-                        cn_query = f"{search_title} 中国小说"
+                        has_hangul = bool(re.search(r'[\uac00-\ud7af]', search_title))
+                        if has_hangul:
+                            cn_query = f"{search_title} 중국 소설"
+                        else:
+                            cn_query = f"{search_title} 中国小说"
                         google_result = self._google_extractor.extract_genre(cn_query, country='CN')
                         if google_result and google_result.get('genre') and google_result.get('genre') != '미분류':
                             return google_result
+                        elif google_result and google_result.get('snippet'):
+                            last_snippet_res = google_result
 
-                # 2. 국내 정발(시리즈/카카오/리디북스) 확인용 Naver 검색 (유효한 한글 번역명이 있을 때만 제한적 호출)
-                if self._naver_extractor and translated_title and translated_title != search_title:
-                    naver_res = self._naver_extractor.extract_genre_from_title(translated_title, country='CN')
+                # 2. 국내 정발 및 번역 커뮤니티 확인용 Naver 검색
+                if self._naver_extractor:
+                    naver_query = translated_title if (translated_title and translated_title != search_title) else search_title
+                    naver_res = self._naver_extractor.extract_genre_from_title(naver_query, country='CN')
                     if naver_res and naver_res.get('genre') and naver_res.get('genre') != '미분류':
                         return {
                             'genre': naver_res['genre'],
@@ -757,6 +812,11 @@ class GenreClassifierAdapter:
                             'snippet': naver_res.get('snippet', ''),
                             'tags': naver_res.get('tags', [])
                         }
+                    elif naver_res and (naver_res.get('snippet') or naver_res.get('tags')):
+                        return naver_res
+
+                if last_snippet_res:
+                    return last_snippet_res
 
                 return None
 
@@ -893,10 +953,16 @@ class GenreClassifierAdapter:
             if mapped_genre in ['로판', '로맨스', '로맨스판타지'] or '로판' in mapped_genre or '로맨스' in mapped_genre:
                 return '언정'
             # 중생(重生) 규칙: 여성향 단서가 없는데 언정으로 분류된 경우, 남성향 도시/경영/일상/창업은 '현판'으로 보정
-            if mapped_genre == '언정':
+            # 단, 기본 장르가 언정으로 지정되어 있거나 파일명에 [언정] 태그가 부여된 경우는 임의 보정 금지
+            is_explicit_eonjeong = (
+                task.metadata.get('base_primary_genre') == '언정' or
+                bool(re.search(r'[\[【［]언정[\]】］\}]', raw_text))
+            )
+            if mapped_genre == '언정' and not is_explicit_eonjeong:
                 female_keywords = [
                     '여주', '교처', '낭자', '단총', '복보', '천금', '궁투', '택투',
-                    '시어머니', '시집', '포태', '소내포', '부군', '이혼', '리혼'
+                    '시어머니', '시집', '포태', '소내포', '부군', '이혼', '리혼',
+                    '적녀', '계실', '계방', '귀첩', '외실', '서녀', '모친'
                 ]
                 has_female = any(fk in full_ctx for fk in female_keywords)
                 if not has_female and any(mk in full_ctx for mk in ['중생', '몰상', '이신', '아진', '아태', '상인', '재벌', '창업', '대학', '도시']):
@@ -979,7 +1045,7 @@ class GenreClassifierAdapter:
         origin = task.metadata.get('country_origin', 'UNKNOWN')
         foreign_title = task.metadata.get('original_foreign_title', '')
         full_text = f"{raw_text} {task.title} {task.raw_name} {foreign_title}".strip()
-        is_cn = origin == 'CN' or self.mapping_loader.is_chinese_romance(task.title or raw_text, full_text)
+        is_cn = origin == 'CN' or (origin not in ('KR', 'JP') and self.mapping_loader.is_chinese_romance(task.title or raw_text, full_text))
         
         if is_cn:
             if primary_g in ['로판', '로맨스', '로맨스판타지'] or '로판' in primary_g or '로맨스' in primary_g:
