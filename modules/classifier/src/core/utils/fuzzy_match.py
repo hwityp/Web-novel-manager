@@ -44,7 +44,21 @@ def calculate_similarity(str1: str, str2: str) -> float:
         return 0.0
     
     # SequenceMatcher로 유사도 계산
-    return SequenceMatcher(None, norm1, norm2).ratio()
+    ratio = SequenceMatcher(None, norm1, norm2).ratio()
+    
+    # 한자어 음운변화(두음법칙, 렬/열, 율/률, 不 부/불, 관용음) 정규형 유사도 산출
+    try:
+        from core.utils.sino_korean_phonetics import to_phonetic_canonical
+        canon1 = to_phonetic_canonical(norm1)
+        canon2 = to_phonetic_canonical(norm2)
+        if canon1 == canon2:
+            return 1.0
+        ratio_canon = SequenceMatcher(None, canon1, canon2).ratio()
+        ratio = max(ratio, ratio_canon)
+    except Exception:
+        pass
+        
+    return ratio
 
 
 def is_similar_title(title1: str, title2: str, threshold: float = 0.85) -> bool:

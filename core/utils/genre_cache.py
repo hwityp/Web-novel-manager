@@ -88,6 +88,19 @@ class GenreCache:
         key = self._normalize_key(title)
         entry = self.entries.get(key)
         
+        # 음운변화 변형 키 폴백 조회
+        if not entry:
+            try:
+                from core.utils.sino_korean_phonetics import get_phonetic_search_variants
+                for var in get_phonetic_search_variants(title):
+                    var_key = self._normalize_key(var)
+                    if var_key != key and var_key in self.entries:
+                        entry = self.entries[var_key]
+                        print(f"  [캐시 히트 (음운변형)] '{title}' → '{var}' → {entry.get('genre')} ({entry.get('source')})")
+                        break
+            except Exception:
+                pass
+        
         if entry:
             print(f"  [캐시 히트] '{title}' → {entry.get('genre')} ({entry.get('source')})")
             return {

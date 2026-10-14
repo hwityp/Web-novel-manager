@@ -119,6 +119,20 @@ class TitleSimilarityChecker:
         max_len = max(len(norm1), len(norm2))
         similarity = 1.0 - (distance / max_len)
         
+        # 한자어 음운변화(두음법칙, 렬/열, 율/률, 不 부/불, 관용음) 정규형 유사도 산출
+        try:
+            from core.utils.sino_korean_phonetics import to_phonetic_canonical
+            canon1 = to_phonetic_canonical(norm1)
+            canon2 = to_phonetic_canonical(norm2)
+            if canon1 == canon2:
+                return 1.0
+            dist_canon = cls.levenshtein_distance(canon1, canon2)
+            max_len_canon = max(len(canon1), len(canon2))
+            sim_canon = 1.0 - (dist_canon / max_len_canon) if max_len_canon > 0 else 0.0
+            similarity = max(similarity, sim_canon)
+        except Exception:
+            pass
+        
         return max(0.0, min(1.0, similarity))
     
     @classmethod

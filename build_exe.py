@@ -120,6 +120,7 @@ def build_exe(debug: bool = False):
         '--hidden-import', 'core.utils.content_header_extractor',
         '--hidden-import', 'core.utils.novel_origin_detector',
         '--hidden-import', 'core.utils.chinese_phonetic_analyzer',
+        '--hidden-import', 'core.utils.sino_korean_phonetics',
         '--hidden-import', 'core.utils.genre_cache_miner',
         '--hidden-import', 'core.utils.keyword_syncer',
         '--hidden-import', 'core.utils.auto_keyword_learner',

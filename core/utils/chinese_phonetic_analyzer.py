@@ -394,12 +394,22 @@ class ChinesePhoneticAnalyzer:
         cleaned = re.sub(r'\s*\(완\).*$', '', cleaned).strip()
 
         # 2. 유명 작품 DB 직접 매칭
+        from core.utils.sino_korean_phonetics import to_phonetic_canonical
+        canon_target = to_phonetic_canonical(target_title)
+        canon_cleaned = to_phonetic_canonical(cleaned)
         for known_k, (genre, reason) in cls.KNOWN_TITLES.items():
             if known_k in target_title or known_k in cleaned or (phonetic_title and known_k in phonetic_title):
                 result.genre = genre
                 result.confidence = "high"
                 result.matched_pattern = known_k
                 result.reason = reason
+                result.is_detected = True
+                return result
+            elif len(known_k) >= 3 and (to_phonetic_canonical(known_k) in canon_target or to_phonetic_canonical(known_k) in canon_cleaned):
+                result.genre = genre
+                result.confidence = "high"
+                result.matched_pattern = known_k
+                result.reason = f"{reason} (음운 정규형 매칭)"
                 result.is_detected = True
                 return result
 
@@ -413,11 +423,12 @@ class ChinesePhoneticAnalyzer:
                 break
 
         full_context = f"{text} {pure_title} {cleaned} {phonetic_title}".strip()
+        canon_full_context = to_phonetic_canonical(full_context)
 
         # 4. 특별 클리셰: 사합원(四合院) 판정
         if any(kw in full_context for kw in ['사합원', '四合院', '4합원']):
-            female_kws = ['여주', '교처', '낭자', '단총', '복보', '천금', '궁투', '택투', '시어머니', '시집', '포태', '리혼']
-            is_female = any(fk in full_context for fk in female_kws)
+            female_kws = ['여주', '교처', '낭자', '단총', '복보', '천금', '궁투', '택투', '시어머니', '시집', '포태', '리혼', '이혼']
+            is_female = any(fk in full_context or to_phonetic_canonical(fk) in canon_full_context for fk in female_kws)
             result.genre = '언정' if is_female else '현판'
             result.confidence = 'high'
             result.matched_pattern = '사합원'
@@ -428,8 +439,8 @@ class ChinesePhoneticAnalyzer:
         # 5. 특별 클리셰: 중생(重生 - 회귀/환생) 문맥 분기
         # '중생'은 남성향 도시물과 여성향 언정물 양쪽에서 가장 흔한 클리셰임!
         if any(kw in full_context for kw in ['중생', '重生']):
-            female_kws = ['교처', '단총', '낭자', '궁투', '택투', '여주', '리혼', '복보', '천금', '시어머니', '시집', '포태', '왕비', '함어', '소복녀']
-            has_female = any(fk in full_context for fk in female_kws)
+            female_kws = ['교처', '단총', '낭자', '궁투', '택투', '여주', '녀주', '리혼', '이혼', '복보', '천금', '시어머니', '시집', '포태', '왕비', '함어', '소복녀']
+            has_female = any(fk in full_context or to_phonetic_canonical(fk) in canon_full_context for fk in female_kws)
             if has_female:
                 result.genre = '언정'
                 result.confidence = 'high'
@@ -453,7 +464,7 @@ class ChinesePhoneticAnalyzer:
         # 6. 특화 규칙 테이블 대조 (우선순위 순)
         for keywords, genre, conf_score, desc in cls.TRAIT_RULES:
             for kw in keywords:
-                if kw in full_context:
+                if kw in full_context or (len(kw) >= 2 and to_phonetic_canonical(kw) in canon_full_context):
                     result.genre = genre
                     result.confidence = "high" if (has_prefix or conf_score >= 0.92) else "medium"
                     result.matched_pattern = kw

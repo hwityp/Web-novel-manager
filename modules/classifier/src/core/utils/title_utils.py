@@ -41,6 +41,13 @@ def normalize_title(title: str) -> str:
     # 4. 앞뒤 공백 제거
     title = title.strip()
     
+    # 5. 한자어 음운변화(두음법칙, 렬/열, 율/률, 不 부/불, 관용음) 표준 교정
+    try:
+        from core.utils.sino_korean_phonetics import correct_sino_korean_orthography
+        title = correct_sino_korean_orthography(title)
+    except Exception:
+        pass
+    
     return title
 
 
@@ -128,9 +135,16 @@ def is_chinese_novel_title(title: str) -> bool:
     if CN_PUNCTUATION_REGEX.search(title):
         return True
         
-    # 중국 고유 클리셰 키워드 포함 확인
+    # 중국 고유 클리셰 키워드 포함 확인 (음운 정규형 대조 병행)
     if any(kw in title for kw in CN_CLICHE_KEYWORDS):
         return True
+    try:
+        from core.utils.sino_korean_phonetics import to_phonetic_canonical
+        canon_t = to_phonetic_canonical(title)
+        if any(to_phonetic_canonical(kw) in canon_t for kw in CN_CLICHE_KEYWORDS if len(kw) >= 2):
+            return True
+    except Exception:
+        pass
 
     # 긴 어미 패턴 확인 (우선순위 높음)
     for ending in CHINESE_TITLE_ENDINGS:
@@ -154,6 +168,15 @@ def split_title_variants(title: str) -> List[str]:
         [전체제목, 부분1, 부분2, ...]
     """
     variants = [title]
+    
+    # 한자어 음운변화 검색 변형 추가
+    try:
+        from core.utils.sino_korean_phonetics import get_phonetic_search_variants
+        for p_var in get_phonetic_search_variants(title):
+            if p_var not in variants:
+                variants.append(p_var)
+    except Exception:
+        pass
     
     # 저자명 패턴 감지
     def is_author_name(text):

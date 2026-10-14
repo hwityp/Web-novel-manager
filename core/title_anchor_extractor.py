@@ -167,6 +167,13 @@ def is_sino_korean_text(text: str) -> bool:
         return True
     if any(kw in text for kw in CN_CLICHE_KEYWORDS):
         return True
+    try:
+        from core.utils.sino_korean_phonetics import to_phonetic_canonical
+        canon = to_phonetic_canonical(text)
+        if any(to_phonetic_canonical(kw) in canon for kw in CN_CLICHE_KEYWORDS if len(kw) >= 2):
+            return True
+    except Exception:
+        pass
     clean = re.sub(r'[^가-힣]', '', text)
     if len(clean) >= 6 and not PARTICLE_REGEX.search(text):
         return True
@@ -370,7 +377,8 @@ class TitleParseResult:
             parts.append(f"[{clean_g}]")
         
         # 제목 및 원문 제목 조합
-        title_str = self.title
+        from core.utils.sino_korean_phonetics import correct_sino_korean_orthography
+        title_str = correct_sino_korean_orthography(self.title)
         if self.original_foreign_title and self.original_foreign_title not in title_str:
             sep = " " if self.has_space_before_foreign else ""
             title_str = f"{title_str}{sep}({self.original_foreign_title})"
@@ -630,6 +638,12 @@ class TitleAnchorExtractor:
         
         # 3. 제목 앵커 추출
         title, residual = self._extract_title_anchor(cleaned)
+        
+        # [NEW] 한자어 음운변화(두음법칙, 렬/열, 율/률, 不 부/불, 관용음) 독음 오기 자동 교정
+        from core.utils.sino_korean_phonetics import correct_sino_korean_orthography
+        title = correct_sino_korean_orthography(title.strip())
+        if phonetic_title:
+            phonetic_title = correct_sino_korean_orthography(phonetic_title.strip())
         
         # 4. 잔여 문자열에서 메타데이터 파싱
         volume_info, range_info, is_completed, side_story, author_from_res = self._parse_residual(residual)

@@ -404,8 +404,9 @@ class FilenameNormalizerAdapter:
                     clean_g = ", ".join(sub_tokens)
             parts.append(f"[{clean_g}]")
         
-        # 2. 제목 (공백 정규화 및 원문 한자 제목 추가)
-        clean_title = self._normalize_spaces(title)
+        # 2. 제목 (공백 정규화, 한자어 음운변화 표준 교정 및 원문 한자 제목 추가)
+        from core.utils.sino_korean_phonetics import correct_sino_korean_orthography
+        clean_title = correct_sino_korean_orthography(self._normalize_spaces(title))
         if original_foreign_title and original_foreign_title not in clean_title:
             sep = " " if has_space_before_foreign else ""
             clean_title = f"{clean_title}{sep}({original_foreign_title})"

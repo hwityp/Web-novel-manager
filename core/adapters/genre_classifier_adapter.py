@@ -829,6 +829,20 @@ class GenreClassifierAdapter:
                     if not result or not result.get('genre') or result.get('genre') == '미분류':
                         result = self._naver_extractor.extract_genre_from_title(original_foreign_title, country=country)
                 
+                # 검색 실패 시 한자어 음운변화(두음법칙, 렬/열, 율/률, 不 부/불, 관용음) 변형 쿼리로 재검색 시도
+                if not result or not result.get('genre') or result.get('genre') == '미분류':
+                    try:
+                        from core.utils.sino_korean_phonetics import get_phonetic_search_variants
+                        for var in get_phonetic_search_variants(naver_query):
+                            if var != naver_query:
+                                var_res = self._naver_extractor.extract_genre_from_title(var, country=country)
+                                if var_res and var_res.get('genre') and var_res.get('genre') != '미분류':
+                                    self.logger.info(f"  [음운변화 대체 검색 성공] '{naver_query}' → '{var}': {var_res['genre']}")
+                                    result = var_res
+                                    break
+                    except Exception:
+                        pass
+                
                 # 커뮤니티 소스 필터링 및 Google 공식 확인
                 is_community_source = bool(result and any(s in result.get('source', '').lower() for s in ['소설넷', 'novelnet', 'webtoon', 'mrblue']))
                 if is_community_source and self._google_extractor:
@@ -850,6 +864,17 @@ class GenreClassifierAdapter:
             # Naver 실패 시 Google 폴백
             if self._google_extractor:
                 google_result = self._google_extractor.extract_genre(search_title, country=country)
+                if not google_result or not google_result.get('genre') or google_result.get('genre') == '미분류':
+                    try:
+                        from core.utils.sino_korean_phonetics import get_phonetic_search_variants
+                        for var in get_phonetic_search_variants(search_title):
+                            if var != search_title:
+                                g_res = self._google_extractor.extract_genre(var, country=country)
+                                if g_res and g_res.get('genre') and g_res.get('genre') != '미분류':
+                                    google_result = g_res
+                                    break
+                    except Exception:
+                        pass
                 if google_result and google_result.get('genre') and google_result.get('genre') != '미분류':
                     return google_result
 
@@ -870,29 +895,50 @@ class GenreClassifierAdapter:
         origin = task.metadata.get('country_origin', 'UNKNOWN')
         foreign_title = task.metadata.get('original_foreign_title', '')
         full_ctx = f"{raw_text} {task.title} {foreign_title}".strip()
+        
+        # 한자어 음운변화(두음법칙, 렬/열, 율/률, 不 부/불, 관용음) 정규형 문맥 생성
+        try:
+            from core.utils.sino_korean_phonetics import to_phonetic_canonical
+            canon_ctx = to_phonetic_canonical(full_ctx)
+        except Exception:
+            canon_ctx = full_ctx
+
+        def ctx_match(kw_list: List[str]) -> bool:
+            """원문 문맥 또는 음운 정규형 문맥에서 키워드 매칭"""
+            for kw in kw_list:
+                if kw in full_ctx:
+                    return True
+                if len(kw) >= 2 and canon_ctx:
+                    try:
+                        from core.utils.sino_korean_phonetics import to_phonetic_canonical
+                        if to_phonetic_canonical(kw) in canon_ctx:
+                            return True
+                    except Exception:
+                        pass
+            return False
 
         # 0. 핵심 제목/클리셰 보장 규칙 (국적 불문 최우선)
         # SF 보장
-        if any(kw in full_ctx for kw in ['영능자불사우창화', '영능자', '창화', '사이버펑크']):
+        if ctx_match(['영능자불사우창화', '영능자', '창화', '사이버펑크']):
             return 'SF'
         if any(kw in full_ctx for kw in ['해커', '사이버펑크', 'AI들에게', '인공지능', '안드로이드', '가상현실']) and not any(m in full_ctx for m in ['무협', '선협', '마교', '화산파', '무당파', '천마', '강호', '소림', '문파', '비급']):
             if mapped_genre in ['무협', '선협', '역사', '밀리터리', '미분류', '판타지']:
                 return 'SF'
 
         # 스포츠 보장
-        if any(kw in full_ctx for kw in ['발롱도르', '스트라이커', '좌완파이어볼러', '파이어볼러', '프리미어리그', '챔피언스리그', '손흥민', '메시', '호날두', '미드필더', '구호반', '화오교죽마관선료', '화오교죽마']):
+        if ctx_match(['발롱도르', '스트라이커', '좌완파이어볼러', '파이어볼러', '프리미어리그', '챔피언스리그', '손흥민', '메시', '호날두', '미드필더', '구호반', '화오교죽마관선료', '화오교죽마']):
             return '스포츠'
 
         # 무협 보장
-        if any(kw in full_ctx for kw in ['항마신장', '항마장', '언가군림', '인주란', '군림', '검혼기행', '뇌룡검제', '종무', '국술！대종사', '국술!대종사', '국술', '대종사', '횡추궤괴', '극도무성', '횡추무도', '용상반약공', '고룡세계리적끽과검객', '고룡세계']):
+        if ctx_match(['항마신장', '항마장', '언가군림', '인주란', '군림', '검혼기행', '뇌룡검제', '종무', '국술！대종사', '국술!대종사', '국술', '대종사', '횡추궤괴', '극도무성', '횡추무도', '용상반약공', '고룡세계리적끽과검객', '고룡세계']):
             return '무협'
 
         # 선협 보장
-        if any(kw in full_ctx for kw in ['장생요도', '자소도주', '요도', '도주', '주명승도', '주선', '차천', '태일도과', '도과', '할편공법', '풍비사숙', '화장장', '희신', '아시선']):
+        if ctx_match(['장생요도', '자소도주', '요도', '도주', '주명승도', '주선', '차천', '태일도과', '도과', '할편공법', '풍비사숙', '화장장', '희신', '아시선']):
             return '선협'
 
         # 패러디 보장 (신비의 제왕 / 서브컬처 동인 / 투라대륙 본체종 / 몬헌 / 왕좌의게임 / 타입문 / 코난 / 해리포터)
-        if any(kw in full_ctx for kw in [
+        if ctx_match([
             '새로운 흑황제', '흑황제의 강림', '치신세계', '궤비：치신세계', '궤비:치신세계', '두라지', '두라', '斗罗',
             '베이커가', '사신은 순애', '인재탄서', '탄서', '진흥본체종', '본체종',
             '괴렵', '화룡유특성', '권유', '위새리사', '삼두룡', '항종', '타입문', '커쉐', '발짝만큼의 거리', '발짝만큼'
@@ -900,28 +946,28 @@ class GenreClassifierAdapter:
             return '패러디'
 
         # 역사 보장 (삼국지/초한지/만명/장안/대체역사 만반도/출룡/포화호선/명령여징복)
-        if any(kw in full_ctx for kw in ['촉한지장가한', '초한지', '대진제국', '장안호', '활재만명', '만명', '장안', '판도충', '만반도', '출룡', '포화호선', '첩영', '명령여징복', '화의금화']):
+        if ctx_match(['촉한지장가한', '초한지', '대진제국', '장안호', '활재만명', '만명', '장안', '판도충', '만반도', '출룡', '포화호선', '첩영', '명령여징복', '화의금화']):
             return '역사'
         if '촉한' in full_ctx and mapped_genre in ['무협', '판타지', '미분류']:
             return '역사'
 
         # 언정 보장 (중국 여성향 번역/음독/쾌천/표고양/금욕불자/통고금/허니만장)
-        if any(kw in full_ctx for kw in [
+        if ctx_match([
             '중생후왕비함어료', '중생후왕비', '함어료', '농가소복녀', '소복녀', '70년대로 천월', '일품용화', '용화', '제일교',
             '쾌천', '표고양', '금욕불자', '앵앵괴', '소조종', '초시통고금', '허니만장광망호', '허니만장', '첨우야', '여배각성후', '여배'
         ]):
             return '언정'
 
         # 겜판 보장
-        if any(kw in full_ctx for kw in ['해상구생', '저유희야태진실료']):
+        if ctx_match(['해상구생', '저유희야태진실료']):
             return '겜판'
 
         # 판타지 보장 (천도도서관 / 성장 모험 / 구일음락가 / 해도왕권 / 희랍대악인)
-        if any(kw in full_ctx for kw in ['천도도서관', '활과 검', '구일음락가', '음락가', '해도왕권', '희랍대악인']):
+        if ctx_match(['천도도서관', '활과 검', '구일음락가', '음락가', '해도왕권', '희랍대악인']):
             return '판타지'
 
         # 현판 보장 (전문가/학원가/회사/제천무한/생활계/속성점/전민/전직/엔딩요정/아포칼립스/화오/항도/호림원)
-        if any(kw in full_ctx for kw in [
+        if ctx_match([
             '대치동 클래스', '대치동', '다차원 파견 회사', '파견 회사', '수많은 세계, 쉐임리스', '쉐임리스부터 시작한다', '수많은 세계',
             '시간을 가르는 나의 정체성', '생활계', '생활계직업', '속성점', '일근육', '인재동경', '전민령주', '전민진화', '전직법사', '저정류', '종예',
             '제천', '종극화력', '중회', '중회1980', '중회1981', '소주를 부르는 횟집', '목표는 엔딩 요정', '엔딩 요정', '데드 엔드', '반격',

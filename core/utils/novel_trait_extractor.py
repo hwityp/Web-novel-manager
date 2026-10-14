@@ -36,12 +36,12 @@ TRAIT_PATTERNS: List[Tuple[str, List[str]]] = [
         r"사인", r"签到", r"역습계통", r"개시", r"반파", r"당신탐", r"금리처", r"锦鲤",
         r"수많은\s*세계.*시작", r"쉐임리스부터\s*시작한다", r"诸天从.*开始"
     ]),
-    ("여주", [r"여주물", r"여주", r"여성주인공", r"여주인공", r"女主"]),
+    ("여주", [r"여주물", r"여주", r"녀주물", r"녀주", r"여제", r"녀제", r"여성주인공", r"여주인공", r"女主"]),
     ("하렘", [r"하렘", r"역하렘", r"남주", r"男主", r"后宫"]),
     ("남주", [r"남주물", r"남주", r"남성주인공", r"남주인공", r"男主"]),
     # 1. 연대물 (60~90년대, 칠령, 지청 등)
     ("연대물", [
-        r"연대물", r"연대", r"60년대", r"70년대", r"80년대", r"90년대",
+        r"연대물", r"연대문", r"연대", r"년대물", r"년대문", r"년대", r"60년대", r"70년대", r"80년대", r"90년대",
         r"육령", r"칠령", r"칠영", r"팔령", r"팔영", r"구령", r"구영",
         r"1960", r"1970", r"1980", r"1990", r"지청", r"年代", r"六零", r"七零", r"八零", r"九零", r"知青"
     ]),
@@ -59,7 +59,7 @@ TRAIT_PATTERNS: List[Tuple[str, List[str]]] = [
     ("궁투", [r"궁투극", r"궁투", r"후궁", r"택투", r"궁녀", r"적녀", r"서녀", r"계방", r"계실", r"귀첩", r"외실", r"宫斗", r"后宫", r"宅斗", r"嫡女", r"庶女", r"继房", r"继室"]),
     ("궁정", [r"궁정", r"궁궐", r"황궁", r"왕궁", r"조정", r"귀비", r"황후", r"귀인", r"태의", r"본궁", r"소화", r"군성귀위자", r"宫廷", r"皇宫", r"皇后", r"贵妃", r"贵人"]),
     # 7. 재테크
-    ("재테크", [r"재테크", r"주식", r"투자", r"재벌", r"건물주", r"자산", r"창업", r"돈벌기", r"가가1990", r"1990", r"致富", r"炒股"]),
+    ("재테크", [r"재테크", r"주식", r"투자", r"재벌", r"건물주", r"자산", r"창업", r"돈벌기", r"경영", r"초시", r"마트", r"가가1990", r"1990", r"致富", r"炒股"]),
     # 9. 가족
     ("가족", [r"복보유량전", r"단총소내포", r"단총", r"복보", r"소내포", r"복처", r"가족물", r"육아물", r"가족", r"육아", r"团宠", r"育儿"]),
     # 10. 이세계
@@ -263,8 +263,8 @@ class NovelTraitExtractor:
         tokens: List[str] = []
         explicit_bracket_tokens = []
         for b in brackets:
-            if ',' in b or '/' in b:
-                for t in re.split(r'[,/]+', b):
+            if any(sep in b for sep in [',', '/', '·', '・']):
+                for t in re.split(r'[,/·・]+', b):
                     t_strip = t.strip()
                     if t_strip:
                         explicit_bracket_tokens.append(t_strip)
@@ -272,8 +272,8 @@ class NovelTraitExtractor:
                 explicit_bracket_tokens.append(b.strip())
 
         for source in candidate_sources:
-            # 먼저 쉼표나 슬래시로 1차 분리
-            comma_parts = re.split(r'[,/]+', source)
+            # 먼저 쉼표, 슬래시, 가운데 점(·, ・)으로 1차 분리
+            comma_parts = re.split(r'[,/·・]+', source)
             for cp in comma_parts:
                 cp_strip = cp.strip()
                 if not cp_strip:
@@ -417,6 +417,15 @@ class NovelTraitExtractor:
         if not primary_genre:
             if "궁투" in extracted_traits or "궁정" in extracted_traits:
                 primary_genre = "언정"
+
+        # 만약 연대물 특성이 있는데 primary_genre가 없다면
+        if not primary_genre:
+            if "연대물" in extracted_traits:
+                is_female = (
+                    any(t in extracted_traits for t in ["로맨스", "여주", "남주", "가족", "힐링"]) or
+                    any(re.search(r"로맨스|군혼|교처|낭자|여주|단총|복보|시집|작정", token) for token in tokens)
+                )
+                primary_genre = "언정" if is_female else "현판"
 
         # 신무협 -> 무협 정규화
         if primary_genre in ("신무협", "퓨전무협", "전통무협", "전통 무협"):
