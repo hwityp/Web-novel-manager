@@ -19,6 +19,10 @@
 
 **WNAP (Web Novel Archive Pipeline)**은 수천 개의 웹소설 아카이브 파일을 자동으로 분석하고, 장르를 분류하며, 표준화된 파일명으로 정리하는 **엔터프라이즈급 자동화 도구**입니다.
 
+> 📚 **상세 가이드 문서 바로가기:**  
+> - [📖 WNAP 공식 사용 설명서 및 실전 활용 팁 (USER_GUIDE.md)](docs/USER_GUIDE.md)  
+> - [📚 통합 장르 키워드 사전 관리 센터 사용 가이드 (DICTIONARY_USER_GUIDE.md)](docs/DICTIONARY_USER_GUIDE.md)
+
 ### 🎯 핵심 가치
 
 | 핵심 기술 | 설명 |
