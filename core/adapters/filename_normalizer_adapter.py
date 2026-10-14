@@ -90,7 +90,7 @@ class FilenameNormalizerAdapter:
             # 제목 앵커 추출 및 한국 vs 해외 소설 구분 전처리
             if not task.title or not task.metadata.get('country_origin'):
                 parse_source = task.metadata.get('original_raw_name') or task.raw_name
-                parse_result = self._extractor.extract(parse_source)
+                parse_result = self._extractor.extract(parse_source, file_path=task.current_path or task.original_path)
                 if not task.title:
                     task.title = parse_result.title
                     task.author = parse_result.author or task.author
@@ -175,7 +175,7 @@ class FilenameNormalizerAdapter:
 
             # 1. 제목 앵커 추출 (title이 비어있으면)
             if not task.title:
-                parse_result = self._extractor.extract(task.raw_name)
+                parse_result = self._extractor.extract(task.raw_name, file_path=task.current_path or task.original_path)
                 task.title = parse_result.title
                 task.author = parse_result.author or task.author
                 task.volume_info = parse_result.volume_info or task.volume_info
@@ -271,7 +271,7 @@ class FilenameNormalizerAdapter:
 
         # 제목 앵커 추출
         if not task.title:
-            parse_result = self._extractor.extract(task.raw_name)
+            parse_result = self._extractor.extract(task.raw_name, file_path=task.current_path or task.original_path)
             title = parse_result.title
             volume_info = parse_result.volume_info
             range_info = parse_result.range_info

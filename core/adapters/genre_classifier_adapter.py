@@ -224,10 +224,10 @@ class GenreClassifierAdapter:
 
         # [단일 장르 vs 복합 장르 태그 분기]
         initial_genre_str = None
-        initial_source = 'tag'
+        initial_source = task.source or 'annotation'
         if task.genre and task.genre != '미분류':
             initial_genre_str = task.genre
-            initial_source = 'tag'
+            initial_source = task.source or 'tag'
         else:
             annotation_genre = NovelTraitExtractor.extract_from_annotations(parse_source)
             if annotation_genre:
@@ -487,8 +487,9 @@ class GenreClassifierAdapter:
         # base_primary_genre가 설정되어 있는 경우 (단일 주 장르 태그 보유작):
         # 인터넷 검색을 마친 후 검색 스니펫 및 제목 맥락에서 부 장르(추가 정보)를 조사하여 포맷팅
         if base_primary_genre:
-            web_snippet = search_result.get('snippet', '') if search_result else ''
-            web_tags = search_result.get('tags', []) if search_result else []
+            valid_search = bool(search_result and search_result.get('genre') and search_result.get('genre') != '미분류')
+            web_snippet = search_result.get('snippet', '') if valid_search else ''
+            web_tags = search_result.get('tags', []) if valid_search else []
             task.genre = NovelTraitExtractor.format_genre_tag(
                 primary_genre=base_primary_genre,
                 title=f"{raw_text} {phonetic_title} {translated_title}".strip(),
@@ -812,11 +813,6 @@ class GenreClassifierAdapter:
                             'snippet': naver_res.get('snippet', ''),
                             'tags': naver_res.get('tags', [])
                         }
-                    elif naver_res and (naver_res.get('snippet') or naver_res.get('tags')):
-                        return naver_res
-
-                if last_snippet_res:
-                    return last_snippet_res
 
                 return None
 
@@ -879,6 +875,9 @@ class GenreClassifierAdapter:
         # SF 보장
         if any(kw in full_ctx for kw in ['영능자불사우창화', '영능자', '창화', '사이버펑크']):
             return 'SF'
+        if any(kw in full_ctx for kw in ['해커', '사이버펑크', 'AI들에게', '인공지능', '안드로이드', '가상현실']) and not any(m in full_ctx for m in ['무협', '선협', '마교', '화산파', '무당파', '천마', '강호', '소림', '문파', '비급']):
+            if mapped_genre in ['무협', '선협', '역사', '밀리터리', '미분류', '판타지']:
+                return 'SF'
 
         # 스포츠 보장
         if any(kw in full_ctx for kw in ['발롱도르', '스트라이커', '좌완파이어볼러', '파이어볼러', '프리미어리그', '챔피언스리그', '손흥민', '메시', '호날두', '미드필더', '구호반', '화오교죽마관선료', '화오교죽마']):
@@ -1109,8 +1108,8 @@ class GenreClassifierAdapter:
                             'source': '헤더태그'
                         }
 
-            # 3. 본문 헤더에 번역본 제목(translated_title)이 존재하는 경우 키워드 매칭
-            if header_res.translated_title:
+            # 3. 해외 소설(CJK)로서 명시적 번역제목이 확인된 경우에 한해 폴백 지원
+            if header_res.is_foreign and header_res.translated_title:
                 tt_res = self._keyword_fallback(header_res.translated_title, header_res.translated_title, '')
                 if tt_res and tt_res.get('genre') in GENRE_WHITELIST and tt_res.get('genre') != '미분류':
                     self.logger.debug(f"  [본문 헤더 번역제목 감지] '{header_res.translated_title}' → 장르: '{tt_res['genre']}'")
@@ -1123,8 +1122,8 @@ class GenreClassifierAdapter:
                         'source': '헤더번역제목'
                     }
 
-            # 4. 시놉시스(snippet) 텍스트를 이용한 키워드 매칭 (명시적 작품소개 블록이 존재하는 경우에만 장르 추론)
-            if getattr(header_res, 'has_explicit_synopsis', False) and header_res.snippet and len(header_res.snippet.strip()) >= 15:
+            # 4. 시놉시스(snippet) 텍스트를 이용한 키워드 매칭 (해외 소설이고 명시적 작품소개 블록이 존재하는 경우에만 장르 추론)
+            if header_res.is_foreign and getattr(header_res, 'has_explicit_synopsis', False) and header_res.snippet and len(header_res.snippet.strip()) >= 15:
                 syn_res = self._keyword_fallback(header_res.snippet[:400], header_res.snippet[:400], '')
                 if syn_res and syn_res.get('genre') in GENRE_WHITELIST and syn_res.get('genre') != '미분류':
                     self.logger.debug(f"  [본문 헤더 시놉시스 감지] 장르: '{syn_res['genre']}'")

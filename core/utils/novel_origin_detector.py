@@ -585,8 +585,40 @@ class NovelOriginDetector:
                 reasons.append("번역 마커 없는 정상 한국어 띄어쓰기 문장 (국내 창작물 가산)")
 
         # -------------------------------------------------------------
-        # 3. 본문 헤더 및 텍스트 인코딩 검사
+        # 3. 본문 헤더 및 파일 스트리밍 번역 시그니처 검사
         # -------------------------------------------------------------
+        if file_path and Path(file_path).is_file():
+            try:
+                content_sample = ""
+                with open(file_path, "rb") as cf:
+                    raw_sample = cf.read(4096)
+                for enc in ("utf-8", "cp949", "gb18030", "euc-kr"):
+                    try:
+                        content_sample = raw_sample.decode(enc)
+                        break
+                    except Exception:
+                        continue
+                if not content_sample:
+                    content_sample = raw_sample.decode("utf-8", errors="ignore")
+
+                # 중국 시스템/웹소설 고유 번역 시그니처 패턴
+                cn_content_patterns = [
+                    (r'\[딩[!！]|\b딩[!！]\s*숙주', "중국 시스템물 고유 번역 기계음 '[딩!]' 및 숙주"),
+                    (r'시스템\s*바인딩|바인딩\s*(?:중|성공|절반|해제)', "중국 시스템물 '바인딩(绑定)' 번역체"),
+                    (r'초보자\s*(?:패키지|대례포|선물함|선물)', "중국 웹소설 치트 '초보자 패키지(新手大礼包)'"),
+                    (r'숙주(?:님|의|는|를|가)\s*(?:현재|각성|신분|감정|머리)', "중국 시스템물 '숙주(宿主)' 호칭"),
+                    (r'해적\s*세계', "중국 원피스 패러디 호칭 '해적 세계(海贼世界)'"),
+                    (r'수선\s*세계|구주\s*세계|투라\s*세계', "중국 웹소설 배경 호칭 (~세계)"),
+                    (r'사인\s*성공|체크인\s*성공|출석\s*체크\s*성공', "중국 시스템물 '사인/체크인(签到)' 번역체"),
+                ]
+                for c_pat, c_desc in cn_content_patterns:
+                    if re.search(c_pat, content_sample):
+                        cn_score += 85
+                        reasons.append(f"본문 내 중국 번역 소설 시그니처 감지: {c_desc}")
+                        break
+            except Exception:
+                pass
+
         if header_result:
             if header_result.is_foreign:
                 # 헤더 원시 장르가 CJK인 경우

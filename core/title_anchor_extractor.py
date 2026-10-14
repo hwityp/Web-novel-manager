@@ -21,8 +21,9 @@
 """
 import re
 import os
+from pathlib import Path
 from dataclasses import dataclass, field
-from typing import Tuple, Optional, List
+from typing import Tuple, Optional, List, Any
 
 
 def compose_korean_jamo(text: str) -> str:
@@ -33,7 +34,13 @@ def compose_korean_jamo(text: str) -> str:
     if not text:
         return text
         
-    # 1. 시각적 변형 영문자 -> 한글 자소 치환
+    # 2. 자소 조합 로직에 사용할 초성/중성/종성 정의
+    CHOSUNG = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
+    JUNGSUNG = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ']
+    JONGSUNG = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
+
+    # 1. 시각적 변형 영문자 -> 한글 자소 치환 (야민정음식 조합: 'ㄷH' -> '대', 'ㅂl' -> '비', 'ㄱr' -> '가')
+    # 주의: 'R패스트볼', 'S급', 'K리그' 등 완성형 한글 앞의 단독 영문자 알파벳은 치환하면 안 됨
     replacements = {
         'r': 'ㅏ', 'R': 'ㅏ', 'l': 'ㅣ', 'I': 'ㅣ', 'H': 'ㅐ', 'k': 'ㅏ',
         'o': 'ㅐ', 'i': 'ㅑ', 'j': 'ㅓ', 'p': 'ㅔ', 'u': 'ㅕ', 'h': 'ㅗ',
@@ -41,28 +48,32 @@ def compose_korean_jamo(text: str) -> str:
     }
     
     chars = list(text)
-    def is_hangul(c): return 0x3131 <= ord(c) <= 0x318E or 0xAC00 <= ord(c) <= 0xD7A3
+    def is_hangul_syllable(c): return bool(c) and (0xAC00 <= ord(c) <= 0xD7A3)
+    def is_hangul_chosung(c): return bool(c) and (c in CHOSUNG or (0x3131 <= ord(c) <= 0x314E))
     
     for idx, c in enumerate(chars):
         if c in replacements:
-            # 영문자가 독립적인 단어가 아니라 한글과 붙어있을 때만 치환 (해리포터 등의 영문 오작동 방지)
-            prev_is_hangul = idx > 0 and is_hangul(chars[idx-1])
-            next_is_hangul = idx < len(chars)-1 and is_hangul(chars[idx+1])
-            # [Fix] 영문 단어/단위(km, mb, rpm 등)의 일부인 경우 치환하지 않음
-            # 인접한 다른 영문자가 있으면 영문 단어의 일부로 판단
+            # 영문 단어/단위(km, mb, rpm 등)의 일부인 경우 치환하지 않음
             prev_is_alpha = idx > 0 and chars[idx-1].isascii() and chars[idx-1].isalpha()
             next_is_alpha = idx < len(chars)-1 and chars[idx+1].isascii() and chars[idx+1].isalpha()
             if prev_is_alpha or next_is_alpha:
-                continue  # 영문 단어의 일부이므로 치환하지 않음
-            if prev_is_hangul or next_is_hangul:
+                continue
+
+            prev_c = chars[idx-1] if idx > 0 else ''
+            next_c = chars[idx+1] if idx < len(chars)-1 else ''
+
+            # [핵심] 야민정음에서 영문자가 모음으로 쓰이려면 앞 글자가 한글 초성 자음이어야 함 (예: 'ㄷH' -> '대')
+            # 만약 앞 글자가 초성 자음이 아닌데 뒤에 완성형 한글이 오면 (예: 'R패스트볼', 'S급') 독립 알파벳이므로 절대 치환 금지
+            if is_hangul_chosung(prev_c):
                 chars[idx] = replacements[c]
+            elif prev_c == '' or prev_c.isspace() or is_hangul_syllable(prev_c):
+                if is_hangul_syllable(next_c):
+                    # R패스트볼, S급, K리그 등 -> 원본 영문자 보존
+                    continue
+                elif is_hangul_chosung(next_c):
+                    continue
                 
     text = ''.join(chars)
-    
-    # 2. 자소 조합 로직
-    CHOSUNG = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
-    JUNGSUNG = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ']
-    JONGSUNG = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
     
     VOWEL_COMBINE = {('ㅗ', 'ㅣ'): 'ㅚ', ('ㅜ', 'ㅣ'): 'ㅟ', ('ㅡ', 'ㅣ'): 'ㅢ', ('ㅏ', 'ㅣ'): 'ㅐ', ('ㅓ', 'ㅣ'): 'ㅔ',
                      ('ㅗ', 'ㅏ'): 'ㅘ', ('ㅜ', 'ㅓ'): 'ㅝ', ('ㅜ', 'ㅔ'): 'ㅞ', ('ㅗ', 'ㅐ'): 'ㅙ'}
@@ -593,7 +604,7 @@ class TitleAnchorExtractor:
         # 저자 구분자 패턴 (제목 - 저자)
         self.author_separator_pattern = re.compile(r'\s+[-–—]\s+([^-–—]+)$')
     
-    def extract(self, raw_name: str) -> TitleParseResult:
+    def extract(self, raw_name: str, file_path: Optional[Any] = None) -> TitleParseResult:
         """파일명에서 제목과 메타데이터 추출"""
         # 1. 확장자 분리
         name, extension = self._split_extension(raw_name)
@@ -627,10 +638,12 @@ class TitleAnchorExtractor:
         
         # 5. [전처리 최적화] 한국 소설 vs 해외(중/일/영미) 소설 원산지 및 유형 자동 판별
         from core.utils.novel_origin_detector import NovelOriginDetector
+        f_path = Path(file_path) if file_path else None
         origin_res = NovelOriginDetector.detect(
             title=title.strip(),
             raw_name=raw_name,
             foreign_title=original_foreign_title,
+            file_path=f_path,
             genre=original_genre,
             phonetic_title=phonetic_title,
             translated_title=translated_title
