@@ -760,9 +760,17 @@ class WNAPMainWindow(ctk.CTk):
 
         self.filter_combobox = ctk.CTkComboBox(
             search_frame,
-            values=["전체 보기", "미분류만", "해외작만 (CN/JP)", "국내작만 (KR)"],
+            values=[
+                "전체 보기",
+                "미분류만",
+                "저신뢰도 (low/medium)",
+                "수동 수정됨",
+                "실패/건너뜀",
+                "해외작만 (CN/JP)",
+                "국내작만 (KR)",
+            ],
             font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_SMALL),
-            width=150,
+            width=170,
             height=32,
             corner_radius=8,
             fg_color=THEME["bg_input"],
@@ -819,6 +827,22 @@ class WNAPMainWindow(ctk.CTk):
             command=self._save_to_csv # Changed handler
         )
         self.save_csv_btn.pack(side="right", padx=(PADDING_SMALL, 0))
+
+        self.copy_feedback_btn = ctk.CTkButton(
+            header_frame,
+            text="📋 피드백 복사",
+            font=ctk.CTkFont(family=FONT_FAMILY, size=FONT_SIZE_SMALL, weight="bold"),
+            width=115,
+            height=32,
+            corner_radius=8,
+            fg_color=THEME["accent_gray"],
+            hover_color=THEME["accent_gray_hover"],
+            text_color=THEME["button_text"],
+            text_color_disabled=THEME["button_text_disabled"],
+            state="disabled",
+            command=self._copy_feedback_to_clipboard
+        )
+        self.copy_feedback_btn.pack(side="right", padx=(PADDING_SMALL, 0))
         
         self.open_folder_btn = ctk.CTkButton(
             header_frame,
@@ -845,13 +869,13 @@ class WNAPMainWindow(ctk.CTk):
         tree_container.grid_columnconfigure(0, weight=1)
         tree_container.grid_rowconfigure(0, weight=1)
         
-        # Treeview
+        # Treeview (Ctrl/Shift 다중 선택 지원)
         columns = ("origin", "original", "normalized", "genre", "confidence", "source")
         self.result_tree = ttk.Treeview(
             tree_container,
             columns=columns,
             show="headings",
-            selectmode="browse",
+            selectmode="extended",
             style="Custom.Treeview"
         )
         
@@ -875,9 +899,13 @@ class WNAPMainWindow(ctk.CTk):
         self.result_tree.tag_configure("skipped", background="#404040", foreground="#AAAAAA")
         self.result_tree.tag_configure("failed", background="#4A1E1E", foreground="#FF9999")
         
-        # 더블클릭 및 우클릭 이벤트 바인딩
+        # 더블클릭, 우클릭 및 단축키 이벤트 바인딩
         self.result_tree.bind("<Double-1>", self._on_treeview_double_click)
         self.result_tree.bind("<Button-3>", self._on_treeview_right_click)
+        self.result_tree.bind("<Control-c>", lambda e: self._copy_feedback_to_clipboard())
+        self.result_tree.bind("<Control-C>", lambda e: self._copy_feedback_to_clipboard())
+        self.result_tree.bind("<Control-a>", lambda e: self._select_all_visible_rows())
+        self.result_tree.bind("<Control-A>", lambda e: self._select_all_visible_rows())
         
         # 스크롤바
         y_scrollbar = ttk.Scrollbar(tree_container, orient="vertical", command=self.result_tree.yview)
@@ -1311,6 +1339,12 @@ class WNAPMainWindow(ctk.CTk):
             # 1. 콤보박스 필터링
             if mode == "미분류만" and (task.genre and task.genre != "미분류"):
                 continue
+            elif mode == "저신뢰도 (low/medium)" and (task.confidence not in ("low", "medium", "")):
+                continue
+            elif mode == "수동 수정됨" and not task.metadata.get('user_edited'):
+                continue
+            elif mode == "실패/건너뜀" and task.status not in ("failed", "skipped"):
+                continue
             elif mode == "해외작만 (CN/JP)" and origin not in ("CN", "JP"):
                 continue
             elif mode == "국내작만 (KR)" and origin != "KR":
@@ -1371,10 +1405,22 @@ class WNAPMainWindow(ctk.CTk):
         self._apply_table_filter()
 
     def _save_to_csv(self):
-        """[NEW] 현재 목록을 CSV로 저장"""
+        """[NEW] 현재 목록(선택/필터 우선)을 CSV로 저장"""
         if not self.tasks_cache:
             messagebox.showwarning("경고", "저장할 데이터가 없습니다.")
             return
+
+        selected_tasks = self._get_selected_tasks()
+        visible_tasks = self._get_visible_tasks()
+        target_tasks = self.tasks_cache
+        scope_label = "전체"
+
+        if len(selected_tasks) > 1:
+            target_tasks = selected_tasks
+            scope_label = f"선택 {len(selected_tasks)}건"
+        elif visible_tasks and len(visible_tasks) < len(self.tasks_cache):
+            target_tasks = visible_tasks
+            scope_label = f"필터 {len(visible_tasks)}건"
 
         try:
             # 기본 파일명 생성
@@ -1383,7 +1429,7 @@ class WNAPMainWindow(ctk.CTk):
             default_name = f"wnap_list_{timestamp}.csv"
             
             filepath = filedialog.asksaveasfilename(
-                title="CSV 저장",
+                title=f"CSV 저장 ({scope_label})",
                 initialfile=default_name,
                 defaultextension=".csv",
                 filetypes=[("CSV Files", "*.csv"), ("All Files", "*.*")]
@@ -1396,9 +1442,12 @@ class WNAPMainWindow(ctk.CTk):
             import csv
             with open(filepath, 'w', newline='', encoding='utf-8-sig') as f:
                 writer = csv.writer(f)
-                writer.writerow(["Origin", "Original", "Normalized", "Genre", "Status", "Confidence", "Source"])
+                writer.writerow([
+                    "Origin", "Original", "Normalized", "Genre",
+                    "Status", "Confidence", "Source", "Title", "OriginReasons", "Error"
+                ])
                 
-                for task in self.tasks_cache:
+                for task in target_tasks:
                     origin = task.metadata.get('country_origin') or "-"
                     original = task.raw_name or (task.original_path.name if task.original_path else "")
                     normalized = task.metadata.get('normalized_name', '')
@@ -1406,10 +1455,13 @@ class WNAPMainWindow(ctk.CTk):
                     status = task.status
                     conf = task.confidence or ""
                     src = task.source or ""
-                    writer.writerow([origin, original, normalized, genre, status, conf, src])
+                    title = task.title or ""
+                    reasons = ", ".join(task.metadata.get('origin_reasons') or [])
+                    err = task.error_message or ""
+                    writer.writerow([origin, original, normalized, genre, status, conf, src, title, reasons, err])
                     
-            messagebox.showinfo("완료", f"파일이 저장되었습니다:\n{filepath}")
-            self._log_to_file(f"CSV 저장 완료: {filepath}")
+            messagebox.showinfo("완료", f"파일이 저장되었습니다 ({scope_label}):\n{filepath}")
+            self._log_to_file(f"CSV 저장 완료 ({scope_label}): {filepath}")
             
         except Exception as e:
             self._log_to_file(f"CSV 저장 실패: {e}")
@@ -1530,6 +1582,13 @@ class WNAPMainWindow(ctk.CTk):
             self.btn_execute.configure(state="disabled")
             if hasattr(self, 'btn_apply_source'):
                 self.btn_apply_source.configure(state="disabled")
+
+        # 결과가 1건 이상 있으면 CSV 저장 및 피드백 복사 버튼 활성화
+        export_state = "normal" if getattr(self, 'tasks_cache', None) else "disabled"
+        if hasattr(self, 'save_csv_btn'):
+            self.save_csv_btn.configure(state=export_state)
+        if hasattr(self, 'copy_feedback_btn'):
+            self.copy_feedback_btn.configure(state=export_state)
 
     # ========================================================================
     # 버튼 핸들러 (독립적 기능 분리 파이프라인)
@@ -1928,12 +1987,16 @@ class WNAPMainWindow(ctk.CTk):
         self.context_menu.add_command(label="📂 파일 위치 열기 (탐색기)", command=self._ctx_open_in_explorer)
         self.context_menu.add_command(label="📋 정규화 파일명 복사", command=self._ctx_copy_normalized_name)
         self.context_menu.add_command(label="📋 원본 파일명 복사", command=self._ctx_copy_original_name)
+        self.context_menu.add_separator()
+        self.context_menu.add_command(label="📝 선택 항목 피드백용 복사 (Ctrl+C)", command=self._copy_feedback_to_clipboard)
+        self.context_menu.add_command(label="☑️ 현재 목록 전체 선택 (Ctrl+A)", command=self._select_all_visible_rows)
 
     def _on_treeview_right_click(self, event):
-        """우클릭 시 메뉴 팝업"""
+        """우클릭 시 메뉴 팝업 (다중 선택 유지)"""
         row_id = self.result_tree.identify_row(event.y)
         if row_id:
-            self.result_tree.selection_set(row_id)
+            if row_id not in self.result_tree.selection():
+                self.result_tree.selection_set(row_id)
             self.result_tree.focus(row_id)
             try:
                 self.context_menu.tk_popup(event.x_root, event.y_root)
@@ -2082,6 +2145,98 @@ class WNAPMainWindow(ctk.CTk):
         self.clipboard_clear()
         self.clipboard_append(name)
         self.status_label.configure(text=f"📋 원본 파일명이 클립보드에 복사되었습니다.", text_color=THEME["accent_blue"])
+
+    def _tasks_from_item_ids(self, item_ids) -> List[NovelTask]:
+        """Treeview item id 목록을 NovelTask 목록으로 변환"""
+        tasks = []
+        for item in item_ids:
+            try:
+                idx = int(item)
+                if 0 <= idx < len(self.tasks_cache):
+                    tasks.append(self.tasks_cache[idx])
+            except (ValueError, TypeError):
+                continue
+        return tasks
+
+    def _get_selected_tasks(self) -> List[NovelTask]:
+        """현재 선택된 행의 NovelTask 목록 반환"""
+        if not hasattr(self, 'result_tree'):
+            return []
+        return self._tasks_from_item_ids(self.result_tree.selection())
+
+    def _get_visible_tasks(self) -> List[NovelTask]:
+        """현재 필터링되어 테이블에 표시된 NovelTask 목록 반환"""
+        if not hasattr(self, 'result_tree'):
+            return []
+        return self._tasks_from_item_ids(self.result_tree.get_children(''))
+
+    def _select_all_visible_rows(self):
+        """현재 테이블에 표시된 모든 행 선택 (Ctrl+A)"""
+        items = self.result_tree.get_children('')
+        if items:
+            self.result_tree.selection_set(items)
+            self.status_label.configure(
+                text=f"☑️ 현재 표시된 {len(items)}개 항목이 선택되었습니다.",
+                text_color=THEME["accent_blue"]
+            )
+        return "break"
+
+    @staticmethod
+    def _format_tasks_for_feedback(tasks: List[NovelTask]) -> str:
+        """선택/필터된 결과를 채팅 첨부용 마크다운 텍스트로 포맷"""
+        lines = [f"### 결과 테이블 피드백 ({len(tasks)}건)", ""]
+        for task in tasks:
+            origin = task.metadata.get('country_origin') or "-"
+            original = task.raw_name or (task.original_path.name if task.original_path else "-")
+            normalized = task.metadata.get('normalized_name') or task.metadata.get('target_path') or "-"
+            if isinstance(normalized, Path):
+                normalized = normalized.name
+            elif '/' in str(normalized) or '\\' in str(normalized):
+                normalized = Path(normalized).name
+            genre = task.genre or "미분류"
+            confidence = task.confidence or "-"
+            source = task.source or "-"
+
+            lines.append(f"- [{origin}] {original}")
+            lines.append(f"  -> {normalized}")
+            meta_parts = [f"장르: {genre}", f"신뢰도: {confidence}", f"근거: {source}"]
+            if task.title:
+                meta_parts.append(f"추출제목: {task.title}")
+            if task.error_message:
+                meta_parts.append(f"오류: {task.error_message}")
+            lines.append(f"  -> ({' | '.join(meta_parts)})")
+        return "\n".join(lines)
+
+    def _copy_feedback_to_clipboard(self):
+        """선택 행(없으면 현재 필터 목록)을 개선 요청용 포맷으로 클립보드에 복사"""
+        if not self.tasks_cache:
+            messagebox.showwarning("경고", "복사할 데이터가 없습니다.")
+            return
+
+        selected = self._get_selected_tasks()
+        visible = self._get_visible_tasks()
+        target_tasks = selected if selected else visible
+
+        if not target_tasks:
+            messagebox.showinfo("알림", "현재 표시된 항목이 없습니다.")
+            return
+
+        if not selected and len(target_tasks) > 200:
+            if not messagebox.askyesno(
+                "대량 복사 확인",
+                f"선택된 행이 없어 현재 표시된 {len(target_tasks)}건을 모두 복사합니다.\n계속하시겠습니까?\n(특정 항목만 선택 후 Ctrl+C 또는 '💾 CSV 저장'을 이용할 수도 있습니다.)"
+            ):
+                return
+
+        text = self._format_tasks_for_feedback(target_tasks)
+        self.clipboard_clear()
+        self.clipboard_append(text)
+        scope = f"선택 {len(target_tasks)}건" if selected else f"표시 목록 {len(target_tasks)}건"
+        self.status_label.configure(
+            text=f"📝 피드백용 텍스트({scope})가 클립보드에 복사되었습니다. 채팅창에 바로 붙여넣기 하세요.",
+            text_color=THEME["status_success"]
+        )
+        return "break"
 
     def _on_treeview_double_click(self, event):
         """Treeview 더블클릭 -> 정규화 이름(#3) 또는 장르(#4) 편집, #1/#2는 탐색기 열기"""

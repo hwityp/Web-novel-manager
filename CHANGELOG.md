@@ -5,6 +5,16 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.64] - 2026-11-25
+
+### Fixed & Improved
+
+- **GUI CSV 저장 비활성화 오류 수정 및 피드백 첨부 편의 기능 추가 (`gui/main_window.py`):**
+  - `_update_button_states()`에서 결과 데이터가 존재할 때 `💾 CSV 저장` 및 `📋 피드백 복사` 버튼이 자동 활성화되도록 수정.
+  - `_save_to_csv()`가 다중 선택 항목 또는 현재 필터링된 목록을 우선 저장하고, `Title`, `OriginReasons`, `Error` 컬럼을 포함하도록 확장.
+  - 결과 테이블 다중 선택(`extended`)과 단축키(`Ctrl+A` 전체 선택, `Ctrl+C` 피드백 복사), `📋 피드백 복사` 버튼 및 우클릭 메뉴를 추가하여 선택한 결과를 마크다운 형태로 바로 붙여넣기 가능하게 개선.
+  - 검수용 필터(`저신뢰도 (low/medium)`, `수동 수정됨`, `실패/건너뜀`)를 추가.
+
 ## [v1.3.63] - 2026-11-25
 
 ### Fixed
