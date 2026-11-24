@@ -611,6 +611,18 @@ class TitleAnchorExtractor:
         
         # 저자 구분자 패턴 (제목 - 저자)
         self.author_separator_pattern = re.compile(r'\s+[-–—]\s+([^-–—]+)$')
+
+        # 업로드 날짜 접두사 패턴 (예: '10.18) ', '10.24)', '11.5) - ', '11.5)！ - ', '11.5)， - ')
+        self.date_prefix_pattern = re.compile(
+            r'^\s*(?:\d{2,4}\.)?(?:0?[1-9]|1[0-2])\.(?:0?[1-9]|[12]\d|3[01])\s*[\)）][\s!！?？,，、.。·\-–—~〜:：;；]*'
+        )
+
+    def _strip_date_prefix(self, name: str) -> str:
+        """파일명 앞의 날짜/인덱스 접두사(예: '10.18) ', '11.5)！ - ') 제거"""
+        if not name:
+            return name
+        stripped = self.date_prefix_pattern.sub('', name, count=1)
+        return stripped if stripped.strip() else name
     
     def extract(self, raw_name: str, file_path: Optional[Any] = None) -> TitleParseResult:
         """파일명에서 제목과 메타데이터 추출"""
@@ -733,6 +745,9 @@ class TitleAnchorExtractor:
         # 노이즈 패턴 제거
         name = self.noise_pattern.sub('', name)
 
+        # 선행 날짜 접두사 제거 (브래킷 태그 앞에 위치한 경우 포함)
+        name = self._strip_date_prefix(name)
+
         # [0.5] 선행 연속 대괄호 메타데이터 태그 감지 및 제거 ([언정][AI번역][연대], [나루토패러디 시스템 AI번역] 등)
         META_TAG_KEYWORDS = [
             'AI번역', '기계번역', '손번역', '번역', '텍본', '소설', '웹소설',
@@ -800,6 +815,9 @@ class TitleAnchorExtractor:
         
         # 플랫폼/번역자 태그 제거
         name = self.platform_tag_pattern.sub('', name)
+
+        # 장르/메타 브래킷 제거 후 드러난 선행 날짜 접두사 제거 (예: '[선협] 10.24)뱀파이어...')
+        name = self._strip_date_prefix(name)
         
         # 연속 공백 정리
         name = ' '.join(name.split())

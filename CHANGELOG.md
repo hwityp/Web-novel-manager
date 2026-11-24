@@ -5,6 +5,17 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.62] - 2026-11-25
+
+### Fixed
+
+- **선행 날짜 접두사 및 후행 구두점/구분자 정규화 오류 수정 (`core/title_anchor_extractor.py`):**
+  - `date_prefix_pattern` 및 `_strip_date_prefix()`를 추가하여 파일명 앞의 업로드 날짜 접두사(`10.18) `, `10.24)`, `11.5)`)와 그 뒤에 이어지는 전각/반각 구두점 및 하이픈 구분자(` - `, `！ - `, `， - ` 등)를 제거하도록 개선.
+  - 장르/메타 브래킷 태그 제거 직후에도 `_strip_date_prefix()`를 수행하여 `[선협] 10.24)뱀파이어 수선 노트 1-365 (완).txt`처럼 브래킷 태그 뒤에 날짜 접두사가 붙은 경우까지 일관되게 정규화.
+  - 날짜 접두사가 `parse_foreign_title_info()`에서 원제/독음 제목으로 오인되던 문제 해결 (`11.5) - 게임 침공 - ...` 등 제목 내부 하이픈 보존).
+- **회귀 방지 테스트 추가 (`tests/test_annotation_and_normalization.py`):**
+  - 보고된 5가지 날짜 접두사 정규화 케이스를 검증하는 `test_date_prefix_normalization_fixes` 추가.
+
 ## [v1.3.61] - 2026-10-15
 
 ### Added & Improved
