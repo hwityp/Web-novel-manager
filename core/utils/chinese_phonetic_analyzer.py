@@ -148,7 +148,7 @@ class ChinesePhoneticAnalyzer:
                 '여배', '반파', '년대문', '녹차녀', '만급녹차', '도혼', '맹보',
                 '소농녀', '지청', '천억 물자', '억만 물자', '적장녀', '명문장녀',
                 '서장자', '후문독비', '재입후문', '첩신아환', '아낭사가', '녀제',
-                '후비', '독비', '아기님', '편집태자', '사둔후폐하', '울어봐 빌어도 좋고',
+                '후비', '독비', '아기님', '편집태자', '사둔후폐하',
                 '녀주', '년대고정', '1v2', '수라장', '중생후왕비', '왕비함어', '소복녀', '농가소복녀', '함어료',
                 '쾌천', '표고양', '금욕불자', '앵앵괴', '소조종', '초시통고금', '허니만장광망호', '허니만장', '첨우야'
             ],
@@ -465,9 +465,11 @@ class ChinesePhoneticAnalyzer:
 
         # 6. 특화 규칙 테이블 대조 (우선순위 순)
         # 한국 웹소설에도 흔히 쓰이는 범용 어휘는 중국어 단서(전각부호/접두사/AI번역/무공백 독음/언정·선협 태그)가 있을 때만 매칭
+        # 주의: 한국 웹소설 파일명에 흔한 완결/외전 한자(完, 外, 番外, 全)는 중국어 단서로 취급하지 않음
+        ctx_without_completion_cjk = re.sub(r'[完外番全]+', '', full_context)
         has_cn_signal = bool(
             has_prefix
-            or re.search(r'[\uFF0C\uFF1A\u3001\u4e00-\u9fff]', full_context)
+            or re.search(r'[\uFF0C\uFF1A\u3001\u4e00-\u9fff]', ctx_without_completion_cjk)
             or re.search(r'(?:AI번역|기계번역|손번역|\[언정\]|\[선협\]|\[사합원\])', full_context, re.IGNORECASE)
             or (len(re.sub(r'[^가-힣]', '', cleaned)) >= 7 and ' ' not in cleaned)
         )

@@ -749,6 +749,28 @@ class TitleAnchorExtractor:
         name = re.sub(r'[,\uFF0C\s]*_translated\b', '', name, flags=re.IGNORECASE)
         name = re.sub(r'\s*\(\s*\)', '', name)
 
+        # '[19세 완전판]' / '19세' (화수 앞) -> '(19N)' 정규화
+        if re.search(r'\[\s*19세(?:\s*완전판)?\s*\]', name):
+            name = re.sub(r'\s*\[\s*19세(?:\s*완전판)?\s*\]', ' ', name)
+            edition_info = '(19N)'
+        elif re.search(r'\s+19세(?=\s+\d|\s*완|\s*完|$)', name):
+            name = re.sub(r'\s+19세(?=\s+\d|\s*완|\s*完|$)', '', name)
+            edition_info = '(19N)'
+
+        # '본50 외2', '본 381 외9', '본1-78 외3' 형식 정규화
+        name = re.sub(
+            r'(?<=\s)본\s*(\d+\s*[-~]\s*\d+)\s+(외(?:전)?\s*\d+(?:\s*[-~]\s*\d+)?)',
+            r'\1 \2',
+            name
+        )
+        name = re.sub(
+            r'(?<=\s)본\s*(\d+)\s+(외(?:전)?\s*\d+(?:\s*[-~]\s*\d+)?)',
+            r'1-\1 \2',
+            name
+        )
+        # 한글 제목 끝에 공백 없이 붙은 단일 화수 + 완결 (예: '깨물어요125 完' -> '깨물어요 1-125 完', 단 '1부133 完' 등 단위 뒤는 제외)
+        name = re.sub(r'(?<=[가-힣])(?<![부권편화장외])(\d{2,4})(?=\s+(?:完|완결?)(?:\s|$))', r' 1-\1', name)
+
         # '장르[저자]제목[범위]완결' 형식 전처리 (예: 로19[우아진]연인 교환[1-71외1-10]완결, BL19[짭짭이]...[1-141]완결)
         compact_author_match = re.match(
             r'^\s*(BL19|BL|로판19|로판|로19|로)\s*\[([^\]]+)\]\s*(.+)$',
@@ -759,8 +781,11 @@ class TitleAnchorExtractor:
             compact_g = compact_author_match.group(1).upper()
             author = author or compact_author_match.group(2).strip()
             name = compact_author_match.group(3).strip()
-            if not genre and compact_g in ('로', '로19', '로판', '로판19'):
-                genre = '로판'
+            if not genre:
+                if compact_g in ('로판', '로판19'):
+                    genre = '로판'
+                elif compact_g in ('로', '로19'):
+                    genre = '로맨스'
 
         # 후행 대괄호 범위+외전 표기 정규화 (예: '[1-71외1-10]완결', '[1-70에필1-3외1-5]완결', '[1-141]연재완결')
         bracket_range_match = re.search(

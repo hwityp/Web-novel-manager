@@ -307,25 +307,32 @@ class GenreClassifierAdapter:
             self.logger.debug(f"  [국적 판별] {origin_res.country} (confidence: {origin_res.confidence}, reasons: {origin_res.reasons})")
             print(f"  [국적 판별] {origin_res.country} ({'해외작' if origin_res.is_foreign else '국내작'}, {origin_res.reasons[0] if origin_res.reasons else ''})")
         
-        # Step 2: 캐시 확인 (Cache-First: pure_title -> phonetic_title -> translated_title)
+        # Step 2: 캐시 확인 (Cache-First: pure_title -> phonetic_title -> translated_title -> 본편제목)
         cached = self.cache.get(pure_title)
         if not cached and phonetic_title:
             cached = self.cache.get(phonetic_title)
         if not cached and translated_title:
             cached = self.cache.get(translated_title)
+        if not cached and pure_title:
+            base_main_title = re.sub(r'\s+(?:외전|번외|특별편|에필로그)(?:\s*\d+부)?\s*$', '', pure_title).strip()
+            if base_main_title and base_main_title != pure_title:
+                cached = self.cache.get(base_main_title)
 
         if cached:
             cached_genre = cached['genre']
             cached_conf = cached.get('confidence', 'medium')
             primary_genre, existing_kws = NovelTraitExtractor.parse_existing_tag(cached_genre)
+            if primary_genre in ('', '미분류', '소설'):
+                cached = None
             
             # 고신뢰도(high) 캐시는 즉시 확정 반환
             # 단, 단일 기본 장르가 있어 부 장르 조사가 필요한 경우, 캐시에 부 장르가 없으면 인터넷 검색 계속 진행
-            if base_primary_genre and len(existing_kws) == 0:
+            if cached and base_primary_genre and len(existing_kws) == 0:
                 pass
-            elif cached_conf == 'high':
-                corrected_genre = self._apply_origin_specific_rules(base_primary_genre or primary_genre, task, raw_text)
-                if corrected_genre != '미분류':
+            elif cached and cached_conf == 'high':
+                effective_base = base_primary_genre or primary_genre
+                corrected_genre = effective_base if base_primary_genre else self._apply_origin_specific_rules(effective_base, task, raw_text)
+                if corrected_genre not in ('', '미분류', '소설'):
                     task.genre = NovelTraitExtractor.format_genre_tag(
                         primary_genre=corrected_genre,
                         title=raw_text,
@@ -350,7 +357,14 @@ class GenreClassifierAdapter:
         header_result = self._extract_from_content_header(task)
         if header_result:
             mapped_genre = header_result['genre']
-            mapped_genre = self._apply_origin_specific_rules(base_primary_genre or mapped_genre, task, raw_text)
+            # 명시적 원본 주 장르(base_primary_genre)가 있으면 본문헤더가 덮어쓰지 않도록 보존
+            if base_primary_genre and base_primary_genre not in ('미분류', '소설'):
+                mapped_genre = base_primary_genre
+            else:
+                mapped_genre = self._apply_origin_specific_rules(mapped_genre, task, raw_text)
+            if mapped_genre in ('', '미분류', '소설'):
+                header_result = None
+        if header_result:
             web_snippet = header_result.get('snippet', '')
             web_tags = header_result.get('tags', [])
             
@@ -418,11 +432,14 @@ class GenreClassifierAdapter:
         if cached:
             cached_genre = cached['genre']
             primary_genre, existing_kws = NovelTraitExtractor.parse_existing_tag(cached_genre)
-            if base_primary_genre and len(existing_kws) == 0:
+            if primary_genre in ('', '미분류', '소설'):
+                cached = None
+            elif base_primary_genre and len(existing_kws) == 0:
                 pass
             else:
-                corrected_genre = self._apply_origin_specific_rules(base_primary_genre or primary_genre, task, raw_text)
-                if corrected_genre != '미분류':
+                effective_base = base_primary_genre or primary_genre
+                corrected_genre = effective_base if base_primary_genre else self._apply_origin_specific_rules(effective_base, task, raw_text)
+                if corrected_genre not in ('', '미분류', '소설'):
                     task.genre = NovelTraitExtractor.format_genre_tag(
                         primary_genre=corrected_genre,
                         title=raw_text,
@@ -461,8 +478,8 @@ class GenreClassifierAdapter:
             mapped_genre = self.mapping_loader.map_genre(genre, pure_title, raw_text)
             mapped_genre = self._apply_origin_specific_rules(mapped_genre, task, raw_text)
             
-            # 화이트리스트 검증
-            if mapped_genre in GENRE_WHITELIST:
+            # 화이트리스트 검증 ('미분류' 및 '소설'은 검색 성공으로 확정하지 않음)
+            if mapped_genre in GENRE_WHITELIST and mapped_genre not in ('미분류', '소설'):
                 web_snippet = search_result.get('snippet', '')
                 web_tags = search_result.get('tags', [])
                 
@@ -562,6 +579,23 @@ class GenreClassifierAdapter:
                 print(f"  [결과] {task.genre} (confidence: {task.confidence}, source: {task.source})")
                 return self._finalize_task_genre(task, raw_text)
         
+        # Step 4.5: 본문 앞부분 샘플링 기반 2차 폴백 (제목·검색·헤더·키워드 모두 미분류일 때)
+        body_result = self._classify_by_body_sample(task)
+        if body_result and body_result.get('genre') not in ('', '미분류', '소설'):
+            mapped_genre = self._apply_origin_specific_rules(body_result['genre'], task, raw_text)
+            if mapped_genre in GENRE_WHITELIST and mapped_genre not in ('미분류', '소설'):
+                task.genre = NovelTraitExtractor.format_genre_tag(
+                    primary_genre=mapped_genre,
+                    title=f"{raw_text} {phonetic_title} {translated_title}".strip(),
+                    country=origin_res.country
+                )
+                task.confidence = 'medium'
+                task.source = '본문분석'
+                task.status = 'processing'
+                self.cache.set(pure_title, task.genre, 'medium', '본문분석')
+                self.logger.debug(f"  [본문 폴백 확정] {task.genre} (confidence: medium, source: 본문분석)")
+                return self._finalize_task_genre(task, raw_text)
+
         # Step 5: 모든 방법 실패
         task.genre = '미분류'
         task.confidence = 'low'  # 실패 = low
@@ -1165,7 +1199,7 @@ class GenreClassifierAdapter:
             # 1. 명시적 raw_genre가 존재하는 경우
             if header_res.raw_genre:
                 mapped_genre = self.mapping_loader.map_genre(header_res.raw_genre, pure_title, task.raw_name)
-                if mapped_genre in GENRE_WHITELIST and mapped_genre != '미분류':
+                if mapped_genre in GENRE_WHITELIST and mapped_genre not in ('미분류', '소설'):
                     self.logger.debug(f"  [본문 헤더 감지] 원시 장르: '{header_res.raw_genre}' → 표준 장르: '{mapped_genre}', 태그: {header_res.tags}")
                     return {
                         'genre': mapped_genre,
@@ -1180,7 +1214,7 @@ class GenreClassifierAdapter:
             if header_res.tags:
                 for tag in header_res.tags:
                     mapped_tag = self.mapping_loader.map_genre(tag, pure_title, task.raw_name)
-                    if mapped_tag in GENRE_WHITELIST and mapped_tag != '미분류':
+                    if mapped_tag in GENRE_WHITELIST and mapped_tag not in ('미분류', '소설'):
                         self.logger.debug(f"  [본문 헤더 태그 감지] 태그: '{tag}' → 표준 장르: '{mapped_tag}'")
                         return {
                             'genre': mapped_tag,
@@ -1315,8 +1349,9 @@ class GenreClassifierAdapter:
                     '두라지', '두라', '斗罗', 'MC계통', '마인크래프트', '포켓몬', '나루토', '원피스', '블리치',
                     '베이커가', '베이커', '사신은 순애', '인재탄서', '탄서', '진흥본체종', '본체종',
                     '워해머', '원신', '던만추', '블랙클로버', '오버로드', '이누야샤', '이토준지', '캄피오네',
-                    '페어리테일', '테니스의 왕자', '어과초', '실력지상주의', '뱅드림', '모던패밀리', '서유기',
-                    '초사이어인', '손오공', '베지터', '드래곤볼'
+                    '페어리테일', '페어리 테일', '테니스의 왕자', '어과초', '실력지상주의', '뱅드림', '모던패밀리', '서유기',
+                    '초사이어인', '손오공', '베지터', '드래곤볼', '원펀맨', '갓 밸리', '그랜드 라인',
+                    '우치하', '사륜안', '코노하', '보가몽', '만위', '권유：', '궤비：', '커쉐'
                 ]):
                     genre = '패러디'
                     confidence = 0.92
@@ -1350,7 +1385,8 @@ class GenreClassifierAdapter:
                     '대치동', '파견 회사', '수많은 세계', '시간을 가르는 나의 정체성',
                     '말세', '末世', '아포칼립스', '좀비', '무한 복제', '복제', '무한류',
                     '생활계', '생활계직업', '속성점', '일근육', '전민령주', '전민진화', '전직법사', '전직', '저정류', '종예', '인재동경',
-                    '제천', '종극화력', '중회', '중회1980', '중회1981', '소주를 부르는 횟집', '목표는 엔딩 요정', '엔딩 요정', '데드 엔드', '반격'
+                    '제천', '종극화력', '중회', '중회1980', '중회1981', '소주를 부르는 횟집', '목표는 엔딩 요정', '엔딩 요정', '데드 엔드', '반격',
+                    '닥터', '데뷔', '저작권료', '국정원', '후계 1순위', '천재 작가', '돈이 벌림', '돈 되는 물건', '퇴근'
                 ]):
                     genre = '현판'
                     confidence = 0.88
@@ -1359,7 +1395,8 @@ class GenreClassifierAdapter:
                 elif any(kw in full_ctx for kw in [
                     '당문', '세가', '악귀나찰', '무인 이곽', '이곽', '일대종사', '멸문', '자객',
                     '련무태난', '합성계무사', '북산철벽', '신마경천기', '천하를 쥐다', '난세서', '난세',
-                    '항마신장', '항마장', '항마', '군림', '언가군림', '인주란', '제룡', '검혼기행', '뇌룡검제', '종무'
+                    '항마신장', '항마장', '항마', '군림', '언가군림', '인주란', '제룡', '검혼기행', '뇌룡검제', '종무',
+                    '일검', '천라지망'
                 ]):
                     genre = '무협'
                     confidence = 0.9
@@ -1368,7 +1405,8 @@ class GenreClassifierAdapter:
                 elif any(kw in full_ctx for kw in [
                     '초한지', '만당', '과거', '위관', '출사', '흥가', '공명로', '관군신조',
                     '국사무쌍', '국자감', '민국', '북송', '촉한', '청천', '탐화', '촉한지장가한', '삼국지',
-                    '장안호', '장안', '만명', '활재만명', '판도충', '만반도'
+                    '장안호', '장안', '만명', '활재만명', '판도충', '만반도',
+                    '오다 노부나가', '장희빈', '바이킹'
                 ]):
                     genre = '역사'
                     confidence = 0.88
@@ -1380,7 +1418,7 @@ class GenreClassifierAdapter:
                     '공부가식', '공부귀식', '과수홍아', '권신', '경야욕전환', '다자다복', '성친불원방',
                     '십리방비', '소농녀', '지청', '천억 물자', '억만 물자', '적장녀', '명문장녀',
                     '서장자', '후문독비', '재입후문', '첩신아환', '아낭사가', '녀제', '후비', '독비',
-                    '아기님', '편집태자', '사둔후폐하', '울어봐 빌어도 좋고', '구고양저',
+                    '아기님', '편집태자', '사둔후폐하', '구고양저',
                     '농가소복녀', '소복녀', '중생후왕비', '함어료', '중생후왕비함어료',
                     '일품용화', '용화', '70년대로 천월', '천월', '제일교'
                 ]):
@@ -1390,6 +1428,15 @@ class GenreClassifierAdapter:
                     else:
                         genre = '언정'
                     confidence = 0.88
+
+                # 7.5. 한국 로판 / 로맨스 클리셰
+                elif any(kw in full_ctx for kw in [
+                    '대공님', '대공비', '대공가', '대공의', '후작', '황자', '태자', '황태자',
+                    '사기결혼', '계약결혼', '약탈 신부', '로맨스', '시누이', '며느리', '오픈 매리지',
+                    '울어봐 빌어도 좋고', '첫 고백', '결혼'
+                ]):
+                    genre = '로판'
+                    confidence = 0.86
 
                 # 8. 판타지
                 elif any(kw in full_ctx for kw in [
@@ -1416,15 +1463,15 @@ class GenreClassifierAdapter:
                     confidence = 0.88
 
                 # 11. 스포츠
-                elif any(kw in full_ctx for kw in ['좌완파이어볼러', '파이어볼러', '야구', '투수', '홈런', '발롱도르', '스트라이커']):
+                elif any(kw in full_ctx for kw in ['좌완파이어볼러', '파이어볼러', '야구', '투수', '홈런', '발롱도르', '스트라이커', '3점', '수비천재', '꼴칰']):
                     genre = '스포츠'
                     confidence = 0.9
 
             # 장르 매핑 적용
             mapped_genre = self.mapping_loader.map_genre(genre)
             
-            # 화이트리스트 검증
-            if mapped_genre not in GENRE_WHITELIST:
+            # 화이트리스트 검증 ('소설'은 유효한 장르가 아님)
+            if mapped_genre not in GENRE_WHITELIST or mapped_genre == '소설':
                 mapped_genre = '미분류'
             
             return {
@@ -1436,6 +1483,74 @@ class GenreClassifierAdapter:
         except Exception as e:
             self.logger.warning(f"키워드 분류 중 오류: {e}")
             return None
+
+    def _classify_by_body_sample(self, task: NovelTask) -> Optional[Dict[str, Any]]:
+        """
+        제목/웹검색/본문헤더/키워드 폴백이 모두 실패(미분류)했을 때,
+        텍스트 파일 앞부분(최대 8KB)의 본문 어휘 빈도를 분석해 장르를 추론하는 최종 폴백.
+        """
+        file_path = task.current_path or task.original_path
+        if not file_path:
+            return None
+        try:
+            p = Path(file_path)
+            if not p.exists() or not p.is_file() or p.suffix.lower() != '.txt':
+                return None
+
+            raw_bytes = p.read_bytes()[:12288]
+            sample = ""
+            for enc in ('utf-8', 'utf-8-sig', 'cp949', 'euc-kr', 'utf-16'):
+                try:
+                    sample = raw_bytes.decode(enc)
+                    break
+                except Exception:
+                    continue
+            if not sample or len(sample.strip()) < 50:
+                return None
+
+            body_rules = {
+                '선협': ['수선', '영기', '단전', '축기', '금단', '원영', '종문', '선인', '도법', '비승', '영석', '법보', '단약'],
+                '무협': ['내공', '진기', '강호', '무림', '문파', '검기', '검강', '비급', '무공', '장로', '맹주', '마교', '객잔'],
+                '로판': ['공작', '대공', '후작', '백작', '영애', '황태자', '황후', '황궁', '시녀', '저택', '약혼', '혼약', '폐하'],
+                '판타지': ['마나', '마법사', '마탑', '오러', '드래곤', '엘프', '마왕', '용사', '성기사', '정령', '던전', '몬스터'],
+                '현판': ['헌터', '게이트', '각성자', '길드', '회사', '주식', '투자', '대표님', '병원', '수술', '방송', '시청자', '연예계'],
+                '겜판': ['로그인', '퀘스트', '레벨업', '스탯', '인벤토리', '경험치', '랭커', '레이드', '플레이어', 'NPC'],
+                '퓨판': ['아포칼립스', '좀비', '말세', '변이', '생존자', '시스템', '상태창', '이능력', '차원'],
+                '역사': ['전하', '주상', '조정', '대신', '군사', '전쟁', '장군', '황제', '백성', '관직', '과거시험'],
+                '공포': ['괴담', '귀신', '원혼', '악령', '저주', '시체', '피비린내', '비명', '흉가', '퇴마'],
+                '스포츠': ['경기장', '감독', '선수', '투수', '타자', '홈런', '스트라이크', '골키퍼', '패스', '드리블', '득점'],
+            }
+
+            scores: Dict[str, int] = {}
+            for genre, kws in body_rules.items():
+                score = 0
+                for kw in kws:
+                    cnt = sample.count(kw)
+                    if cnt > 0:
+                        score += min(cnt, 3)  # 단일 어휘 반복 과적합 방지
+                if score > 0:
+                    scores[genre] = score
+
+            if not scores:
+                return None
+
+            ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+            best_genre, best_score = ranked[0]
+            second_score = ranked[1][1] if len(ranked) > 1 else 0
+
+            # 최소 신뢰 임계치: 총점 5 이상 + 2위 대비 우위 확보
+            if best_score >= 5 and (best_score - second_score >= 2 or best_score >= 8):
+                # 중국 소설이 로판으로 잡히면 언정으로 전환
+                if best_genre == '로판' and task.metadata.get('country_origin') == 'CN':
+                    best_genre = '언정'
+                return {
+                    'genre': best_genre,
+                    'score': best_score,
+                    'source': '본문분석'
+                }
+        except Exception as e:
+            self.logger.debug(f"본문 샘플링 폴백 오류: {e}")
+        return None
     
     def _format_source(self, source: str) -> str:
         """

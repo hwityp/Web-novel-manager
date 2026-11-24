@@ -345,11 +345,25 @@ class FilenameNormalizerAdapter:
             primary_genre = '무협'
 
         # SF 및 말세/말일/종말/아포칼립스 -> 퓨판 정규화
-        if primary_genre in ('SF', 'SF판타지', '사이버펑크', '말세', '말일', '종말', '아포칼립스'):
+        if primary_genre in ('SF', 'SF판타지', '말세', '말일', '종말', '아포칼립스'):
             primary_genre = '퓨판'
+        elif primary_genre in ('사이버펑크', '사펑'):
+            primary_genre = '퓨판'
+            traits = [t for t in traits if t not in ('사펑', '사이버펑크')]
+            traits = ['사이버펑크'] + traits
+        elif primary_genre in ('괴담', '괴이'):
+            primary_genre = '공포'
+            traits = [t for t in traits if t not in ('괴담', '괴이')]
+            traits = ['괴담'] + traits
+        elif primary_genre == '호러':
+            primary_genre = '공포'
 
-        # 사이트명 'DC'(DCINSIDE) 제거
-        traits = [t for t in traits if t.strip().upper() not in ('DC', 'DCINSIDE')]
+        # 사이트명 'DC'(DCINSIDE) 제거, 로판/언정/로맨스 주 장르에서 '로맨스' 중복 제거
+        traits = [
+            t for t in traits
+            if t.strip().upper() not in ('DC', 'DCINSIDE')
+            and not (primary_genre in ('로판', '언정', '로맨스') and t.strip() == '로맨스')
+        ]
 
         # 시스템은 주 장르가 아니므로 기본 현판으로 교정하고 시스템을 서브 키워드로 유지
         if primary_genre == '시스템' or not primary_genre or '시스템' in genre:
@@ -358,7 +372,7 @@ class FilenameNormalizerAdapter:
             if '시스템' not in traits:
                 traits = ['시스템'] + [t for t in traits if t != '시스템']
         
-        if primary_genre not in GENRE_WHITELIST and not primary_genre.endswith(' 패러디'):
+        if primary_genre == '소설' or (primary_genre not in GENRE_WHITELIST and not primary_genre.endswith(' 패러디')):
             return '미분류'
             
         return NovelTraitExtractor.format_genre_tag(primary_genre, existing_keywords=traits)
