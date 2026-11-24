@@ -5,6 +5,14 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.63] - 2026-11-25
+
+### Fixed
+
+- **대시보드 단계별 실행 결과 통계 집계 오류 수정 (`gui/main_window.py`, `core/pipeline_orchestrator.py`):**
+  - `_build_stage_result()` 헬퍼를 신설하여 Stage 1(폴더 스캔), Stage 2(장르 추론), Stage 3(파일명 정규화 미리보기), 소스 변경 완료 단계에서 `성공(processed)`, `실패(failed)`, `건너뜀(skipped)` 카운트가 모두 `0`으로 표시되던 문제를 해결.
+  - `run_stage_normalize_preview()` 및 `apply_normalization_to_source()`에서 예외 발생 시 `task.status = 'failed'`와 오류 메시지를 기록하고 `skipped` 상태를 일관되게 반영하도록 개선.
+
 ## [v1.3.62] - 2026-11-25
 
 ### Fixed

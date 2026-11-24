@@ -249,12 +249,15 @@ class PipelineOrchestrator:
         self._record_stage(self.STAGE_FILENAME_NORMALIZER)
         processed_tasks = []
         for idx, task in enumerate(tasks):
-            try:
-                if not task.metadata.get('user_edited'):
-                    preview_name = self.filename_normalizer.preview_normalized_name(task)
-                    task.metadata['normalized_name'] = preview_name
-            except Exception as e:
-                self.logger.warning(f"정규화 미리보기 생성 실패: {task.raw_name} - {e}")
+            if task.status != 'skipped':
+                try:
+                    if not task.metadata.get('user_edited'):
+                        preview_name = self.filename_normalizer.preview_normalized_name(task)
+                        task.metadata['normalized_name'] = preview_name
+                except Exception as e:
+                    task.status = 'failed'
+                    task.error_message = str(e)
+                    self.logger.warning(f"정규화 미리보기 생성 실패: {task.raw_name} - {e}")
             processed_tasks.append(task)
             if self.progress_callback:
                 try:
@@ -267,6 +270,9 @@ class PipelineOrchestrator:
         """[NEW] 소스 폴더의 원본 파일 이름을 정규화된 이름으로 즉시 교체"""
         processed_tasks = []
         for idx, task in enumerate(tasks):
+            if task.status == 'skipped':
+                processed_tasks.append(task)
+                continue
             try:
                 preview_name = task.metadata.get('normalized_name')
                 if preview_name and task.current_path and task.current_path.exists():
@@ -277,11 +283,20 @@ class PipelineOrchestrator:
                             os.rename(task.current_path, new_path)
                             task.current_path = new_path
                             task.metadata['target_path'] = str(new_path)
+                            task.status = 'completed'
                             self.logger.info(f"소스 폴더 즉시 적용: {task.raw_name} -> {preview_name}")
                         except Exception as rename_err:
+                            task.status = 'failed'
+                            task.error_message = str(rename_err)
                             self.logger.error(f"소스 폴더 즉시 적용 실패: {task.raw_name} - {rename_err}")
+                    else:
+                        task.status = 'completed'
+                else:
+                    task.status = 'skipped'
                 
             except Exception as e:
+                task.status = 'failed'
+                task.error_message = str(e)
                 self.logger.warning(f"소스 폴더 적용 실패: {task.raw_name} - {e}")
             processed_tasks.append(task)
         return processed_tasks

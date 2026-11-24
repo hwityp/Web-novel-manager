@@ -1634,6 +1634,38 @@ class WNAPMainWindow(ctk.CTk):
     # 실제 실행 로직 (백그라운드)
     # ========================================================================
 
+    def _build_stage_result(self, tasks: List[NovelTask], stage: str) -> PipelineResult:
+        """중간 단계별 태스크 목록으로부터 실행 결과 통계를 집계"""
+        processed = 0
+        failed = 0
+        skipped = 0
+
+        for task in tasks:
+            if task.status == 'failed':
+                failed += 1
+            elif task.status == 'skipped':
+                skipped += 1
+            elif stage == 'classify':
+                if not task.genre or task.genre == '미분류':
+                    skipped += 1
+                else:
+                    processed += 1
+            elif stage == 'normalize':
+                if task.metadata.get('normalized_name'):
+                    processed += 1
+                else:
+                    skipped += 1
+            else:
+                processed += 1
+
+        return PipelineResult(
+            total_files=len(tasks),
+            processed=processed,
+            failed=failed,
+            skipped=skipped,
+            tasks=tasks
+        )
+
     def _execute_stage1(self):
         """Stage 1 실행 로직 (폴더 스캔)"""
         try:
@@ -1644,7 +1676,7 @@ class WNAPMainWindow(ctk.CTk):
             tasks = orchestrator.run_stage1(source_folder)
             
             # 결과 저장
-            result = PipelineResult(total_files=len(tasks), tasks=tasks)
+            result = self._build_stage_result(tasks, 'scan')
             self.last_result = result
             self.tasks_cache = tasks
             
@@ -1679,8 +1711,8 @@ class WNAPMainWindow(ctk.CTk):
             self.step_genre_done = True
             self.step_normalize_done = False
             
-            # 임시 결과 객체
-            result = PipelineResult(total_files=len(tasks), tasks=tasks)
+            # 결과 통계 집계
+            result = self._build_stage_result(tasks, 'classify')
             self.last_result = result
             
             self.after(0, lambda: self._show_stage_result(result, "Stage 2 장르 추론 완료 (파일명 정규화 대기)"))
@@ -1706,7 +1738,7 @@ class WNAPMainWindow(ctk.CTk):
             self.tasks_cache = tasks
             self.step_normalize_done = True
             
-            result = PipelineResult(total_files=len(tasks), tasks=tasks)
+            result = self._build_stage_result(tasks, 'normalize')
             self.last_result = result
             
             self.after(0, lambda: self._show_stage_result(result, "Stage 3 파일명 정규화 미리보기 완료"))
@@ -1757,7 +1789,7 @@ class WNAPMainWindow(ctk.CTk):
             
             self.tasks_cache = tasks
             
-            result = PipelineResult(total_files=len(tasks), tasks=tasks)
+            result = self._build_stage_result(tasks, 'apply_source')
             self.last_result = result
             
             self.after(0, lambda: self._show_stage_result(result, "소스 변경 완료"))
