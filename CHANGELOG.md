@@ -5,6 +5,17 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.66] - 2026-11-25
+
+### Improved & Fixed
+
+- **패러디 장르 표기 포맷 개선 (A안 적용) (`core/utils/novel_trait_extractor.py`, `core/adapters/filename_normalizer_adapter.py`, `core/adapters/genre_classifier_adapter.py`):**
+  - 단일 원작 패러디를 `[<원작> 패러디, 특징1, 특징2]`(예: `[나루토 패러디, 시스템, 빙의]`) 형태로 통합하여 원작명과 별개로 **최대 2개의 소설 내용 특징(키워드)**을 함께 표기할 수 있도록 개선.
+  - 2개 이상 원작 패러디 또는 `종합`/`다중`/`크로스오버` 표기를 `[다중 패러디, 특징1, 특징2]`로 통일.
+  - 원작 미상 패러디는 `[패러디, 특징1, 특징2]`로 유지하며, 기존 `[패러디, <원작>, ...]` 구 포맷은 파싱 시 신규 포맷으로 자동 승격.
+  - `GenreClassifierAdapter.classify()`가 제목과 함께 화수 범위(`range_info`), 완결 여부(`is_completed`) 등 파싱 메타데이터를 함께 채우도록 보강하여 후행 정규화 시 화수/완결 정보 누락을 방지.
+  - 회귀 테스트 154개 전 항목 통과.
+
 ## [v1.3.65] - 2026-11-25
 
 ### Fixed & Improved

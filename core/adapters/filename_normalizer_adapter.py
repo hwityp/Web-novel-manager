@@ -173,16 +173,17 @@ class FilenameNormalizerAdapter:
                 self.logger.debug(f"사용자 편집 파일명 사용: {task.raw_name} → {target_path.name}")
                 return task
 
-            # 1. 제목 앵커 추출 (title이 비어있으면)
-            if not task.title:
+            # 1. 제목 앵커 추출 (title이 비어있거나 전처리 미완료 상태면)
+            if not task.title or not task.metadata.get('is_preprocessed'):
                 parse_result = self._extractor.extract(task.raw_name, file_path=task.current_path or task.original_path)
-                task.title = parse_result.title
+                task.title = task.title or parse_result.title
                 task.author = parse_result.author or task.author
                 task.volume_info = parse_result.volume_info or task.volume_info
                 task.range_info = parse_result.range_info or task.range_info
                 task.is_completed = parse_result.is_completed or task.is_completed
                 task.side_story = parse_result.side_story or task.side_story
                 task.edition_info = parse_result.edition_info or task.edition_info
+                task.metadata['is_preprocessed'] = True
                 
                 # 원본 한자/가나 제목 보존
                 if parse_result.original_foreign_title:
@@ -357,7 +358,7 @@ class FilenameNormalizerAdapter:
             if '시스템' not in traits:
                 traits = ['시스템'] + [t for t in traits if t != '시스템']
         
-        if primary_genre not in GENRE_WHITELIST:
+        if primary_genre not in GENRE_WHITELIST and not primary_genre.endswith(' 패러디'):
             return '미분류'
             
         return NovelTraitExtractor.format_genre_tag(primary_genre, existing_keywords=traits)

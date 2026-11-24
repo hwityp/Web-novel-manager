@@ -198,6 +198,12 @@ class GenreClassifierAdapter:
             pure_title = parse_result.title if parse_result.title else (task.title or raw_text)
             if not task.title and pure_title:
                 task.title = pure_title
+            task.author = task.author or parse_result.author
+            task.volume_info = task.volume_info or parse_result.volume_info
+            task.range_info = task.range_info or parse_result.range_info
+            task.is_completed = task.is_completed or parse_result.is_completed
+            task.side_story = task.side_story or parse_result.side_story
+            task.edition_info = task.edition_info or parse_result.edition_info
             author = parse_result.author
             side_story = parse_result.side_story
             foreign_title = parse_result.original_foreign_title or task.metadata.get('original_foreign_title', '')
@@ -206,9 +212,12 @@ class GenreClassifierAdapter:
             foreign_title_type = getattr(parse_result, 'foreign_title_type', '') or task.metadata.get('foreign_title_type', '')
 
             task.metadata['original_foreign_title'] = foreign_title
+            if parse_result.original_foreign_title:
+                task.metadata['has_space_before_foreign'] = parse_result.has_space_before_foreign
             task.metadata['phonetic_title'] = phonetic_title
             task.metadata['translated_title'] = translated_title
             task.metadata['foreign_title_type'] = foreign_title_type
+            task.metadata['is_preprocessed'] = True
 
             # 소설 국적(원산지) 판별 (KR / CN / JP / UNKNOWN) - 모든 리턴 이전에 항시 보장
             origin_res = NovelOriginDetector.detect(
@@ -240,16 +249,19 @@ class GenreClassifierAdapter:
 
         if initial_genre_str:
             primary_genre, existing_kws = NovelTraitExtractor.parse_existing_tag(initial_genre_str)
-            mapped_genre = self.mapping_loader.map_genre(primary_genre, task.title or raw_text, parse_source)
-            mapped_genre = self._apply_origin_specific_rules(mapped_genre, task, raw_text)
+            if primary_genre.endswith(' 패러디'):
+                mapped_genre = primary_genre
+            else:
+                mapped_genre = self.mapping_loader.map_genre(primary_genre, task.title or raw_text, parse_source)
+                mapped_genre = self._apply_origin_specific_rules(mapped_genre, task, raw_text)
             
             # [기본 장르 보존] 중국 소설의 경우 언정/로판은 언정으로 고정하며, 원본에 언정이 지정되어 있었으면 현판 등으로 임의 변질 방지
             if primary_genre == '언정' or (origin_res.country == 'CN' and primary_genre in ['로판', '로맨스', '로맨스판타지']):
                 mapped_genre = '언정'
 
-            if mapped_genre in GENRE_WHITELIST and mapped_genre != '미분류':
-                if len(existing_kws) >= 1:
-                    # 1) 이미 부 장르/특성 키워드가 1개 이상 포함된 복합 태그인 경우: 즉시 유지 및 반환
+            if (mapped_genre in GENRE_WHITELIST or mapped_genre.endswith(' 패러디')) and mapped_genre != '미분류':
+                if len(existing_kws) >= 1 or mapped_genre.endswith(' 패러디'):
+                    # 1) 이미 부 장르/특성 키워드가 1개 이상 포함되었거나 원작이 확정된 패러디인 경우: 즉시 유지 및 반환
                     task.genre = NovelTraitExtractor.format_genre_tag(
                         primary_genre=mapped_genre,
                         title=task.title or raw_text,

@@ -438,21 +438,127 @@ class NovelTraitExtractor:
         if not primary_genre:
             return None
 
-        # primary_genre와 중복되는 특성 제거
-        final_traits = [t for t in extracted_traits if t != primary_genre][:2]
+        # primary_genre와 중복되는 특성 제거 (패러디는 팬덤 병합 후 내용 특징 2개까지 보존)
+        final_traits = [t for t in extracted_traits if t != primary_genre]
+        if not cls._is_parody_genre(primary_genre):
+            final_traits = final_traits[:2]
 
         return cls.format_genre_tag(
             primary_genre=primary_genre,
             existing_keywords=final_traits
         )
 
-    @staticmethod
-    def parse_existing_tag(tag_str: str) -> Tuple[str, List[str]]:
+    MULTI_PARODY_MARKERS: Set[str] = {
+        "다중", "종합", "다중패러디", "종합패러디", "다중 패러디", "종합 패러디", "크로스오버"
+    }
+
+    PARODY_FANDOM_NAMES: Set[str] = set(PARODY_FANDOM_MAP.values()) | {
+        "LOL", "금서", "동방", "사펑", "실지주", "워헤머", "크로우즈", "홍루몽",
+        "건담", "소녀전선", "원펀맨", "명일방주", "천룡팔부", "탄서성공", "학사신공",
+        "포켓몬스터", "포켓몬", "삼국지", "워킹데드", "미드", "몬스터 헌터"
+    }
+
+    @classmethod
+    def _is_parody_genre(cls, genre: str) -> bool:
+        if not genre:
+            return False
+        g = genre.strip()
+        return g == "패러디" or g.endswith(" 패러디") or g.endswith("패러디")
+
+    @classmethod
+    def _resolve_parody_primary_and_traits(
+        cls,
+        primary_genre: str,
+        keywords: Optional[List[str]] = None,
+        context_text: str = ""
+    ) -> Tuple[str, List[str]]:
         """
-        태그 문자열 (예: "SF, 시스템" 또는 "언정, 궁투, 빙의" 또는 "현판 시스템")을 파싱하여
+        패러디 주 장르를 '<원작> 패러디' 또는 '다중 패러디'로 통합하고,
+        원작/다중 마커를 제외한 순수 내용 특징 키워드만 반환.
+        - 원작 0개: '패러디'
+        - 원작 1개: '<원작> 패러디' (예: '나루토 패러디')
+        - 원작 2개 이상 또는 다중/종합: '다중 패러디'
+        """
+        fandoms: List[str] = []
+        is_multi = False
+        content_traits: List[str] = []
+
+        def add_fandom(name: str):
+            norm = PARODY_FANDOM_MAP.get(name, PARODY_FANDOM_MAP.get(name.lower(), name))
+            if norm in cls.MULTI_PARODY_MARKERS:
+                nonlocal is_multi
+                is_multi = True
+                return
+            # 포켓몬 / 포켓몬스터 중복 방지
+            if norm == "포켓몬" and "포켓몬스터" in fandoms:
+                return
+            if norm == "포켓몬스터" and "포켓몬" in fandoms:
+                fandoms[fandoms.index("포켓몬")] = "포켓몬스터"
+                return
+            if norm and norm not in fandoms:
+                fandoms.append(norm)
+
+        # 1. primary_genre 자체에 포함된 원작/다중 추출 (예: '나루토 패러디', '다중 패러디')
+        g = primary_genre.strip()
+        if g in ("다중 패러디", "종합 패러디", "다중패러디", "종합패러디"):
+            is_multi = True
+        elif g.endswith(" 패러디"):
+            prefix = g[:-len(" 패러디")].strip()
+            if prefix in cls.MULTI_PARODY_MARKERS:
+                is_multi = True
+            elif prefix:
+                add_fandom(prefix)
+        elif g != "패러디" and g.endswith("패러디"):
+            prefix = g[:-len("패러디")].strip()
+            if prefix in cls.MULTI_PARODY_MARKERS:
+                is_multi = True
+            elif prefix:
+                add_fandom(prefix)
+
+        # 2. 기존 키워드에서 원작/다중과 내용 특징 분리
+        for kw in (keywords or []):
+            t = kw.strip()
+            if not t or t == "패러디":
+                continue
+            if t in cls.MULTI_PARODY_MARKERS:
+                is_multi = True
+            elif t in cls.PARODY_FANDOM_NAMES or t in PARODY_FANDOM_MAP or t.lower() in PARODY_FANDOM_MAP:
+                add_fandom(t)
+            else:
+                if t not in content_traits:
+                    content_traits.append(t)
+
+        # 3. 원작이 아직 미확정이고 컨텍스트가 주어졌으면 컨텍스트에서 원작/다중 탐지
+        if context_text and not is_multi and len(fandoms) < 2:
+            sanitized_ctx = re.sub(
+                r'https?://\S+|\b[\w-]+\.(?:com|net|org|kr|co\.kr|wiki|live|jp|cn)\b',
+                ' ', context_text, flags=re.IGNORECASE
+            )
+            for trait_name, patterns in TRAIT_PATTERNS:
+                if trait_name in ("종합", "다중"):
+                    if any(re.search(p, sanitized_ctx, re.IGNORECASE) for p in patterns):
+                        is_multi = True
+                elif trait_name in cls.PARODY_FANDOM_NAMES:
+                    if any(re.search(p, sanitized_ctx, re.IGNORECASE) for p in patterns):
+                        add_fandom(trait_name)
+
+        if is_multi or len(fandoms) >= 2:
+            resolved_primary = "다중 패러디"
+        elif len(fandoms) == 1:
+            resolved_primary = f"{fandoms[0]} 패러디"
+        else:
+            resolved_primary = "패러디"
+
+        return resolved_primary, content_traits[:2]
+
+    @classmethod
+    def parse_existing_tag(cls, tag_str: str) -> Tuple[str, List[str]]:
+        """
+        태그 문자열 (예: "SF, 시스템" 또는 "언정, 궁투, 빙의" 또는 "나루토 패러디, 시스템, 빙의")을 파싱하여
         메인 장르와 특징 키워드 목록으로 분리
         - '신무협'은 항상 '무협'으로 통일
         - '시스템'은 주 장르가 아니므로 부가 키워드로만 취급
+        - 패러디는 '<원작> 패러디' 또는 '다중 패러디'로 통합하고 내용 특징 최대 2개 보존
         """
         if not tag_str:
             return "", []
@@ -461,6 +567,8 @@ class NovelTraitExtractor:
         
         if "," in clean_tag:
             tokens = [t.strip() for t in clean_tag.split(",") if t.strip()]
+        elif cls._is_parody_genre(clean_tag):
+            tokens = [clean_tag]
         else:
             tokens = [t.strip() for t in clean_tag.split() if t.strip()]
             
@@ -482,7 +590,7 @@ class NovelTraitExtractor:
             if t == "시스템":
                 if "시스템" not in additional_keywords:
                     additional_keywords.append("시스템")
-            elif not primary_genre and (t in GENRE_ALIAS_MAP or t in [
+            elif not primary_genre and (t in GENRE_ALIAS_MAP or cls._is_parody_genre(t) or t in [
                 '소설', '판타지', '현대', '현판', '무협', '선협', '스포츠', '퓨판', '역사', '로판', '겜판', '언정', '공포', '패러디', 'SF'
             ]):
                 primary_genre = GENRE_ALIAS_MAP.get(t, t)
@@ -498,7 +606,10 @@ class NovelTraitExtractor:
                 if t != "시스템":
                     primary_genre = t
                     break
-                    
+
+        if cls._is_parody_genre(primary_genre):
+            return cls._resolve_parody_primary_and_traits(primary_genre, additional_keywords)
+
         return primary_genre, additional_keywords[:2]
 
     @classmethod
@@ -550,11 +661,13 @@ class NovelTraitExtractor:
                 continue
             if trait_name == "궁정" and "궁투" in selected_set:
                 continue
-            if trait_name in ["종합", "다중"] and primary_genre != "패러디":
+            if trait_name in ["종합", "다중"]:
                 continue
 
-            # 주 장르가 패러디가 아닌 경우, 팬덤 특성은 웹 스니펫 오탐을 차단하고 제목/명시 태그에서만 검사
-            if trait_name in PARODY_FANDOM_TRAITS and primary_genre != "패러디":
+            # 패러디 원작 팬덤은 주 장르('<원작> 패러디' / '다중 패러디')로 통합하므로 내용 특징 슬롯에서 제외
+            if trait_name in PARODY_FANDOM_TRAITS:
+                if cls._is_parody_genre(primary_genre):
+                    continue
                 if trait_name in ("DC", "원피스", "드래곤볼", "미드", "몬스터 헌터"):
                     continue
                 target_text = title_and_tags_text
@@ -668,6 +781,15 @@ class NovelTraitExtractor:
                     origin_res = NovelOriginDetector.detect(title=title, raw_name=title)
                     if origin_res.country == 'CN' or GenreMappingLoader.is_chinese_romance(title, title):
                         primary_genre = "언정"
+
+        # 패러디 주 장르 통합 ('<원작> 패러디' / '다중 패러디' / '패러디') + 내용 특징 최대 2개 확보
+        if cls._is_parody_genre(primary_genre):
+            primary_genre, resolved_existing = cls._resolve_parody_primary_and_traits(
+                primary_genre=primary_genre,
+                keywords=existing_keywords,
+                context_text=all_text_ctx
+            )
+            existing_keywords = resolved_existing if resolved_existing else None
 
         traits = cls.extract_traits(
             primary_genre=primary_genre,
