@@ -164,13 +164,13 @@ class ChinesePhoneticAnalyzer:
             ],
             '겜판', 0.90, '게임판타지/생존게임 클리셰'
         ),
-        # 현대판타지: 말세 / 아포칼립스 / 좀비 / 생존
+        # 퓨전판타지: 말세 / 말일 / 종말 / 아포칼립스 / 좀비 / 생존
         (
             [
-                '말세', '末世', '아포칼립스', '좀비', '생존', '대재앙', '빙하기',
+                '말세', '末世', '말일', '종말', '아포칼립스', '좀비', '생존', '대재앙', '빙하기',
                 '멸망', '괴수', '변이', '돌연변이', '안식처', '피난처'
             ],
-            '현판', 0.92, '말세(아포칼립스) 현대판타지'
+            '퓨판', 0.92, '말세(아포칼립스) 퓨전판타지'
         ),
         # 퓨전판타지: 스팀펑크 / SF / 재변 / 회빙환
         (
@@ -319,7 +319,7 @@ class ChinesePhoneticAnalyzer:
         '발짝만큼의 거리': ('패러디', '해리포터 친세대/오터리 세인트 캐치폴/집요정 2차 창작 패러디 소설'),
         '아시선': ('선협', '치뎬 선협 수선 소설 《我是仙》'),
         '연대문여배각성후': ('언정', '중국 연대물 여성 조연 각성 로맨스 언정 소설 《年代文女配觉醒后》'),
-        '영능자불사우창화': ('SF', '사이버펑크 미래 초능력 사이커 SF 소설 《灵能者不死于枪火》'),
+        '영능자불사우창화': ('퓨판', '사이버펑크 미래 초능력 사이커 SF 소설 《灵能者不死于枪火》'),
         '오늘은 커쉐의 노트도 볼 수 있었습니다': ('패러디', '명탐정 코난 검은 조직 2차 창작 패러디 소설 《今天柯学的笔记也能看见呢》'),
         '장악최면지력후적음란생활': ('현판', '현대 최면 이능력 판타지 소설 《掌握催眠之力后的淫乱生活》'),
         '첩영：명령여징복': ('역사', '1930년대 상하이 첩보 및 밀리터리 전쟁 역사 소설 《谍影：命令与征服》'),
@@ -368,6 +368,8 @@ class ChinesePhoneticAnalyzer:
         '희신！': ('선협', '경극 무대 신령 강림 퇴마 선협 소설 《戏神！》'),
         '희신!': ('선협', '경극 무대 신령 강림 퇴마 선협 소설 《戏神！》'),
         '희신': ('선협', '경극 무대 신령 강림 퇴마 선협 소설 《戏神！》'),
+        '도쿄 버블 라이프': ('현판', '1980년대 도쿄 버블 시대 현대/재테크 소설 《东京泡沫人生》'),
+        '동경포말인생': ('현판', '1980년대 도쿄 버블 시대 현대/재테크 소설 《东京泡沫人生》'),
     }
 
     @classmethod
@@ -462,9 +464,34 @@ class ChinesePhoneticAnalyzer:
                 return result
 
         # 6. 특화 규칙 테이블 대조 (우선순위 순)
+        # 한국 웹소설에도 흔히 쓰이는 범용 어휘는 중국어 단서(전각부호/접두사/AI번역/무공백 독음/언정·선협 태그)가 있을 때만 매칭
+        has_cn_signal = bool(
+            has_prefix
+            or re.search(r'[\uFF0C\uFF1A\u3001\u4e00-\u9fff]', full_context)
+            or re.search(r'(?:AI번역|기계번역|손번역|\[언정\]|\[선협\]|\[사합원\])', full_context, re.IGNORECASE)
+            or (len(re.sub(r'[^가-힣]', '', cleaned)) >= 7 and ' ' not in cleaned)
+        )
+        AMBIGUOUS_KR_KEYWORDS = {
+            '리혼', '녀주', '시집', '모친', '수부', '멸망', '생존', '아포칼립스',
+            '좀비', '무사', '곤륜', '과거', '도과', '사자', '화장장', '도주', '주명'
+        }
+        # '녀주'는 '보여주세요'/'살려주세요' 등 한국어 동사 어미 오탐 방지를 위해 음운 정규형 부분매칭 제외
+        EXACT_ONLY_KEYWORDS = {'녀주', '수부', '사자', '도과', '도주', '주명', '무사'}
+
         for keywords, genre, conf_score, desc in cls.TRAIT_RULES:
             for kw in keywords:
-                if kw in full_context or (len(kw) >= 2 and to_phonetic_canonical(kw) in canon_full_context):
+                if kw in AMBIGUOUS_KR_KEYWORDS and not has_cn_signal:
+                    continue
+                if kw == '도과' and '회도과거' in full_context:
+                    continue
+                if kw == '수부' and '수부터' in full_context:
+                    continue
+                matched = False
+                if kw in full_context:
+                    matched = True
+                elif kw not in EXACT_ONLY_KEYWORDS and len(kw) >= 2 and to_phonetic_canonical(kw) in canon_full_context:
+                    matched = True
+                if matched:
                     result.genre = genre
                     result.confidence = "high" if (has_prefix or conf_score >= 0.92) else "medium"
                     result.matched_pattern = kw

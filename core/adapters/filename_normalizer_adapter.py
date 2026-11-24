@@ -343,6 +343,13 @@ class FilenameNormalizerAdapter:
         if primary_genre in ('신무협', '퓨전무협', '전통무협', '전통 무협') or '신무협' in primary_genre or '신무협' in genre:
             primary_genre = '무협'
 
+        # SF 및 말세/말일/종말/아포칼립스 -> 퓨판 정규화
+        if primary_genre in ('SF', 'SF판타지', '사이버펑크', '말세', '말일', '종말', '아포칼립스'):
+            primary_genre = '퓨판'
+
+        # 사이트명 'DC'(DCINSIDE) 제거
+        traits = [t for t in traits if t.strip().upper() not in ('DC', 'DCINSIDE')]
+
         # 시스템은 주 장르가 아니므로 기본 현판으로 교정하고 시스템을 서브 키워드로 유지
         if primary_genre == '시스템' or not primary_genre or '시스템' in genre:
             if primary_genre == '시스템' or not primary_genre:

@@ -5,6 +5,22 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.65] - 2026-11-25
+
+### Fixed & Improved
+
+- **장르 표기 정책 통일 (`core/utils/novel_trait_extractor.py`, `core/adapters/filename_normalizer_adapter.py`, `core/adapters/genre_classifier_adapter.py`, `core/utils/chinese_phonetic_analyzer.py`):**
+  - 사이트명(`DCINSIDE`) 오탐인 `DC`를 장르/특성 표기에서 완전 제거.
+  - `SF` 및 `말세`/`말일`/`종말`/`아포칼립스` 주 장르를 `퓨판`으로 통일.
+  - 중국 웹소설(`CN`)의 `로맨스`/`로판` 장르를 `언정`으로 일관 정규화.
+- **CSV 전수 피드백 기반 제목 훼손·절단 및 정규화 버그 6대 일괄 수정 (`core/utils/sino_korean_phonetics.py`, `core/title_anchor_extractor.py`, `core/utils/novel_origin_detector.py`):**
+  - 음운교정 엔진의 일반 한국어/외래어 오치환(`신나게→신라게`, `신용→신룡`, `히로인→히노인`, `무검열→무검렬`, `심성설로후→심성설노후`) 수정.
+  - `AUTHOR_PATTERNS`/`SITE_PATTERNS`/중국어 어미 분리로 인한 제목 본문 단어 삭제(`글을`, `작가들이/작가로/작가라`, `시리즈`, `삼국지 금수저 하후충전`, `잘생길수록 강해져`) 해결.
+  - 중복 브래킷(`[LOL]`, `[게임]`, `[괴담]`, `[전문가]` 등), `로19[저자]제목[범위]완결@thing`, 공백 범위(`1 837 완`), `완외`/`외 1-11`, `_translated`, `()`, `[시즌 1-3]` 정규화 보완.
+  - 화수 범위 `1~1022(완)`의 `JP` 오탐, 단독 `(完)`의 `CN` 오탐, `비로`/`이혼`/`멸망`/`보여주세요`/`살려주세요`/`목수부터`/`회도과거` 음독 오탐 차단.
+  - `화룡→몬스터 헌터`, `사이버→사이버펑크`, `요리이치→요리`, `도쿄 버블 라이프→무협` 오분류 가드레일 추가 및 `classify()` 시 `task.title` 채움 보장.
+  - 회귀 테스트(`tests/test_csv_feedback_fixes.py`) 포함 144개 테스트 전 항목 통과.
+
 ## [v1.3.64] - 2026-11-25
 
 ### Fixed & Improved

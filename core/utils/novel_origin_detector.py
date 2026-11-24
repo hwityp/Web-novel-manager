@@ -260,7 +260,7 @@ class NovelOriginDetector:
         "오월령": "오월령(五月令/五零)",
         "적장부": "나의 남편(~的丈夫)",
         "적신도": "나의 신도(~的信徒)",
-        "비로": "비로소설(飞卢)",
+        "비로소설": "비로소설(飞卢)",
         "단목후": "단막을 본 후(弹幕后)",
         "파경후": "거울이 깨진 후(破镜后)",
         "공간물자": "공간 아이템 직역 '공간물자(空间物资)'",
@@ -494,10 +494,12 @@ class NovelOriginDetector:
         # -------------------------------------------------------------
         cjk_source = foreign_title
         if not cjk_source:
-            # 제목 또는 파일명에서 괄호 CJK 추출 시도
+            # 제목 또는 파일명에서 괄호 CJK 추출 시도 (단독 완결/외전 마커 完, 外, 番外 등은 제외)
             match = re.search(r'[\(\[\{（【〔［《〈｛]\s*([^\(\)\[\]\{\}（）【】〔〕［］《》〈〉｛｝]*[\u4e00-\u9fff\u3040-\u30ff][^\(\)\[\]\{\}（）【】〔〕［］《》〈〉｛｝]*)\s*[\)\]\}）】〕］》〉｝]', full_text)
             if match:
-                cjk_source = match.group(1).strip()
+                cand_cjk = match.group(1).strip()
+                if not re.fullmatch(r'[完外番全卷部編篇結終上下中\d\s\+\-~,.:/]+', cand_cjk):
+                    cjk_source = cand_cjk
 
         if cjk_source:
             if cls.JAPANESE_KANA_REGEX.search(cjk_source):
@@ -535,9 +537,11 @@ class NovelOriginDetector:
 
         # -------------------------------------------------------------
         # 2-2. 일본식 라노벨/웹소설 서식 (물결표 부제, 문장형 제목) 감지
+        # 주의: '1~1022(완)' 같은 화수 범위 물결표는 일본식 부제가 아니므로 제외
         # -------------------------------------------------------------
-        has_jp_tilde = bool(re.search(r'~[^~]+~', full_text))
-        has_jp_sentence = bool(re.search(r'[가-힣]+에서\s+[가-힣]+(으)?로', full_text) or re.search(r'[가-힣]+(했|였)더니', full_text))
+        text_no_ep_range = re.sub(r'\d+\s*[~〜～]\s*\d+', ' ', full_text)
+        has_jp_tilde = bool(re.search(r'[~〜～][^~〜～\d][^~〜～]*[~〜～]', text_no_ep_range))
+        has_jp_sentence = bool(re.search(r'[가-힣]+에서\s+[가-힣]+(으)?로', text_no_ep_range) or re.search(r'[가-힣]+(했|였)더니', text_no_ep_range))
         # 한국어 소설의 일상적 문장과 구분하기 위해 번역 태그나 라노벨 단서가 있을 때 가산
         if (has_jp_tilde or has_jp_sentence) and (cls.TRANSLATION_TAGS.search(full_text) or jp_score > 0):
             jp_score += 45

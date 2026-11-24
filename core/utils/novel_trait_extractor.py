@@ -65,7 +65,7 @@ TRAIT_PATTERNS: List[Tuple[str, List[str]]] = [
     # 10. 이세계
     ("이세계", [r"이세계", r"이계", r"차원", r"이차원", r"异界", r"异세계"]),
     # 10.5 SF / 사이버펑크
-    ("사이버펑크", [r"사이버펑크", r"사이버", r"cyberpunk", r"해커", r"인공지능", r"안드로이드"]),
+    ("사이버펑크", [r"사이버펑크", r"cyberpunk", r"해커", r"인공지능", r"안드로이드"]),
     # 11. 군사 / 첩보
     ("군사", [
         r"군사", r"군대",
@@ -91,7 +91,6 @@ TRAIT_PATTERNS: List[Tuple[str, List[str]]] = [
     ("주술회전", [r"주술회전", r"고죠\s*사토루", r"이타도리", r"스쿠나"]),
     ("귀멸의 칼날", [r"귀멸의\s*칼날", r"귀칼", r"탄지로", r"네즈코"]),
     ("마블", [r"마블", r"어벤[져저]스", r"아이언맨", r"캡틴\s*아메리카", r"marvel"]),
-    ("DC", [r"DC", r"배트맨", r"슈퍼맨"]),
     ("완미세계", [r"완미세계", r"완미세계지", r"完美世界"]),
     ("붕괴 스타레일", [
         r"붕괴\s*[:\-·]?\s*스타레일", r"붕괴스타레일", r"스타레일", r"星穹铁道", r"星铁"
@@ -123,7 +122,7 @@ TRAIT_PATTERNS: List[Tuple[str, List[str]]] = [
     ("캄피오네", [r"캄피오네"]),
     ("타입문", [r"타입문", r"type-?moon", r"(?<!로열)(?<![가-힣])페이트(?![가-힣])", r"(?<![a-zA-Z])fate(?![a-zA-Z])", r"성배전쟁"]),
     ("페어리테일", [r"페어리테일", r"fairy\s*tail", r"나츠"]),
-    ("몬스터 헌터", [r"몬스터\s*헌터", r"몬헌", r"괴렵", r"화룡", r"리오레우스", r"怪猎", r"monster\s*hunter"]),
+    ("몬스터 헌터", [r"몬스터\s*헌터", r"몬헌", r"괴렵", r"리오레우스", r"怪猎", r"monster\s*hunter"]),
     ("모던패밀리", [r"모던패밀리", r"modern\s*family"]),
     ("종합", [
         r"(?<![가-힣])종합(?![가-힣])", r"종합물", r"종합\s*패러디",
@@ -142,7 +141,7 @@ TRAIT_PATTERNS: List[Tuple[str, List[str]]] = [
     ("방송", [r"방송", r"스트리머", r"BJ", r"유튜버", r"인플루언서", r"直播"]),
     ("헌터", [r"헌터", r"게이트", r"마수"]),
     ("던전", [r"던전", r"미궁"]),
-    ("요리", [r"요리", r"쉐프", r"셰프", r"식당", r"미식", r"美食", r"厨神"]),
+    ("요리", [r"요리(?!이치)", r"쉐프", r"셰프", r"식당", r"미식", r"美食", r"厨神"]),
 ]
 
 # 장르 별칭 및 정규화 매핑
@@ -181,7 +180,6 @@ PARODY_FANDOM_MAP = {
     "투라대륙": "투라대륙", "두라": "투라대륙",
     "목엽": "나루토",
     "마블": "마블", "어벤져스": "마블", "어벤저스": "마블", "아이언맨": "마블",
-    "DC": "DC", "dc": "DC", "배트맨": "DC", "슈퍼맨": "DC",
     "완미세계": "완미세계", "완미세계지": "완미세계",
     "붕괴: 스타레일": "붕괴 스타레일", "붕괴:스타레일": "붕괴 스타레일",
     "붕괴-스타레일": "붕괴 스타레일", "붕괴스타레일": "붕괴 스타레일",
@@ -469,8 +467,12 @@ class NovelTraitExtractor:
         if not tokens:
             return "", []
             
-        # 신무협 -> 무협 정규화
-        tokens = ["무협" if t in ("신무협", "퓨전무협", "전통무협", "전통 무협") else t for t in tokens]
+        # 신무협 -> 무협 정규화, 사이트명 'DC'(DCINSIDE) 제거
+        tokens = [
+            "무협" if t in ("신무협", "퓨전무협", "전통무협", "전통 무협") else t
+            for t in tokens
+            if t.strip().upper() not in ("DC", "DCINSIDE")
+        ]
         
         primary_genre = ""
         additional_keywords = []
@@ -519,15 +521,22 @@ class NovelTraitExtractor:
         selected_set: Set[str] = set()
         selected_set.add(primary_genre)
 
-        search_text_parts = [title]
-        if web_tags:
-            search_text_parts.extend(web_tags)
-        if web_snippet:
-            search_text_parts.append(web_snippet)
-            
-        combined_text = " ".join(search_text_parts)
+        # URL/도메인 노이즈 제거 (예: dcinside.com -> DC 오탐 방지)
+        sanitized_snippet = re.sub(r'https?://\S+|\b[\w-]+\.(?:com|net|org|kr|co\.kr|wiki|live|jp|cn)\b', ' ', web_snippet or '', flags=re.IGNORECASE)
+        title_and_tags_text = " ".join([title] + (web_tags or []))
+        combined_text = " ".join([title_and_tags_text, sanitized_snippet])
         if not combined_text.strip():
             return selected_traits
+
+        # 패러디 전용 원작/팬덤 특성은 주 장르가 '패러디'가 아니면 웹 스니펫에서 자동 오염되지 않도록 제목/태그로 한정
+        PARODY_FANDOM_TRAITS = {
+            "드래곤볼", "원피스", "나루토", "투라대륙", "블리치", "해리포터",
+            "포켓몬스터", "포켓몬", "명탐정 코난", "주술회전", "귀멸의 칼날",
+            "마블", "DC", "완미세계", "붕괴 스타레일", "신비의 제왕", "미드",
+            "워해머", "원신", "던만추", "엘든링", "뱅드림", "블랙클로버",
+            "서유기", "실력지상주의", "어과초", "오버로드", "이누야샤",
+            "이토준지", "캄피오네", "타입문", "페어리테일", "몬스터 헌터", "모던패밀리"
+        }
 
         for trait_name, patterns in TRAIT_PATTERNS:
             if trait_name in selected_set:
@@ -543,6 +552,14 @@ class NovelTraitExtractor:
                 continue
             if trait_name in ["종합", "다중"] and primary_genre != "패러디":
                 continue
+
+            # 주 장르가 패러디가 아닌 경우, 팬덤 특성은 웹 스니펫 오탐을 차단하고 제목/명시 태그에서만 검사
+            if trait_name in PARODY_FANDOM_TRAITS and primary_genre != "패러디":
+                if trait_name in ("DC", "원피스", "드래곤볼", "미드", "몬스터 헌터"):
+                    continue
+                target_text = title_and_tags_text
+            else:
+                target_text = combined_text
                 
             # 연예계/아이돌/방송 소재에서 '재벌'만 매칭된 경우 재테크 특성 제외 (단순 배경 설정)
             if trait_name == "재테크":
@@ -552,7 +569,8 @@ class NovelTraitExtractor:
                     continue
                 
             for pattern in patterns:
-                if re.search(pattern, combined_text, re.IGNORECASE):
+                flags = 0 if trait_name == "DC" else re.IGNORECASE
+                if re.search(pattern, target_text, flags):
                     selected_traits.append(trait_name)
                     selected_set.add(trait_name)
                     if trait_name == "책빙의" and "빙의" in selected_traits:

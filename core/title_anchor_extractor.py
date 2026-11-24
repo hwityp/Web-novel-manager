@@ -434,9 +434,9 @@ class TitleAnchorExtractor:
         r'@\S+',                           # @닉네임
         r'ⓒ\S+',                           # ⓒ닉네임
         r'©\S+',                           # ©닉네임
-        r'(?<!\S)저자[:\s]*\S+',           # 저자: 이름 (단어 앞 경계 확인)
-        r'(?<!\S)작가[:\s]*\S+',           # 작가: 이름
-        r'(?<!\S)글[:\s]*\S+',             # 글: 이름
+        r'(?<!\S)저자\s*:\s*\S+',          # 저자: 이름 (콜론 필수 - 제목 본문 오삭제 방지)
+        r'(?<!\S)작가\s*:\s*\S+',          # 작가: 이름 (작가들이/작가로/작가라 오삭제 방지)
+        r'(?<!\S)글\s*:\s*\S+',            # 글: 이름 (글을/글로 오삭제 방지)
         r'(?<!\S)by\s+\S+',                # by Author
     ]
     
@@ -448,7 +448,7 @@ class TitleAnchorExtractor:
         r'문피아',
         r'조아라',
         r'카카오페이지',
-        r'시리즈',
+        r'네이버\s*시리즈',
     ]
     
     # 번역 정보 패턴
@@ -745,6 +745,42 @@ class TitleAnchorExtractor:
         # 노이즈 패턴 제거
         name = self.noise_pattern.sub('', name)
 
+        # 번역기 접미사('_translated') 및 빈 괄호('()') 제거
+        name = re.sub(r'[,\uFF0C\s]*_translated\b', '', name, flags=re.IGNORECASE)
+        name = re.sub(r'\s*\(\s*\)', '', name)
+
+        # '장르[저자]제목[범위]완결' 형식 전처리 (예: 로19[우아진]연인 교환[1-71외1-10]완결, BL19[짭짭이]...[1-141]완결)
+        compact_author_match = re.match(
+            r'^\s*(BL19|BL|로판19|로판|로19|로)\s*\[([^\]]+)\]\s*(.+)$',
+            name,
+            flags=re.IGNORECASE
+        )
+        if compact_author_match:
+            compact_g = compact_author_match.group(1).upper()
+            author = author or compact_author_match.group(2).strip()
+            name = compact_author_match.group(3).strip()
+            if not genre and compact_g in ('로', '로19', '로판', '로판19'):
+                genre = '로판'
+
+        # 후행 대괄호 범위+외전 표기 정규화 (예: '[1-71외1-10]완결', '[1-70에필1-3외1-5]완결', '[1-141]연재완결')
+        bracket_range_match = re.search(
+            r'\[\s*(\d+\s*[-~]\s*\d+)\s*(?:에필\s*(\d+(?:\s*[-~]\s*\d+)?))?\s*(?:외(?:전)?\s*(\d+(?:\s*[-~]\s*\d+)?))?\s*\]\s*(?:연재\s*)?(완결?|完)?\s*$',
+            name
+        )
+        if bracket_range_match:
+            br_main = bracket_range_match.group(1).strip()
+            br_epil = bracket_range_match.group(2)
+            br_side = bracket_range_match.group(3)
+            br_comp = bracket_range_match.group(4)
+            tail_parts = [br_main]
+            if br_comp:
+                tail_parts.append('완')
+            if br_epil:
+                tail_parts.append(f'에필 {br_epil.strip()}')
+            if br_side:
+                tail_parts.append(f'외전 {br_side.strip()}')
+            name = name[:bracket_range_match.start()].rstrip() + ' ' + ' '.join(tail_parts)
+
         # 선행 날짜 접두사 제거 (브래킷 태그 앞에 위치한 경우 포함)
         name = self._strip_date_prefix(name)
 
@@ -752,13 +788,16 @@ class TitleAnchorExtractor:
         META_TAG_KEYWORDS = [
             'AI번역', '기계번역', '손번역', '번역', '텍본', '소설', '웹소설',
             '패러디', '언정', '선협', '무협', '신무협', '퓨전무협', '전통무협', '현판', '로판', '겜판', '판타지', '퓨판', 'SF', '역사', '스포츠', '공포', '미스터리', '밀리터리',
+            '대체역사', '아포칼립스', '게임', '괴담', '사펑', '시뮬', '전문가',
             '시스템', '연대', '연대물', '사합원', '4합원', '四合院', '궁투', '궁정', '빙의', '책빙의', '공간', '농촌', '말세', '종말',
             '여주', '남주', '하렘', '역하렘', '女主', '男主', '后宫',
             '재테크', '가족', '육아', '이세계', '군사', '첩보', '로맨스', '코미디', '힐링', '일상',
             '학원', '생존', '착각', '방송', '헌터', '던전', '요리', '단총', '복보',
             '해리포터', '나루토', '원피스', '드래곤볼', '포켓몬스터', '포켓몬', '코난', '명탐정 코난', '명탐정코난',
-            '주술회전', '귀멸의 칼날', '마블', 'DC', '투라대륙', '블리치', '신비의 제왕', '완미세계', '삼국지', '미드',
+            '주술회전', '귀멸의 칼날', '마블', 'DC', '투라대륙', '투라', '블리치', '신비의 제왕', '완미세계', '삼국지', '미드',
             '붕괴-스타레일', '붕괴: 스타레일', '붕괴스타레일', '스타레일', '붕괴 스타레일',
+            'LOL', '금서', '동방', '실지주', '워해머', '워헤머', '크로우즈', '홍루몽', '원신', '건담',
+            '소녀전선', '뱅드림', '원펀맨', '페어리테일', '엘든링', '명일방주', '천룡팔부', '타입문', '탄서성공',
             '종합', '쭝허', '다중', '다중패러디'
         ]
         while True:
@@ -880,9 +919,9 @@ class TitleAnchorExtractor:
         return False
     
     def _extract_chinese_title(self, name: str) -> Tuple[str, str]:
-        """중국 소설 제목 추출"""
+        """중국 소설 제목 추출 (뒷부분이 숫자/완결/외전으로 시작하는 경우에만 어미 분리)"""
         for ending in self.CHINESE_TITLE_ENDINGS:
-            pattern = rf'([\uAC00-\uD7A3\s]+{ending})(\s+.*)$'
+            pattern = rf'([\uAC00-\uD7A3\s]+{ending})(\s+(?:\d|[\(\[（【]?(?:완|完|외전|번외)).*)$'
             match = re.search(pattern, name)
             if match:
                 title = match.group(1).strip()
@@ -932,10 +971,18 @@ class TitleAnchorExtractor:
             if not is_volume_preceding_range:
                 candidates.append(unit_match)
             
-        # 2. 숫자 범위 패턴 (1-536, 1~100, 1〜1353, _1_222 등 - 공백 없이 붙은 경우 포함)
-        range_match = re.search(rf'(?:[\s_]|(?<=[.!?？!！\uFF0C\uFF1A\u3001])|(?<=[가-힣a-zA-Z\u4e00-\u9fff\u3040-\u30ff\)\]）】］]))\s*\d+\s*{self.RANGE_DASHES}\s*\d+', name)
-        if range_match:
-            candidates.append(range_match)
+        # 2. 숫자 범위 패턴 (1-536, 1~100, 1〜1353, _1_222 등 - 공백 없이 붙은 경우 포함, 단 '[시즌 1-3]' 등 대괄호 내부 범위 제외)
+        bracket_spans = [m.span() for m in re.finditer(r'[\[【［][^\]】］]*[\]】］]', name)]
+        for rm in re.finditer(rf'(?:[\s_]|(?<=[.!?？!！\uFF0C\uFF1A\u3001])|(?<=[가-힣a-zA-Z\u4e00-\u9fff\u3040-\u30ff\)\]）】］]))\s*\d+\s*{self.RANGE_DASHES}\s*\d+', name):
+            if any(bs <= rm.start() and rm.end() <= be for bs, be in bracket_spans):
+                continue
+            candidates.append(rm)
+            break
+
+        # 2.5 공백 구분 범위 패턴 (예: '나는 무대 위의 보스다 1 837 완', '가지고 있다1 1424완결')
+        space_range_match = re.search(r'(?:\s+|(?<=[가-힣a-zA-Z]))(1)\s+(\d{2,5})\s*(?:완결?|完)(?:\s|$)', name)
+        if space_range_match:
+            candidates.append(space_range_match)
             
         # 3. 단일 숫자 패턴 (120, 126 등 - 끝에 있는 단일 숫자)
         # [UPDATED] Use compiled pattern
@@ -1000,6 +1047,8 @@ class TitleAnchorExtractor:
                 residual = residual[:author_match.start()].strip()
 
         # [Special Case 0] Multi-volume multi-range (e.g. "1부133 完 2부100完", "1부 133 2부 100")
+        # 공백 구분 범위 (예: "1 837 완", "1 1424완결")를 "1-837 완"으로 정규화
+        residual = re.sub(r'^1\s+(\d{2,5})(?=\s*(?:완결?|完|$))', r'1-\1', residual)
         multi_vol_comp_match = re.search(
             rf'^(\d+\s*부)\s*(\d+(?:\s*{self.RANGE_DASHES}\s*\d+)?)\s*(?:完|완|완결)?\s*(\d+\s*부)\s*(\d+(?:\s*{self.RANGE_DASHES}\s*\d+)?)',
             residual
@@ -1087,6 +1136,7 @@ class TitleAnchorExtractor:
         if wan_wai_match:
             is_completed = True
             side_raw = wan_wai_match.group('side1') or wan_wai_match.group('side2') or '외전'
+            side_raw = re.sub(r'^외(?=\s|\d|$)', '외전', side_raw)
             residual = residual[:wan_wai_match.start()] + f" {side_raw} " + residual[wan_wai_match.end():]
 
         # 2. "본편 및 외전" 패턴 처리 (위에서 안 걸린 변형 대응)
@@ -1095,6 +1145,9 @@ class TitleAnchorExtractor:
             if "외전" not in side_story_parts:
                 side_story_parts.append("외전")
             residual = re.sub(r'본편\s*및\s*외전[,\s]*', '', residual)
+
+        # 단독 약어 '외 1-11', '외1' 등을 '외전 ...'으로 정규화
+        residual = re.sub(rf'(?<!\S)외(?=\s*\d+(?:\s*{self.RANGE_DASHES}\s*\d+)?(?:\s|$))', '외전', residual)
         
         # 3. 완결 여부 확인 (위에서 처리 안 된 경우)
         # Bug 8: 完 뒤에 쉼표가 있을 때도 매칭되도록 "완결 마커" 추출 시 연재중/미완 여부만 체크하고 쉼표 무관하게

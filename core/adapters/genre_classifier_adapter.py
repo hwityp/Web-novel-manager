@@ -196,6 +196,8 @@ class GenreClassifierAdapter:
             # 순수 제목 추출 (전체 파일명 원문 기반)
             parse_result = self.title_extractor.extract(parse_source)
             pure_title = parse_result.title if parse_result.title else (task.title or raw_text)
+            if not task.title and pure_title:
+                task.title = pure_title
             author = parse_result.author
             side_story = parse_result.side_story
             foreign_title = parse_result.original_foreign_title or task.metadata.get('original_foreign_title', '')
@@ -918,12 +920,20 @@ class GenreClassifierAdapter:
             return False
 
         # 0. 핵심 제목/클리셰 보장 규칙 (국적 불문 최우선)
-        # SF 보장
+        # SF -> 퓨판 통일
+        if mapped_genre == 'SF':
+            mapped_genre = '퓨판'
         if ctx_match(['영능자불사우창화', '영능자', '창화', '사이버펑크']):
-            return 'SF'
+            return '퓨판'
         if any(kw in full_ctx for kw in ['해커', '사이버펑크', 'AI들에게', '인공지능', '안드로이드', '가상현실']) and not any(m in full_ctx for m in ['무협', '선협', '마교', '화산파', '무당파', '천마', '강호', '소림', '문파', '비급']):
-            if mapped_genre in ['무협', '선협', '역사', '밀리터리', '미분류', '판타지']:
-                return 'SF'
+            if mapped_genre in ['무협', '선협', '역사', '밀리터리', '미분류', '판타지', 'SF']:
+                return '퓨판'
+
+        # 말세/말일/종말/아포칼립스 -> 퓨판 통일 (언정/패러디 주 장르 보존)
+        if mapped_genre in ('말세', '말일', '종말', '아포칼립스'):
+            return '퓨판'
+        if mapped_genre == '현판' and any(kw in full_ctx for kw in ['말세', '末世', '말일', '종말', '아포칼립스']) and not any(ex in full_ctx for ex in ['사합원', '四合院', '4합원', '칠령', '육령', '팔령']):
+            return '퓨판'
 
         # 스포츠 보장
         if ctx_match(['발롱도르', '스트라이커', '좌완파이어볼러', '파이어볼러', '프리미어리그', '챔피언스리그', '손흥민', '메시', '호날두', '미드필더', '구호반', '화오교죽마관선료', '화오교죽마']):
@@ -933,9 +943,24 @@ class GenreClassifierAdapter:
         if ctx_match(['항마신장', '항마장', '언가군림', '인주란', '군림', '검혼기행', '뇌룡검제', '종무', '국술！대종사', '국술!대종사', '국술', '대종사', '횡추궤괴', '극도무성', '횡추무도', '용상반약공', '고룡세계리적끽과검객', '고룡세계']):
             return '무협'
 
-        # 선협 보장
-        if ctx_match(['장생요도', '자소도주', '요도', '도주', '주명승도', '주선', '차천', '태일도과', '도과', '할편공법', '풍비사숙', '화장장', '희신', '아시선']):
+        # 선협 보장 ('회도과거' 등 일반 한자어 내 '도과' 부분매칭 제외)
+        if ctx_match(['장생요도', '자소도주', '요도', '도주', '주명승도', '주선', '차천', '태일도과', '할편공법', '풍비사숙', '화장장', '희신', '아시선']):
             return '선협'
+        if '도과' in full_ctx and '회도과거' not in full_ctx:
+            return '선협'
+
+        # 현대/게임/로맨스 문맥에서 무협 오분류 차단 가드레일 (예: '도쿄 버블 라이프', '게임 침공', '그와 결혼하지 마!')
+        if mapped_genre == '무협':
+            martial_clues = ['무협', '무림', '강호', '천마', '검선', '검제', '문파', '세가', '마교', '비급', '내공', '무신', '무공', '검객', '국술', '대종사', '무성', '검술', '사파', '협객', '화산', '소림', '무당', '고룡', '천룡']
+            if not any(mc in full_ctx for mc in martial_clues):
+                if any(kw in full_ctx for kw in ['도쿄', '버블', '동경포말', '회사', '도산', '목장']):
+                    return '현판'
+                if any(kw in full_ctx for kw in ['결혼', '아빠', '딸이', '남편', '아내']):
+                    return '언정' if (origin == 'CN' or 'AI번역' in full_ctx) else '로판'
+                if any(kw in full_ctx for kw in ['게임 침공', '게임 속']):
+                    return '겜판'
+                if any(kw in full_ctx for kw in ['소설 속', '엑스트라', '헌터']):
+                    return '퓨판'
 
         # 패러디 보장 (신비의 제왕 / 서브컬처 동인 / 투라대륙 본체종 / 몬헌 / 왕좌의게임 / 타입문 / 코난 / 해리포터)
         if ctx_match([
