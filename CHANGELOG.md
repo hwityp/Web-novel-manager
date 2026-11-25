@@ -5,6 +5,19 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며,
 버전 관리는 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
 
+## [v1.3.68] - 2026-11-25
+
+### Fixed & Improved
+
+- **GUI 처리 결과 테이블 정렬·선택·스크롤 상태 유지 (`gui/main_window.py`):**
+  - 파일명·장르 등으로 정렬한 뒤 정규화 파일명 또는 장르를 수정하거나 단일 재추론을 실행해도 정렬 상태가 풀리지 않도록 `_sort_col`/`_sort_reverse` 상태를 보존·재적용.
+  - 활성 정렬 컬럼 헤더에 `▲`/`▼` 표시를 추가하고, 편집 후 선택 행·포커스·스크롤 위치도 함께 복원.
+- **키워드 단독 분류 노이즈 차단 및 무협 오분류 6건 수정 (`core/adapters/genre_classifier_adapter.py`, `core/title_anchor_extractor.py`, `core/utils/chinese_phonetic_analyzer.py`, `core/utils/novel_trait_extractor.py`):**
+  - `_keyword_fallback()`에서 범용 노이즈 단어(`진짜(1)`, `강함(7)`, `너무(1)`, `인생(7)` 등)만 매칭되거나 저점수(`score < 0.25`)인 키워드 결과를 기각하는 필터 도입.
+  - `삼국지_` 접두사(`삼국지_고려 무신은 난신적자가 싫다`)를 `[역사, 삼국지]`로 추출하고 제목에서 `삼국지_`를 제거.
+  - `무신연의 여포가 효도를 잘함`→`[역사, 삼국지]`, `피스트 위의 검술 천재`→`[스포츠]`, `진짜 사나이`/`협회 직원이 너무 강함`→`[현판]`, `인생모의：양여검선포감종신`→`[퓨판, 시스템, 하렘]` 도메인 우선 가드레일 및 특성 추출 보강.
+  - 회귀 테스트 156개 전 항목 통과.
+
 ## [v1.3.67] - 2026-11-25
 
 ### Fixed & Improved

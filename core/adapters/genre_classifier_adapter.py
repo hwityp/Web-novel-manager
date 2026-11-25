@@ -1284,43 +1284,68 @@ class GenreClassifierAdapter:
         
         try:
             source = 'keyword'
+            full_override_ctx = f"{raw_text} {title} {foreign_title} {phonetic_title} {translated_title}".strip()
+
+            # [도메인 우선 가드레일] 일반 키워드 오분류(예: 검술->무협, 무신->무협, 진짜->무협, 강함->겜판) 차단
+            if any(kw in full_override_ctx for kw in ('피스트', '펜싱', '에페', '플뢰레', '사브르')):
+                return {'genre': '스포츠', 'confidence': 0.95, 'source': source}
+            if any(kw in full_override_ctx for kw in ('삼국지', '무신연의', '여포', '조조', '유비', '제갈량', '동탁', '원소', '손책')):
+                return {'genre': '역사', 'confidence': 0.95, 'source': source}
+            if any(kw in full_override_ctx for kw in ('인생모의', '人生模拟')):
+                return {'genre': '퓨판', 'confidence': 0.95, 'source': source}
+            if any(kw in full_override_ctx for kw in ('진짜 사나이', '협회 직원')):
+                return {'genre': '현판', 'confidence': 0.92, 'source': source}
+
+            # 범용 노이즈 키워드만 매칭된 저신뢰/오탐 결과 걸러내기
+            GENERIC_NOISE_KWS = {
+                '진짜', '너무', '잘함', '강함', '인생', '인생모', '그녀', '우리',
+                '남자', '여자', '세상', '세계', '사람', '이야기', '시작', '최강', '천재'
+            }
+
+            def _extract_reliable_kw_genre(kw_res: Optional[Dict]) -> tuple[str, float]:
+                if not kw_res:
+                    return '미분류', 0.0
+                all_genres = kw_res.get('all_genres') or []
+                for g_name, g_score, g_kws in all_genres:
+                    if g_name in ('', '미분류', '소설'):
+                        continue
+                    # 매칭된 키워드에서 가중치 표기 제거 (예: '진짜(1)' -> '진짜')
+                    clean_kws = [re.sub(r'\(\d+\)$', '', str(k)).strip() for k in (g_kws or [])]
+                    meaningful_kws = [k for k in clean_kws if k and k not in GENERIC_NOISE_KWS]
+                    if not meaningful_kws:
+                        continue
+                    # 가중치 합/점수가 너무 낮으면(단일 가중치 1~3 노이즈) 기각
+                    if g_score < 0.25:
+                        continue
+                    return g_name, kw_res.get('confidence', 0.0)
+                return '미분류', 0.0
+
             result = self._keyword_classifier.classify_with_confidence(title)
-            genre = result.get('primary_genre', '미분류')
-            confidence = result.get('confidence', 0.0)
+            genre, confidence = _extract_reliable_kw_genre(result)
             
             # 독음 제목 또는 번역 제목으로 재시도
             if genre == '미분류' and phonetic_title and phonetic_title != title:
                 p_res = self._keyword_classifier.classify_with_confidence(phonetic_title)
-                if p_res.get('primary_genre') != '미분류':
-                    genre = p_res.get('primary_genre')
-                    confidence = p_res.get('confidence', 0.0)
+                genre, confidence = _extract_reliable_kw_genre(p_res)
 
             if genre == '미분류' and translated_title and translated_title != title:
                 t_res = self._keyword_classifier.classify_with_confidence(translated_title)
-                if t_res.get('primary_genre') != '미분류':
-                    genre = t_res.get('primary_genre')
-                    confidence = t_res.get('confidence', 0.0)
+                genre, confidence = _extract_reliable_kw_genre(t_res)
 
             # 순수 제목에서 미분류인 경우 원본 파일명으로 재시도
             if genre == '미분류' and raw_text and raw_text != title:
                 raw_result = self._keyword_classifier.classify_with_confidence(raw_text)
-                if raw_result.get('primary_genre') != '미분류':
-                    genre = raw_result.get('primary_genre')
-                    confidence = raw_result.get('confidence', 0.0)
+                genre, confidence = _extract_reliable_kw_genre(raw_result)
 
             # CJK 원문 제목이 있는 경우 원문 결합 텍스트로 재시도
             if genre == '미분류' and foreign_title:
                 cjk_combo = f"{title} {foreign_title}".strip()
                 cjk_result = self._keyword_classifier.classify_with_confidence(cjk_combo)
-                if cjk_result.get('primary_genre') != '미분류':
-                    genre = cjk_result.get('primary_genre')
-                    confidence = cjk_result.get('confidence', 0.0)
-                else:
+                genre, confidence = _extract_reliable_kw_genre(cjk_result)
+                if genre == '미분류':
                     # CJK 원문 단독 재시도
                     cjk_single = self._keyword_classifier.classify_with_confidence(foreign_title)
-                    if cjk_single.get('primary_genre') != '미분류':
-                        genre = cjk_single.get('primary_genre')
-                        confidence = cjk_single.get('confidence', 0.0)
+                    genre, confidence = _extract_reliable_kw_genre(cjk_single)
 
             # 중국 소설 음독/번역투 분석기(ChinesePhoneticAnalyzer) 적용 (안전망)
             try:
@@ -1386,7 +1411,8 @@ class GenreClassifierAdapter:
                     '말세', '末世', '아포칼립스', '좀비', '무한 복제', '복제', '무한류',
                     '생활계', '생활계직업', '속성점', '일근육', '전민령주', '전민진화', '전직법사', '전직', '저정류', '종예', '인재동경',
                     '제천', '종극화력', '중회', '중회1980', '중회1981', '소주를 부르는 횟집', '목표는 엔딩 요정', '엔딩 요정', '데드 엔드', '반격',
-                    '닥터', '데뷔', '저작권료', '국정원', '후계 1순위', '천재 작가', '돈이 벌림', '돈 되는 물건', '퇴근'
+                    '닥터', '데뷔', '저작권료', '국정원', '후계 1순위', '천재 작가', '돈이 벌림', '돈 되는 물건', '퇴근',
+                    '진짜 사나이', '협회 직원'
                 ]):
                     genre = '현판'
                     confidence = 0.88

@@ -1306,7 +1306,14 @@ class WNAPMainWindow(ctk.CTk):
         self._apply_table_filter()
 
     def _apply_table_filter(self):
-        """실시간 검색어 및 필터 옵션 적용하여 테이블 렌더링"""
+        """실시간 검색어 및 필터 옵션 적용하여 테이블 렌더링 (정렬·선택·스크롤 상태 유지)"""
+        prev_selected = list(self.result_tree.selection())
+        prev_focus = self.result_tree.focus()
+        try:
+            prev_yview = self.result_tree.yview()
+        except Exception:
+            prev_yview = (0.0, 1.0)
+
         for item in self.result_tree.get_children():
             self.result_tree.delete(item)
 
@@ -1395,6 +1402,23 @@ class WNAPMainWindow(ctk.CTk):
                 self.table_title_label.configure(text=f"📋 처리 결과 테이블 ({len(tasks)}개)")
             else:
                 self.table_title_label.configure(text=f"📋 처리 결과 테이블 ({visible_count}/{len(tasks)}개)")
+
+        # 기존 정렬 상태가 있으면 필터/편집 후에도 동일하게 유지
+        sort_col = getattr(self, '_sort_col', None)
+        if sort_col:
+            self._sort_treeview(sort_col, getattr(self, '_sort_reverse', False), update_heading=False)
+
+        # 편집 전 선택·포커스·스크롤 위치 복원
+        existing_selected = [iid for iid in prev_selected if self.result_tree.exists(iid)]
+        if existing_selected:
+            self.result_tree.selection_set(existing_selected)
+        if prev_focus and self.result_tree.exists(prev_focus):
+            self.result_tree.focus(prev_focus)
+        if prev_yview and prev_yview[0] > 0:
+            try:
+                self.result_tree.yview_moveto(prev_yview[0])
+            except Exception:
+                pass
 
     def _clear_filter(self):
         """검색창 및 필터 초기화"""
@@ -1509,14 +1533,18 @@ class WNAPMainWindow(ctk.CTk):
         from gui.genre_dictionary_dialog import show_genre_dictionary_dialog
         show_genre_dictionary_dialog(self)
     
-    def _sort_treeview(self, col: str, reverse: bool):
+    def _sort_treeview(self, col: str, reverse: bool, update_heading: bool = True):
         """
-        Treeview 컬럼 클릭 시 소트
+        Treeview 컬럼 클릭 시 소트 (정렬 상태를 인스턴스에 보존하여 편집 후에도 유지)
         
         Args:
             col: 소트할 컬럼 이름
             reverse: 역순 여부
+            update_heading: 헤더 클릭 커맨드/표시 갱신 여부
         """
+        self._sort_col = col
+        self._sort_reverse = reverse
+
         # 현재 데이터 가져오기
         data = [(self.result_tree.set(item, col), item) for item in self.result_tree.get_children('')]
         
@@ -1538,8 +1566,21 @@ class WNAPMainWindow(ctk.CTk):
                 current_tags.append('oddrow')
             self.result_tree.item(item, tags=tuple(current_tags))
         
-        # 다음 클릭 시 역순으로 소트
-        self.result_tree.heading(col, command=lambda: self._sort_treeview(col, not reverse))
+        if update_heading:
+            base_labels = {
+                "origin": "국적",
+                "original": "원본 파일명",
+                "normalized": "정규화 파일명",
+                "genre": "장르",
+                "confidence": "신뢰도",
+                "source": "판단근거",
+            }
+            for c, label in base_labels.items():
+                if c == col:
+                    arrow = " ▼" if reverse else " ▲"
+                    self.result_tree.heading(c, text=f"{label}{arrow}", command=lambda _c=c, _r=not reverse: self._sort_treeview(_c, _r))
+                else:
+                    self.result_tree.heading(c, text=label, command=lambda _c=c: self._sort_treeview(_c, False))
     
     def _validate_inputs(self) -> bool:
         """입력값 검증"""

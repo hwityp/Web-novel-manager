@@ -103,6 +103,13 @@ class ChinesePhoneticAnalyzer:
             ],
             '스포츠', 0.98, '스포츠(축구/야구/피겨 등) 고유 어휘'
         ),
+        # 인생모의(시뮬레이터) 퓨전판타지 (무협 '검선'보다 우선 판정)
+        (
+            [
+                '인생모의', '人生模拟'
+            ],
+            '퓨판', 0.96, '인생 시뮬레이터(인생모의) 퓨전판타지'
+        ),
         # 선협 / 수선 (최고 우선순위 고유 장르)
         (
             [
@@ -487,6 +494,8 @@ class ChinesePhoneticAnalyzer:
                 if kw == '도과' and '회도과거' in full_context:
                     continue
                 if kw == '수부' and '수부터' in full_context:
+                    continue
+                if kw == '무신' and any(hk in full_context for hk in ('삼국지', '여포', '연의', '고려')):
                     continue
                 matched = False
                 if kw in full_context:

@@ -809,6 +809,13 @@ class TitleAnchorExtractor:
         # 선행 날짜 접두사 제거 (브래킷 태그 앞에 위치한 경우 포함)
         name = self._strip_date_prefix(name)
 
+        # 선행 '삼국지_' 접두사 정규화 (예: '삼국지_고려 무신은 난신적자가 싫다' -> 장르 '역사, 삼국지', 제목 '고려 무신은 난신적자가 싫다')
+        samgukji_prefix = re.match(r'^\s*삼국지_\s*(.+)$', name)
+        if samgukji_prefix and samgukji_prefix.group(1).strip():
+            if not genre:
+                genre = '역사, 삼국지'
+            name = samgukji_prefix.group(1).strip()
+
         # [0.5] 선행 연속 대괄호 메타데이터 태그 감지 및 제거 ([언정][AI번역][연대], [나루토패러디 시스템 AI번역] 등)
         META_TAG_KEYWORDS = [
             'AI번역', '기계번역', '손번역', '번역', '텍본', '소설', '웹소설',
