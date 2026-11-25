@@ -170,7 +170,11 @@ class GoogleGenreExtractor:
                     m_resp = requests.get(m_url, headers=m_headers, timeout=5)
                     if m_resp.status_code == 200:
                         m_soup = BeautifulSoup(m_resp.text, 'html.parser')
-                        for cont in m_soup.find_all(['li', 'div', 'section'])[:15]:
+                        # 상단 네비게이션/헤더/푸터/사이드바(뉴스·스포츠·연예 등) 완전 제거하여 오탐 원천 차단
+                        for unwanted in m_soup(['script', 'style', 'header', 'nav', 'footer', 'aside']):
+                            unwanted.decompose()
+                        result_nodes = m_soup.select('li.bx, div.total_wrap, div.api_subject_bx, div.detail_box')[:12]
+                        for cont in result_nodes:
                             txt = cont.get_text(separator=' ', strip=True)
                             if txt and 20 < len(txt) <= 600:
                                 a_tag = cont.find('a', href=True)
@@ -194,10 +198,18 @@ class GoogleGenreExtractor:
         official_genres = []
         
         clean_target = re.sub(r'[\s_.,!?:;\'"~，：！？、～·-]+', '', query).lower()
-        subparts = [p.strip().lower() for p in re.split(r'[\s_.,!?:;\'"~，：！？、～·-]+', query) if len(p.strip()) >= 2]
-        if len(clean_target) >= 4:
-            subparts.append(clean_target[:4])
-            subparts.append(clean_target[:3])
+        query_stopwords = {
+            '소설', '웹소설', '중국', '일본', '나를', '내가', '나는', '그녀', '우리', '당신',
+            '게임', '세계', '세상', '에서', '으로', '하고', '하는', '되는', '있다', '없다',
+            '되었다', '됐다', '합니다', '했다', '이야기', '시작', '모든', '마지막', '다시'
+        }
+        subparts = [
+            p.strip().lower()
+            for p in re.split(r'[\s_.,!?:;\'"~，：！？、～·-]+', query)
+            if len(p.strip()) >= 2 and p.strip().lower() not in query_stopwords
+        ]
+        if len(clean_target) >= 6:
+            subparts.append(clean_target[:5])
 
         for item in items:
             title = item.get('title', '')
@@ -212,7 +224,12 @@ class GoogleGenreExtractor:
                 'series.naver.com', 'munpia.com', 'ridibooks.com', 'qidian.com',
                 'jjwxc.net', 'syosetu.com', 'ssn.so', 'novelpia.com', 'joara.com'
             ])
-            is_title_relevant = (len(clean_target) >= 2 and clean_target in clean_combined) or any(sp in clean_combined for sp in subparts)
+            matched_subparts = [sp for sp in subparts if sp in clean_combined]
+            is_title_relevant = (
+                (len(clean_target) >= 2 and clean_target in clean_combined)
+                or len(matched_subparts) >= 2
+                or any(len(sp) >= 4 for sp in matched_subparts)
+            )
             if not (is_title_relevant or is_platform_link):
                 continue
             

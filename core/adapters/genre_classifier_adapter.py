@@ -978,12 +978,31 @@ class GenreClassifierAdapter:
         # 말세/말일/종말/아포칼립스 -> 퓨판 통일 (언정/패러디 주 장르 보존)
         if mapped_genre in ('말세', '말일', '종말', '아포칼립스'):
             return '퓨판'
-        if mapped_genre == '현판' and any(kw in full_ctx for kw in ['말세', '末世', '말일', '종말', '아포칼립스']) and not any(ex in full_ctx for ex in ['사합원', '四合院', '4합원', '칠령', '육령', '팔령']):
+        if mapped_genre in ('현판', '무협', '역사', '스포츠', '선협') and any(kw in full_ctx for kw in ['말세', '末世', '말일', '종말', '아포칼립스', '멸망한 세계', '멸망한 세상']) and not any(ex in full_ctx for ex in ['사합원', '四合院', '4합원', '칠령', '육령', '팔령']):
             return '퓨판'
 
-        # 스포츠 보장
-        if ctx_match(['발롱도르', '스트라이커', '좌완파이어볼러', '파이어볼러', '프리미어리그', '챔피언스리그', '손흥민', '메시', '호날두', '미드필더', '구호반', '화오교죽마관선료', '화오교죽마']):
+        # 스포츠 보장 (NBA/MLB/축구/야구/펜싱 등: 판타지·무협·선협 오분류 차단)
+        if ctx_match(['발롱도르', '스트라이커', '좌완파이어볼러', '파이어볼러', '프리미어리그', '챔피언스리그', '손흥민', '메시', '호날두', '미드필더', '구호반', '화오교죽마관선료', '화오교죽마', '피스트', '펜싱', '골대 앞의 거미손']):
             return '스포츠'
+        if re.search(r'(?<![A-Za-z])(?:NBA|MLB|KBO|EPL)(?![A-Za-z])', full_ctx, re.IGNORECASE):
+            return '스포츠'
+
+        # 서양/한국 실제 역사 인물·시대 가드레일 (제목만 봐도 무협/선협/스포츠/공포가 아님을 보장)
+        if any(hk in full_ctx for hk in [
+            '루이 16세', '루이 14세', '나폴레옹', '히틀러', '비스마르크', '카이사르',
+            '독일 제국', '로마 제국', '미국 남부', '조선 왕자', '고려 무신',
+            '세종대왕', '오다 노부나가', '장희빈', '무신연의', '삼국지', '과거급제'
+        ]):
+            if mapped_genre in ('무협', '선협', '스포츠', '공포', '언정', '미분류'):
+                return '역사'
+
+        # 현대 금융/연예/직업물 가드레일 (무협/선협/언정/스포츠/공포 오분류 차단)
+        if any(mk in full_ctx for mk in [
+            '코인', '로또', '천재배우', '아이돌', '스캔들 메이커', '감정사',
+            '협회 직원', '진짜 사나이', '주식', '유튜버', '스트리머', '변호사', '한의사', '법의학'
+        ]) or re.search(r'(?:^|\s)검사\s+[가-힣]{2,4}', full_ctx):
+            if mapped_genre in ('무협', '선협', '언정', '스포츠', '공포', '미분류'):
+                return '현판'
 
         # 무협 보장
         if ctx_match(['항마신장', '항마장', '언가군림', '인주란', '군림', '검혼기행', '뇌룡검제', '종무', '국술！대종사', '국술!대종사', '국술', '대종사', '횡추궤괴', '극도무성', '횡추무도', '용상반약공', '고룡세계리적끽과검객', '고룡세계']):
@@ -1101,6 +1120,22 @@ class GenreClassifierAdapter:
             # 이세계/전생/치트/추방 등은 판타지
             if mapped_genre in ['현판', '퓨판'] and any(kw in full_ctx for kw in ['이세계', '異世界', '슬로우라이프', 'スローライフ', '추방', '追放']):
                 return '판타지'
+
+        # 3. 국내 소설 (KR) 규칙: 명시적 [언정] 태그가 없는 한 '언정' 금지
+        elif origin == 'KR':
+            is_explicit_eonjeong = (
+                task.metadata.get('base_primary_genre') == '언정' or
+                bool(re.search(r'[\[【［]언정[\]】］\}]', raw_text))
+            )
+            if mapped_genre == '언정' and not is_explicit_eonjeong:
+                if any(kw in full_ctx for kw in ['코인', '로또', '경험치', '레벨', '시스템', '재벌', '주식', '회사', '직원', '배우', '아이돌', '검사', '형사']):
+                    return '현판'
+                if any(kw in full_ctx for kw in ['과거급제', '조선', '고려']):
+                    return '역사'
+                has_fantasy_rofan = any(kw in full_ctx for kw in ['로판', '대공', '황자', '공작', '황제', '시녀', '후궁', '악역', '남주', '여주', '용', '마법', '빙의', '회귀', '성녀', '영애', '공녀'])
+                if any(kw in full_ctx for kw in ['전남편', '남편', '이혼', '불륜', '결혼']) and not has_fantasy_rofan:
+                    return '로맨스'
+                return '로판'
                 
         return mapped_genre
 
@@ -1150,9 +1185,16 @@ class GenreClassifierAdapter:
             if '시스템' not in traits:
                 traits = ['시스템'] + [t for t in traits if t != '시스템']
 
+        # [사펑]/[사이버펑크] 등 원본 파일명 접두사 태그가 task.title에서 제거되었더라도 특성 추출에 반영
+        raw_ctx = task.metadata.get('original_raw_name') or task.raw_name or ""
+        title_for_traits = f"{raw_ctx} {task.title or raw_text}".strip()
+        if re.search(r'[\[【［]\s*(?:사펑|사이버펑크)\s*[\]】］\}]', raw_ctx, re.IGNORECASE):
+            if '사이버펑크' not in traits:
+                traits = ['사이버펑크'] + [t for t in traits if t != '사이버펑크']
+
         task.genre = NovelTraitExtractor.format_genre_tag(
             primary_genre=primary_g,
-            title=task.title or raw_text,
+            title=title_for_traits,
             existing_keywords=traits
         )
         primary_g, traits = NovelTraitExtractor.parse_existing_tag(task.genre)
@@ -1286,20 +1328,26 @@ class GenreClassifierAdapter:
             source = 'keyword'
             full_override_ctx = f"{raw_text} {title} {foreign_title} {phonetic_title} {translated_title}".strip()
 
-            # [도메인 우선 가드레일] 일반 키워드 오분류(예: 검술->무협, 무신->무협, 진짜->무협, 강함->겜판) 차단
-            if any(kw in full_override_ctx for kw in ('피스트', '펜싱', '에페', '플뢰레', '사브르')):
+            # [도메인 우선 가드레일] 일반 키워드 오분류(예: 검술->무협, 무신->무협, 16세가->무협, 진짜->무협, 강함->겜판) 차단
+            if any(kw in full_override_ctx for kw in ('피스트', '펜싱', '에페', '플뢰레', '사브르', '골대 앞의 거미손')) or re.search(r'(?<![A-Za-z])(?:NBA|MLB|KBO|EPL)(?![A-Za-z])', full_override_ctx, re.IGNORECASE):
                 return {'genre': '스포츠', 'confidence': 0.95, 'source': source}
-            if any(kw in full_override_ctx for kw in ('삼국지', '무신연의', '여포', '조조', '유비', '제갈량', '동탁', '원소', '손책')):
+            if any(kw in full_override_ctx for kw in (
+                '삼국지', '무신연의', '여포', '조조', '유비', '제갈량', '동탁', '원소', '손책',
+                '루이 16세', '루이 14세', '나폴레옹', '히틀러', '비스마르크', '카이사르',
+                '독일 제국', '로마 제국', '미국 남부', '조선 왕자', '고려 무신', '세종대왕', '과거급제'
+            )):
                 return {'genre': '역사', 'confidence': 0.95, 'source': source}
-            if any(kw in full_override_ctx for kw in ('인생모의', '人生模拟')):
+            if any(kw in full_override_ctx for kw in ('인생모의', '人生模拟', '아포칼립스', '멸망한 세계', '멸망한 세상')):
                 return {'genre': '퓨판', 'confidence': 0.95, 'source': source}
-            if any(kw in full_override_ctx for kw in ('진짜 사나이', '협회 직원')):
+            if any(kw in full_override_ctx for kw in ('진짜 사나이', '협회 직원', '코인', '로또', '천재배우', '스캔들 메이커', '감정사')) or re.search(r'(?:^|\s)검사\s+[가-힣]{2,4}', full_override_ctx):
                 return {'genre': '현판', 'confidence': 0.92, 'source': source}
 
             # 범용 노이즈 키워드만 매칭된 저신뢰/오탐 결과 걸러내기
             GENERIC_NOISE_KWS = {
                 '진짜', '너무', '잘함', '강함', '인생', '인생모', '그녀', '우리',
-                '남자', '여자', '세상', '세계', '사람', '이야기', '시작', '최강', '천재'
+                '남자', '여자', '세상', '세계', '사람', '이야기', '시작', '최강', '천재',
+                '주인공', '악역', '왔다', '돌아', '돌아왔다', '절대', '쓰는', '줍는',
+                '먹음', '나를', '원작', '멸망한', '역전', '이혼'
             }
 
             def _extract_reliable_kw_genre(kw_res: Optional[Dict]) -> tuple[str, float]:
@@ -1417,13 +1465,16 @@ class GenreClassifierAdapter:
                     genre = '현판'
                     confidence = 0.88
 
-                # 5. 무협 클리셰
+                # 5. 무협 클리셰 ('16세가', '기세가' 등 비무협 '세가' 제외)
                 elif any(kw in full_ctx for kw in [
-                    '당문', '세가', '악귀나찰', '무인 이곽', '이곽', '일대종사', '멸문', '자객',
+                    '당문', '악귀나찰', '무인 이곽', '이곽', '일대종사', '멸문', '자객',
                     '련무태난', '합성계무사', '북산철벽', '신마경천기', '천하를 쥐다', '난세서', '난세',
                     '항마신장', '항마장', '항마', '군림', '언가군림', '인주란', '제룡', '검혼기행', '뇌룡검제', '종무',
                     '일검', '천라지망'
-                ]):
+                ]) or (
+                    '세가' in full_ctx
+                    and not re.search(r'(?:\d+|기|대|신|전|월|시|연|우|열|만|국|과|면|납|탈)세가', full_ctx)
+                ):
                     genre = '무협'
                     confidence = 0.9
 
